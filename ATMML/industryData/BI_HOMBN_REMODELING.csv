@@ -1,0 +1,103 @@
+NAHB Remodeling Market Index,
+    National,REMONATO Index
+        Current Market Conditions,RMI NATC Index
+            Major Additions & Alterations,REMOALTE Index
+            Minor Additions & Alterations,REMOMIAL Index
+            Maintenance & Repair,REMOREPA Index
+        Future Market Indicators,RMI NATF Index
+            Calls for Bids,REMOBIDS Index
+            Work Committed Next 3 Months,REMOMIAL Index
+            Backlog of Remodeling Jobs,REMOBACK Index
+            Appointments for Proposals,REMOAPPT Index
+Building Materials & Garden Stores (NAICS 444),
+    Sales: Building Materials & Garden Stores,RSBABUIL Index
+    Inventories: Building Materials & Garden Stores,RSRSBUIL Index
+SpendTrend - Same Store Sales Growth,
+    Appliance Stores,DVG APPL Index
+    Floor Covering Stores,DVG FLRC Index
+Home Improvement Expenditures,
+    Household Maintenance,RPCEDHHM Index
+        Domestic Services,RPCEDDMS Index
+        Moving/Storage/Freight,RPCEDMSE Index
+        Other Household Services,RPCEDMHS Index
+        HHLD Appliance Repair,RPCEDERE Index
+        HHLD Furniture/Floor Repairs,RPCEDFRE Index
+    Lighting/Clocks,RPCEDCLF Index
+    Appliances,RPCEDAPP Index
+        Major Appliances,RPCEDMHA Index
+        Small Appliances,RPCEDSEA Index
+    Flowers/Potted Plants,RPCEDFLO Index
+    Floor Coverings,RPCEDFLR Index
+    House Tools,RPCEDTOO Index
+    Hardware,RPCEDHDW Index
+    Window Coverings,RPCEDWCT Index
+    Outdoor Equipment,RPCEDLWN Index
+    Source: Bureau of Economic Analysis,
+Total Construction Spending,cnstprto Index
+    Residential,CNSTPRRE Index
+        Single Family,CNSTPRSF Index
+        Multi Family,CNSTPRMF Index
+        Improvements,CNSTPRHI Index
+    Nonresidential,CNSTPRNR Index
+Retail Store PPI's,
+    Bldg Materials/Garden Stores PPI,RPPIBMGS Index
+    Paint/Wallpaper Stores,RPPIP&WP Index
+    Hardware Stores,RPPIHDWR Index
+    Other Building Materials Stores,RPPIOBMT Index
+    Floor Covering Stores,RPPIFLRC Index
+Housing CPI,
+    Appliances (SA),CPSHAPPL Index
+        NSA,CPRHAPPL Index
+        Major Appliances (NSA),CPRHMAPL Index
+    Outdoor Equipment (SA),CPSHODRE Index
+    Window Coverings (SA),CPSHWNDC Index
+    Tools/Hardware (SA),CPSHTLHW Index
+    Floor Coverings (NSA),CPRHFLRC Index
+Data by Category,
+    Appliances,
+        Appliance Stores Retail Sales,RSAOAPLC Index
+        DG New Orders,DGELHOUS Index
+        DG Shipments,DSELHOUS Index
+        DG Unfilled Orders,DUELHOUS Index
+        DG Inventories,DIELHOUS Index
+        Consumer Expenditures,RPCEDAPP Index
+            Major Appliances,RPCEDMHA Index
+            Small Appliances,RPCEDSEA Index
+        Consumers Planning to Buy (%),CONCAPPL Index
+            Refrigerator,CONCAPRE Index
+            Washing Machine,CONCAPWM Index
+            Clothes Dryer,CONCAPCD Index
+            Oven/Range,CONCAPRG Index
+            Air Conditioner,CONCAPAC Index
+    Architectural Paint,
+        Paint/Wallpaper Stores Retail Sales,RSAOPWPR Index
+        Paint/Wallpaper Stores PPI,RPPIP&WP Index
+        DG Shipments,NDGSPNTS Index
+        DG Inventories,NDGIPNTS Index
+    Flooring,
+        Floor Covering Stores Retail Sales,RSAOFLRC Index
+        Floor Coverings Cons Expenditures,RPCEDFLR Index
+        Floor Covering Stores PPI,RPPIFLRC Index
+        % Planning to Buy Carpet,CONCAPCP Index
+    Lawn & Garden,
+        Lawn & Garden Stores Retail Sales,T06U0010 Index
+        Outdoor Equipment Cons Expenditures,RPCEDLWN Index
+    Lumber & Supplies,
+        Wood Products,
+            DG Inventories,DGINWOOD Index
+            DG Shipments,DGSHWOOD Index
+            Wholesaler Sales - Lumber,MWSLLUMB Index
+            Wholesaler Inv-Lumber,MWINLUMB Index
+        Construction Supplies,
+            DG Shipments,TMISCSTR Index
+            DG Inventories,TMIICSTR Index
+            DG New Orders,TMNOCSTR Index
+            DG Unfilled Orders,TMUOCSTR Index
+    Tools & Hardware,
+        Hardware Stores Retail Sales,RSAOHRDW Index
+        Hardware Stores PPI,RPPIHDWR Index
+        Consumer Expenditures,HOMCTHCE Index
+            House Tools,RPCEDTOO Index
+            Hardware,RPCEDHDW Index
+        Wholesaler Sales - Hardware,MWSLHARD Index
+        Wholesaler Inv-Hardware,MWINHARD Index

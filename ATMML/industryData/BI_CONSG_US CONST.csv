@@ -1,0 +1,205 @@
+        U.S. Housing Starts SAAR ('000 Units),NHSPSTOT Index
+        U.S. New Home Sales SAAR ('000 Units),NHSLTOT Index
+        U.S. New Home Months Supply,NHSLSUPP Index
+        U.S. New Home Median Price ($),NHSLAVSL Index
+        U.S. Existing Home Sales SAAR (M Units),ETSLTOTL Index
+,
+,
+        U.S. Existing Home Sales Months Supply,ETSLMSUP Index
+            Single Family Months Supply,EHSLMSUP Index
+            Multi-Family Months Supply,ECSLMSUP Index
+        U.S. Existing Home Median Price ($),ETSLMP Index
+        NAHB Market Index,USHBMIDX Index
+        U.S. Mortgage Rates,
+            Mtg Bankers 30 Yr FR Mtg,MB30 Index
+            Bankrate.com 30 Yr Mtg,ILM3NAVG Index
+            Freddie Mac 30yr FR Mtg,NMCMFUS Index
+            10 Yr US Govt Yield,USGG10YR Index
+            Bankrate.com 30 Yr Jumbo,ILMJNAVG Index
+            Bankrate 3/1 ARM,ILMRNAVG Index
+            Bankrate 5/1 ARM,ILM5NAVG Index
+            Bankrate 7/1 ARM,ILM7NAVG Index
+        ,
+        U.S. Constant Quality House Price Index (2005=100),CQHPINDX Index
+            YoY %,CQHPYOY Index
+        Homebuyer Affordability Index,AFFDCMOM Index
+        Home Ownership Rate,HOWNRATE Index
+        ,
+        National Association of Homebuilder Sentiment Index,USHBMIDX Index
+    Homebuilder Confidence:,
+        National Housing Market Index,USHBMIDX Index
+            by Category,
+                Present Sales,USHBPRSS Index
+                Future Sales,USHBFUTS Index
+                Buyer Traffic,USHBTRAF Index
+            by Region,
+                South,USHBSOMK Index
+                West,USHBWEMK Index
+                Midwest,USHBMWMK Index
+                Northeast,USHBNEMK Index
+        55+ Housing Market Index,
+            Multifamily Rental,
+    ,
+    New Residential Construction:,
+        Building Permits SAAR (000's),NHSPATOT Index
+            Seasonally Adjusted,
+                by Structure,
+                    Single-Family,NHSPA1 Index
+"                        Top Public Builder Markets - Charleston, SC",NH1UCHSC Index
+                    Multifamily,NHSPAM Index
+                by Region,
+            Top 50 MSA's NSA,
+        Building Permits (MoM),NHCHATCH Index
+        Building Permits (YoY),NHSPATY% Index
+        ,
+        Housing Starts SAAR (000's),NHSPSTOT Index
+            by Structure,
+                Single-family,NHSPS1 Index
+                Multifamily,NHSPSM Index
+            by Region,
+        Housing Starts (MoM),NHCHSTCH Index
+        Housing Starts (YoY),NHSPSTY% Index
+        ,
+        New Homes Under Construction,HUUCTOT Index
+            Single Family,HUUC1UNT Index
+                by Region,
+                    Northeast,HUUCNE1 Index
+                    Midwest,HUUCMW1 Index
+                    South,HUUCSTH1 Index
+                    West,HUUCWE1 Index
+            Multifamily,HUUCMULT Index
+        New Home Completions SAAR (000's),PHUCTOT Index
+            Single-Family,PHUC1UT Index
+                South,PHUCSTH1 Index
+                West,PHUCWE1 Index
+                Midwest,PHUCMW1 Index
+                Northeast,PHUCNE1 Index
+            Multifamily,
+    ,
+    New Residential Sales:,
+        New Home Sales SAAR (000's),NHSLTOT Index
+            by Region,
+                South,NHSLSO Index
+                West,NHSLWE Index
+                Midwest,NHSLMW Index
+                Northeast,NHSLNE Index
+        New Home Sales (MoM),NHSLCHNG Index
+        New Home Sales (YoY),NHSLYOY Index
+        ,
+        New Home Inventory (000's),NHSLNFS Index
+            Months' Supply,NHSLSUPP Index
+        New Home Prices,
+            Median Sales Price,NHSLAVSL Index
+                Northeast,NHSLMDNE Index
+                West,NHSLMDWE Index
+                Midwest,NHSLMDMW Index
+                South,NHSLMDSO Index
+            Average Sales Price,NHSLAVPL Index
+                Northeast,NHSLAVNE Index
+                West,NHSLAVWE Index
+                Midwest,NHSLAVMW Index
+                South,NHSLAVSO Index
+    Construction Spending & Lending:,
+        Residential Construction Spending,CNSTPRRE Index
+            New Single-Family,CNSTPRSF Index
+            New Multifamily,CNSTPRMF Index
+            Improvements,CNSTPRHI Index
+        Construction & Land Development Loans,REPFTOCD Index
+            1-4 Family Residential,REPFTORC Index
+            Other Construction,REPFTOOC Index
+    ,
+    S&P/Case-Shiller,
+        Seasonally Adjusted,SPCS20SA Index
+        Not Seasonally Adjusted,SPCS20 Index
+            S&P/Case-Shiller 20 City Composite (MoM),SPCS20M% Index
+            S&P/Case-Shiller 20 City Composite (YoY),SPCS20Y% Index
+    Affordability:,
+        NAR Housing Affordability,AFFDCMOM Index
+            by Region,
+                Northeast,AFFDNECO Index
+                Midwest,AFFDMWCO Index
+                South,AFFDSOCO Index
+                West,AFFDWTCO Index
+        NAR Housing Affordability: 1st-Time Buyers,HOMEAFFR Index
+        JBREC Housing Affordability - Home Price-to-Income - Region & MSA - Southern California - Riverside-San Bernadino,PIROCASB Index
+        Owning vs. Renting - Monthly Home Payment,.PI+PRPTX G Index
+    Regional Level Housing Data:,
+        Northeast,
+            Homebuilder Confidence,USHBNEMK Index
+            ,
+            New Home Sales,NHSLNE Index
+            New Home Median Price,NHSLMDNE Index
+            ,
+            Existing Home Sales,ETSLNE Index
+            Existing Home Median Price,ETSLMPNE Index
+            ,
+            Building Permits,NHSPANE Index
+                Single-Family,NHSPANE1 Index
+                Mutli-Family,
+            ,
+            Housing Starts,NHSPSNE Index
+                Single-Family,NHSPSNE1 Index
+                Mutli-Family,
+            ,
+            Housing Completions,PHUCNE Index
+                Single-Family,PHUCNE1 Index
+                Mutli-Family,
+        West,
+            Homebuilder Confidence,USHBWEMK Index
+            ,
+            New Home Sales,NHSLWE Index
+            New Home Median Price,NHSLMDWE Index
+            ,
+            Existing Home Sales,ETSLWE Index
+            Existing Home Median Price,ETSLMPWE Index
+            ,
+            Building Permits,NHSPAWE Index
+                Single-Family,NHSPAWE1 Index
+                Mutli-Family,
+            ,
+            Housing Starts,NHSPSWE Index
+                Single-Family,NHSPSWE1 Index
+                Mutli-Family,
+            ,
+            Housing Completions,PHUCWE Index
+                Single-Family,PHUCWE1 Index
+            ,
+        South,
+            Homebuilder Confidence,USHBSOMK Index
+            ,
+            New Home Sales,NHSLSO Index
+            New Home Median Price,NHSLMDSO Index
+            ,
+            Existing Home Sales,ETSLSO Index
+            Existing Home Median Price,ETSLMPSO Index
+            ,
+            Building Permits,NHSPASO Index
+                Single-Family,NHSPASO1 Index
+                Mutli-Family,
+            ,
+            Housing Starts,NHSPSSO Index
+                Single-Family,NHSPSSO1 Index
+                Mutli-Family,
+            ,
+            Housing Completions,PHUCNE Index
+            ,
+        Midwest,
+            Homebuilder Confidence,USHBMWMK Index
+            ,
+            New Home Sales,NHSLMW Index
+            New Home Median Price,NHSLMDMW Index
+            ,
+            Existing Home Sales,ETSLMW Index
+            Existing Home Median Price,ETSLMPMW Index
+            ,
+            Building Permits,NHSPAMW Index
+                Single-Family,NHSPAMW1 Index
+                Mutli-Family,
+            ,
+            Housing Starts,NHSPSMW Index
+                Single-Family,NHSPSMW1 Index
+                Mutli-Family,
+            ,
+            Housing Completions,PHUCMW Index
+                Single-Family,PHUCMW1 Index
+                Mutli-Family,

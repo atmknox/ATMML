@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<AppInstaller
+	Uri="http://atmstudies.com/appmsix/MSIX.appinstaller"
+	Version="1.0.2.0" xmlns="http://schemas.microsoft.com/appx/appinstaller/2017/2">
+	<MainBundle
+		Name="8b372f93-7d83-4ef7-9ba6-b90d1073e4a0"
+		Version="1.0.2.0"
+		Publisher="CN=ATM"
+		Uri="http://atmstudies.com/appmsix/MSIX_1.0.2.0_Debug_Test/MSIX_1.0.2.0_x64_Debug.msixbundle" />
+	<UpdateSettings>
+		<OnLaunch
+			HoursBetweenUpdateChecks="0" />
+	</UpdateSettings>
+</AppInstaller>
