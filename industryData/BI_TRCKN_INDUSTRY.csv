@@ -1,0 +1,111 @@
+   Cass Freight Expenditures,CASSEXPN Index
+   Cass Freight Shipments,CASSSHIP Index
+   Cass Intermodal Linehaul,CILHHAUL Index
+Cont PX         Asia | NA,CSHPANAR Index
+Cont PX         S | Cen America | NA,CSHPCNAR Index
+Cont PX         Europe | NA,CSHPENAR Index
+Cont PX         Indian Sub Cont | ME | NA,CSHPINAR Index
+Cont PX         NA | Asia,CSHPNASR Index
+Cont PX         NA | Australasia | Oceania,CSHPNAUO Index
+Cont PX         NA | Europe,CSHPNEUR Index
+Cont PX         NA | Indian Sub Cont | ME,CSHPNIME Index
+Cont PX        NA | NA,CSHPNNAR Index
+Cont PX         NA | S | Cen America,CSHPNSCA Index
+Cont PX         NA | Sub Sahar Africa,CSHPNSSA Index
+Cont PX         Australasia | Oceania | NA,CSHPONAR Index
+Cont PX         Sub Sahar Africa | NA,CSHPSNAR Index
+Cont Vol         Asia | NA,CSHVANAR Index
+Cont Vol         S | Cen America | NA,CSHVCNAR Index
+Cont Vol         Europe | NA,CSHVENAR Index
+Cont Vol         Indian Sub Cont | ME | NA,CSHVINAR Index
+Cont Vol         NA | Asia,CSHVNASR Index
+Cont Vol         NA | Australasia | Oceania,CSHVNAUO Index
+Cont Vol         NA | Europe,CSHVNEUR Index
+Cont Vol         NA | Indian Sub Cont | ME,CSHVNIME Index
+Cont Vol         NA | NA,CSHVNNAR Index
+Cont Vol         NA | S | Cen America,CSHVNSCA Index
+Cont Vol         NA | Sub Sahar Africa,CSHVNSSA Index
+Cont Vol         Australasia | Oceania | NA,CSHVONAR Index
+Cont Vol         Sub Sahar Africa | NA,CSHVSNAR Index
+   Cass Truckload Linehaul,CTRINDEX Index
+Shippings     Drewry Hong Kong | LA Cont,DRCRRATE Index
+DOT Freight Transportation ServicesDTSIFRET Index,DTSIFRET Index
+Intermodal     Eastern OB ,ESCTECOT Index
+Intermodal     Top 12 | Lane AverageITFL12LA Index,ITFL12LA Index
+Intermodal     Top 18 | Lane AverageITFL18LA Index,ITFL18LA Index
+Intermodal     Atlanta | ChicagoITFLAGCI Index,ITFLAGCI Index
+Intermodal     Atlanta | LAITFLAGLC Index,ITFLAGLC Index
+Intermodal     Chicago | AtlantaITFLCIAG Index,ITFLCIAG Index
+Intermodal     Chicago | DallasITFLCIDT Index,ITFLCIDT Index
+Intermodal     Chicago | LAITFLCILC Index,ITFLCILC Index
+Intermodal     Chicago | LindenITFLCILN Index,ITFLCILN Index
+Intermodal     Chicago | OaklandITFLCIOC Index,ITFLCIOC Index
+Intermodal     Chicago | SeattleITFLCISW Index,ITFLCISW Index
+Intermodal     Dallas | ChicagoITFLDTCI Index,ITFLDTCI Index
+Intermodal     Dallas | LAITFLDTLC Index,ITFLDTLC Index
+Intermodal     Weighted Reg VolITFLIANA Index,ITFLIANA Index
+Intermodal     LA | AtlantaITFLLCAG Index,ITFLLCAG Index
+Intermodal     LA | ChicagoITFLLCCI Index,ITFLLCCI Index
+Intermodal     LA | DallasITFLLCDT Index,ITFLLCDT Index
+Intermodal     LA | LindenITFLLCLN Index,ITFLLCLN Index
+Intermodal     Linden | ChicagoITFLLNCI Index,ITFLLNCI Index
+Intermodal     Linden | LAITFLLNLC Index,ITFLLNLC Index
+Intermodal     Oakland | ChicagoITFLOCCI Index,ITFLOCCI Index
+Intermodal     Seattle | ChicagoITFLSWCI Index,ITFLSWCI Index
+        Port LA Empty Conts ,LALBLAEM Index
+        Port LA Loaded Cont EX  ,LALBLAEX Index
+       Port LA Loaded Cont IM ,LALBLAIM Index
+      Long Beach  Empty Cont,LALBLBEM Index
+       Long Beach  Loaded OB Cont ,LALBLBEX Index
+        Long Beach Loaded Inbound Cont,LALBLBIM Index
+Intermodal     Mountain Central OB ,MTCTMCOT Index
+Intermodal     Midwest OB ,MWITMWOT Index
+Intermodal     Northeast OB ,NESTNEOT Index
+Intermodal     Northwest OB ,NWITNWOT Index
+    Port Charleston ,POCHTOTL Index
+    Port NY NJ,PONYTOTL Index
+    Port Oakland ,POOKTOTL Index
+    Port Savannah ,POSATOTL Index
+    Port Seattle ,POSETOTL Index
+    Port Tacoma ,POTWTOTL Index
+    Port Virginia ,POVATOTL Index
+    Port Prince Rupert ,PRPSTTTE Index
+    Port Vancouver ,PVANTOTL Index
+Intermodal     South Central OB ,SHCTSCOT Index
+Intermodal     Southeast OB ,STETSEOT Index
+Intermodal     Southwest OB Intermodal ,STWTSWOT Index
+    Port Houston ,TEUHTOTL Index
+    FTR Dry Van Loadings,TKLODVLD Index
+    Class 8 Backlog|Build TKMIBBRT Index,TKMIBBRT Index
+       Class 8  BacklogTKMIBKLG Index,TKMIBKLG Index
+        Class 8 BuildTKMIBULD Index,TKMIBULD Index
+       Class 8 CancellationsTKMICNCL Index,TKMICNCL Index
+    Class 8 Factory ShipmentsTKMIFCSP Index,TKMIFCSP Index
+        Class 8 InventoryTKMIINVT Index,TKMIINVT Index
+   Class 8  Inv|Retail Sales TKMIIRSR Index,TKMIIRSR Index
+    Class 8 Net OrdersTKMINTOR Index,TKMINTOR Index
+       Class 8  New OrdersTKMINWOD Index,TKMINWOD Index
+        Class 8 Retail SalesTKMIRTSL Index,TKMIRTSL Index
+   FTR Trucking Conditions,TRCDCDIX Index
+   FTR  Truck Loading,TRCDLDIX Index
+    FTR Truck Driver Pressure,TRCDSHSR Index
+   FTR  Active Truck Util,TRCDUTLZ Index
+        US Surface Truck EXP,TRCMCSTE Index
+        US Surface Truck IM,TRCMCSTI Index
+        US Surface Truck EX | MX,TRCMMSTE Index
+        US Surface Truck IM | MX,TRCMMSTI Index
+ATA  Truck Tonnage NSA,TTINNSAV Index
+    ATA Truck Tonnage SA,TTINSATV Index
+    ATA Intermodal Load NSA,USTTIMLN Index
+   ATA  Intermodal Load SA,USTTIMLS Index
+   ATA  Intermodal REV NSA,USTTIMRN Index
+   ATA  Intermodal REV SA,USTTIMRS Index
+   ATA  Intermodal REV|Load NSA,USTTIRLN Index
+   ATA Intermodal REV|Load SA,USTTIRLS Index
+Shippings     WCI Freight Composite,WCIDCOMP Index
+Shippings     WCI LA | Shanghai Cont,WCIDLASH Index
+Shippings     WCI New York | Rotterdam Cont,WCIDNYRO Index
+Shippings     WCI Rotterdam | New York Cont,WCIDRONY Index
+Shippings     WCI Shanghai | LA Cont,WCIDSHLA Index
+Shippings     WCI Shanghai | New York Cont,WCIDSHNY Index
+Intermodal     Western OB ,WCITWCOT Index

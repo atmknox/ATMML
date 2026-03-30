@@ -1,0 +1,131 @@
+﻿<UserControl x:Class="ATMML.PortfolioGroup"
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:local="clr-namespace:ATMML"
+                xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                x:Name="PortBuilder"
+                Background="{x:Null}"
+                mc:Ignorable="d">
+
+    <ContentControl.Resources>
+        <Canvas x:Key="Logo" Width="162" Height="72" Margin="4,2,160,85">
+            <Path Data="F1 M 152.368,56.080 L 142.873,69.656 L 161.778,69.656 L 152.368,56.080 L 152.368,56.080 Z" Fill="#FFBC0031" />
+            <Path Data="F1 M 130.920,38.162 L 102.819,38.162 C 94.270,38.162 89.569,41.112 87.569,48.612 L 82.119,69.362 C 82.020,69.662 82.220,69.912 82.470,69.912 L 92.470,69.912 C 92.770,69.912 93.020,69.712 93.119,69.362 L 98.420,49.112 C 99.520,45.012 101.119,44.462 104.369,44.462 L 105.369,44.462 C 108.520,44.462 109.819,45.012 108.720,49.112 L 103.420,69.362 C 103.319,69.662 103.520,69.912 103.770,69.912 L 113.270,69.912 C 113.569,69.912 113.819,69.712 113.920,69.362 L 119.220,49.112 C 120.319,45.012 121.869,44.462 125.069,44.462 L 126.069,44.462 C 129.270,44.462 130.619,45.063 129.520,49.112 L 124.220,69.362 C 124.119,69.712 124.270,69.912 124.569,69.912 L 134.569,69.912 C 134.869,69.912 135.119,69.712 135.220,69.362 L 140.670,48.612 C 142.619,41.112 139.470,38.162 130.920,38.162 L 130.920,38.162 Z M 71.470,49.212 C 72.270,46.212 73.569,45.212 76.569,45.212 L 84.220,45.212 C 84.520,45.212 84.770,45.012 84.869,44.662 L 86.220,39.462 C 86.319,39.162 86.119,38.912 85.869,38.912 L 51.470,38.912 C 51.169,38.912 50.919,39.112 50.819,39.462 L 49.470,44.662 C 49.370,44.962 49.569,45.212 49.819,45.212 L 57.470,45.212 C 60.470,45.212 61.270,46.212 60.470,49.212 L 55.169,69.362 C 55.069,69.662 55.270,69.912 55.520,69.912 L 65.520,69.912 C 65.819,69.912 66.069,69.712 66.169,69.362 L 71.470,49.212 L 71.470,49.212 Z M 29.270,52.462 L 20.569,52.462 C 17.569,52.462 16.919,50.962 17.620,48.412 L 17.669,48.212 C 18.370,45.662 19.720,44.212 22.720,44.212 L 31.419,44.212 C 34.419,44.212 35.220,45.612 34.569,48.262 L 34.520,48.462 C 33.819,51.212 32.270,52.462 29.270,52.462 L 29.270,52.462 Z M 6.770,49.462 L 1.520,69.412 C 1.419,69.712 1.620,69.912 1.870,69.912 L 11.620,69.912 C 11.970,69.912 12.169,69.712 12.270,69.412 L 14.020,62.712 C 14.770,59.862 16.220,58.512 18.970,58.512 L 27.669,58.512 C 30.470,58.512 31.220,59.862 30.470,62.712 L 28.720,69.412 C 28.620,69.712 28.770,69.912 29.069,69.912 L 39.069,69.912 C 39.370,69.912 39.620,69.762 39.720,69.412 L 44.970,49.462 C 47.270,40.762 44.720,38.162 32.669,38.162 L 25.319,38.162 C 11.669,38.162 8.819,41.612 6.770,49.462 L 6.770,49.462 Z">
+                <Path.Fill>
+                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                        <GradientStop Offset="1" Color="DimGray" />
+                        <GradientStop Offset="0" Color="White" />
+                    </LinearGradientBrush>
+                </Path.Fill>
+            </Path>
+            <Path Data="F1 M 68.174,26.412 L 73.499,18.312 L 62.901,18.312 L 68.174,26.412 L 68.174,26.412 Z" Fill="#ff000000" />
+        </Canvas>
+
+        <Style x:Key="{x:Type ToolTip}" TargetType="{x:Type ToolTip}">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Background" Value="Black" />
+            <Setter Property="Foreground" Value="WhiteSmoke" />
+        </Style>
+    </ContentControl.Resources>
+
+    <Viewbox Stretch="Fill">
+
+        <Grid Background="Black">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30" />
+                <RowDefinition Height="35" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="50" />
+                <ColumnDefinition Width="50" />
+                <ColumnDefinition Width="50" />
+                <ColumnDefinition Width="50" />
+                <ColumnDefinition Width="50" />
+                <ColumnDefinition Width="50" />
+
+            </Grid.ColumnDefinitions>
+            <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="6" Margin="0,0,0,0"
+                HorizontalAlignment="Left" VerticalAlignment="Center" Background="Transparent" Content="Entry | Exit Signals"
+                FontFamily="Helvetica Neue" FontSize="12" FontWeight="Normal" Foreground="#FFFF8C00"
+                Visibility="Visible" />
+            <RadioButton x:Name="LongOnly" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6"
+                Margin="5,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Background="White"
+                Content="LONG ONLY" Cursor="Hand" FlowDirection="RightToLeft" FontFamily="Helvetica Neue"
+                FontSize="12" FontWeight="Normal" Foreground="White" GroupName="PositionDirection"
+                IsChecked="False" Visibility="Visible" />
+
+             <RadioButton x:Name="ShortOnly" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6"
+                Margin="0,10,5,0" HorizontalAlignment="Center" VerticalAlignment="Center" Background="White"
+                Content="SHORT ONLY" Cursor="Hand" FlowDirection="RightToLeft" FontFamily="Helvetica Neue"
+                FontSize="12" FontWeight="Normal" Foreground="White" GroupName="PositionDirection"
+                IsChecked="False" Visibility="Visible" />
+
+            <RadioButton x:Name="LongShort" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6"
+                Margin="0,10,0,0" HorizontalAlignment="Right" VerticalAlignment="Center" Background="White"
+                Content="LONG | SHORT" Cursor="Hand" FlowDirection="RightToLeft" FontFamily="Helvetica Neue"
+                FontSize="12" FontWeight="Normal" Foreground="White" GroupName="PositionDirection"
+                IsChecked="True" Visibility="Visible" />
+            
+            <RadioButton Name="UseMTNToff" Grid.Row="2" Grid.Column="0" Margin="2,5,0,0"   Padding="5,0,0,0"  Grid.ColumnSpan="2" Content="OFF" 
+                         HorizontalAlignment="Left" VerticalAlignment="Center" Background="White" BorderBrush="Transparent"
+                         Cursor="Hand" FlowDirection="LeftToRight" FontSize="12"
+                         Foreground="White" IsChecked="False" GroupName="mtnt" Unchecked="UseATM_Unchecked">
+                <RadioButton.Resources>
+                    <Style TargetType="{x:Type Path}">
+                        <Setter Property="FlowDirection" Value="LeftToRight" />
+                    </Style>
+                </RadioButton.Resources>
+            </RadioButton>
+
+            <RadioButton Name="UseMTNT" Grid.Row="2" Grid.Column="1" Margin="0,5,0,0"  Padding="5,0,0,0"  Grid.ColumnSpan="2" Content="MT NT" 
+                          HorizontalAlignment="Left" VerticalAlignment="Center" Background="White" BorderBrush="Transparent"
+                          Cursor="Hand" FlowDirection="LeftToRight" FontSize="12"
+                          Foreground="White" IsChecked="False" GroupName="mtnt" Unchecked="UseATM_Unchecked">
+                <RadioButton.Resources>
+                    <Style TargetType="{x:Type Path}">
+                        <Setter Property="FlowDirection" Value="LeftToRight" />
+                    </Style>
+                </RadioButton.Resources>
+            </RadioButton>
+
+            <RadioButton Name="UseNTPlus1" Grid.Row="2" Grid.Column="2" Margin="10,5,0,0"  Padding="5,0,0,0"  Grid.ColumnSpan="12" Content="MT NT 1" 
+                          HorizontalAlignment="Left" VerticalAlignment="Center" Background="White" BorderBrush="Transparent"
+                          Checked="UseATM_Checked" Cursor="Hand" FlowDirection="LeftToRight" FontSize="11" GroupName="mtnt"
+                          Foreground="White" IsChecked="True" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"  Unchecked="UseATM_Unchecked">
+                <RadioButton.Resources>
+                    <Style TargetType="{x:Type Path}">
+                        <Setter Property="FlowDirection" Value="LeftToRight" />
+                    </Style>
+                </RadioButton.Resources>
+            </RadioButton>
+
+            <RadioButton Name="UseMTSecNT" Grid.Row="2" Grid.Column="3" Margin="55,5,0,5"  Padding="5,0,0,0"  Grid.ColumnSpan="3" Content="S MT NT1" 
+                          HorizontalAlignment="Left" VerticalAlignment="Center" Background="White" BorderBrush="Transparent"
+                          Cursor="Hand" FlowDirection="LeftToRight" FontSize="11"
+                          Foreground="White" IsChecked="False" GroupName="mtnt"  Unchecked="UseATM_Unchecked">
+                <RadioButton.Resources>
+                    <Style TargetType="{x:Type Path}">
+                        <Setter Property="FlowDirection" Value="LeftToRight" />
+                    </Style>
+                </RadioButton.Resources>
+            </RadioButton>
+
+        </Grid>
+    </Viewbox>
+    </UserControl>

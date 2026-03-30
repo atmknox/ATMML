@@ -1,0 +1,176 @@
+    FW Dodge Construction Index,DODGINDX Index
+    US Construction Spending Monthly ($m),
+    U.S. Total Construction Spending (NSA),CNNSTOTA Index
+        U.S. Total Residential Construction Spending,CNNSRESI Index
+        U.S. Total Non-Residential Construction Spending,CNNSNRES Index
+            Lodging,CNNSLODG Index
+            Office,CNNSOFFI Index
+            Commercial,CNNSCOMM Index
+            Health Care,CNNSHCAR Index
+            Educational,CNNSEDUC Index
+            Religious,CNNSRELI Index
+            Public Safety,CNNSSAFE Index
+            Amusement and Recreation,CNNSAREC Index
+            Transportation,CNNSTRAN Index
+            Communication,CNNSCOMU Index
+            Power,CNNSPOWE Index
+            Highway & Street,CNNSHIST Index
+            Sewage and Waste Disposal,CNNSSEWD Index
+            Water Supply,CNNSWASU Index
+            Conservation and Development,CNNSCODV Index
+            Manufacturing,CNNSMANU Index
+    U.S. Total Private Construction Spending (NSA),CNNSPRTO Index
+        U.S. Total Private Residential Construction Spending (NSA),CNNSPRRE Index
+        U.S. Total Private Non-Res Construction Spending (NSA),CNNSPRNR Index
+            Lodging,CNNSPRLO Index
+            Office,CNNSPROF Index
+            Commercial,CNNSPRCO Index
+            Health Care,CNNSPRHC Index
+            Educational,CNNSPRED Index
+            Religious,CNNSPRRS Index
+            Amusement and Recreation,CNNSPRAR Index
+            Transportation,CNNSPRTR Index
+            Communication,CNNSPRCM Index
+            Power,CNNSPRPO Index
+            Manufacturing,CNNSPRMA Index
+    U.S. Total Public Construction Spending (NSA),CNNSPUTO Index
+        U.S. Total Public Residential  Construction Spending (NSA),CNNSPURE Index
+        U.S. Total Public Non-Res  Construction Spending (NSA),CNNSPUNR Index
+            Office,CNNSPUOF Index
+            Commercial,CNNSPUCO Index
+            Health Care,CNNSPUHC Index
+            Educational,CNNSPUED Index
+            Public Safety,CNNSPUSA Index
+            Amusement and Recreation,CNNSPUAR Index
+            Transportation,CNNSPUTR Index
+            Power,CNNSPUPO Index
+            Highway & Street,CNNSPUHI Index
+            Sewage and Waste Disposal,CNNSPUSE Index
+            Water Supply,CNNSPUWA Index
+            Conservation and Development,CNNSPUCN Index
+    US Construction Spending SAAR ($m),
+    U.S. Total Construction Spending (SAAR),CNSTTOTA Index
+        U.S. Total Residential Construction Spending,CNSTRESI Index
+        U.S. Total Non-Residential Construction Spending,CNSTNRES Index
+            Lodging,CNSTLODG Index
+            Office,CNNSOFFI Index
+            Commercial,CNSTCOMM Index
+            Health Care,CNSTHCAR Index
+            Educational,CNSTEDUC Index
+            Religious,CNSTRELI Index
+            Public Safety,CNSTSAFE Index
+            Amusement and Recreation,CNSTAREC Index
+            Transportation,CNSTTRAN Index
+            Communication,CNSTCOMU Index
+            Power,CNSTPOWE Index
+            Highway & Street,CNSTHIST Index
+            Sewage and Waste Disposal,CNSTSEWD Index
+            Water Supply,CNSTWASU Index
+            Conservation and Development,CNSTCODV Index
+            Manufacturing,CNSTMANU Index
+    U.S. Total Private Construction Spending (SAAR),CNSTPRTO Index
+        U.S. Total Private Residential Construction Spending (NSA),CNSTPRRE Index
+        U.S. Total Private Non-Res Construction Spending (NSA),CNSTPRNR Index
+            Lodging,CNSTPRLO Index
+            Office,CNSTPROF Index
+            Commercial,CNSTPRCO Index
+            Health Care,CNSTPRHC Index
+            Educational,CNSTPRED Index
+            Religious,CNSTPRRS Index
+            Amusement and Recreation,CNSTPRAR Index
+            Transportation,CNSTPRTR Index
+            Communication,CNSTPRCM Index
+            Power,CNSTPRPO Index
+            Manufacturing,CNSTPRMA Index
+    U.S. Total Public Construction Spending (SAAR),CNSTPUTO Index
+        U.S. Total Public Residential  Construction Spending (NSA),CNSTPURE Index
+        U.S. Total Public Non-Res  Construction Spending (NSA),CNSTPUNR Index
+            Office,CNSTPUOF Index
+            Commercial,CNSTPUCO Index
+            Health Care,CNSTPUHC Index
+            Educational,CNNSPUED Index
+            Public Safety,CNSTPUSA Index
+            Amusement and Recreation,CNSTPUAR Index
+            Transportation,CNSTPUTR Index
+            Power,CNSTPUPO Index
+            Highway & Street,CNSTPUHI Index
+            Sewage and Waste Disposal,CNSTPUSE Index
+            Water Supply,CNSTPUWA Index
+            Conservation and Development,CNSTPUCN Index
+    ,
+    U.S. Construction Spending Total YoY%,CNSTTYOY Index
+        U.S. Non-Res Construction Spending YoY%,CNSTNROY Index
+        U.S. Residential Construction Spending YoY%,CNSTRYOY Index
+    U.S. Construction Spending Total MoM%,CNSTTMOM Index
+        U.S. Non Res Construction Spending MoM%,CNSTNROM Index
+    ,
+    Total Fed. Constr. Put in Place (Mn USD),FED1TOFC Index
+        Fed. Highway Construction (Mn USD),FED1HWAY Index
+        Fed. Power Construction (Mn USD),FED1POWR Index
+        Fed. Transport Construction (Mn USD),FED1TRAN Index
+        Fed. Commercial Facilit. Construction (Mn USD),FED1COMM Index
+        Fed. Residential Construction (Mn USD),FED1RESI Index
+        Fed. Non-Residential Construction (Mn USD),FED1NRES Index
+        Fed. Office Construction (Mn USD),FED1OFFI Index
+        Fed. Healthcare Construction (Mn USD),FED1HCAR Index
+        Fed. Education Facilit. Construction (Mn USD),FED1EDUC Index
+        Fed. Conservation & Development Construction (Mn USD),FED1CONS Index
+        Fed. Public Safety Construction (Mn USD),FED1PSAF Index
+    ,
+    U.S. Transportation Construction,
+    US Transportation Awards ($ Value),
+        Airports,RTBAAAVD Index
+        Bridge & Tunnel,RTBABTVD Index
+"        Docks, Piers & Wharves",RTBADPVD Index
+        Highways,RTBAHWVD Index
+        Railways,RTBARAVD Index
+    ,
+    US Transportation Awards (Number),
+        Airports,RTBAAANU Index
+        Bridge & Tunnel,RTBABTNU Index
+"        Docks, Piers & Wharves",RTBADPNU Index
+        Highways,RTBAHWNU Index
+        Railways,RTBARANU Index
+    ,
+    US Transportation Spending,RTBATSTO Index
+        Land Transportation,RTBALTSP Index
+            Highways & Streets,RTBALTHS Index
+                Pavement,RTBALTPA Index
+                Bridges & Tunnels,RTBAHSBT Index
+                Other,RTBALTOT Index
+            Mass Transit,RTBALTTT Index
+                Subway & Light Rail,RTBALTSL Index
+                Railroad,RTBASMTR Index
+            Terminals,RTBALTST Index
+            Vehicle Service,RTBASVSE Index
+        Air Transportation,RTBAATSP Index
+            Terminals,RTBASPTE Index
+            Runways,RTBAATRY Index
+            Other,RTBAATOT Index
+        Water Transportation,RTBAWTSP Index
+"            Docks, Piers, Wharfs",RTBAWTDW Index
+            Terminals,RTBAWTST Index
+    ,
+    US Highway Obligations (Fiscal Year Ends September),
+        Monthly Highway Obligations,RTBAMONT Index
+        Fiscal YTD,RTBAYEAR Index
+Canada,
+    Permits,
+        Canada Total Permits (Mn CAD),CAHOPTOT Index
+            MoM %,CAHOMOM Index
+            YoY %,CAHOYOY% Index
+        Residential Permits (Mn CAD),CAHOPRES Index
+        Non-Residential Permits (Mn CAD),CAHONRES Index
+    ,
+    Housing Starts,
+        Canada Total Housing New Starts SAAR (000's),CAHSTOTL Index
+            MoM %,CAHSSMOM Index
+        New Starts - Urban Area SAAR (000's),CAHSURBA Index
+            Urban Area - Single Family SAAR (000's),CAHSURBS Index
+            Urban Area - Multi Family SAAR (000's),CAHSURBM Index
+        New Starts - Rural Area SAAR (000's),CAHSRUAL Index
+    ,
+    Canada New Housing Price Index,CAHUPI Index
+        MoM %,CAHUMOM Index
+        YoY %,CAHUYOY Index
+    Canada Affordability Two Storey Houses,CANH2S Index
