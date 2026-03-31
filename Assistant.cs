@@ -30,7 +30,7 @@ namespace ATMML
 				{
 					_client = new HttpClient();
 
-					var apiKey = "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";
+					var apiKey = "YOUR_OPENAI_API_KEY_HERE";
 					_client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 					_client.DefaultRequestHeaders.Add("OpenAI-Beta", "assistants=v2");
 
@@ -95,7 +95,7 @@ namespace ATMML
 				var x = data4.data.SelectMany(cm => cm.content.Select(c => c.text.value)).ToList();
 				var message = string.Join("\n", x);
 				if (message.Length == 0) message = "No suggestion.";
-				
+
 				OnAssistantEvent(new AssistantEventArgs(AssistantEventType.Message, message));
 			}
 			catch (Exception)

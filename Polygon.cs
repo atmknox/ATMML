@@ -14,7 +14,7 @@ namespace ATMML
 {
 	public class PolygonData
 	{
-		private const string polygonKey = "5xLFKQIB6kmckPnh1NepGAez1pjn1kGP";
+		private const string polygonKey = "YOUR_POLYGON_API_KEY_HERE";
 		private const string CacheBasePath = @"C:\Users\Public\Documents\ATMML\Polygon";
 		private object polygonLock = new object();
 		public event BarEventHandler BarChanged;
