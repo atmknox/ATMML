@@ -1290,9 +1290,9 @@ namespace ATMML
 
 				if (totalInvestment != 0 && portfolioBalance > 0)
 				{
-					sectorPercents.Keys.ToList().ForEach(k => sectorPercents[k] = sectorInvestments.ContainsKey(k) && !double.IsNaN(sectorInvestments[k]) ? Math.Abs(sectorInvestments[k] / portfolioBalance).ToString(".00%") : "");
-					industryPercents.Keys.ToList().ForEach(k => industryPercents[k] = industryInvestments.ContainsKey(k) && !double.IsNaN(industryInvestments[k]) ? Math.Abs(industryInvestments[k] / portfolioBalance).ToString(".00%") : "");
-					subIndustryPercents.Keys.ToList().ForEach(k => subIndustryPercents[k] = subIndustryInvestments.ContainsKey(k) && !double.IsNaN(subIndustryInvestments[k]) ? Math.Abs(subIndustryInvestments[k] / portfolioBalance).ToString(".00%") : "");
+					sectorPercents.Keys.ToList().ForEach(k => sectorPercents[k] = sectorInvestments.ContainsKey(k) && !double.IsNaN(sectorInvestments[k]) && sectorInvestments[k] != 0 ? Math.Abs(sectorInvestments[k] / portfolioBalance).ToString(".00%") : "");
+					industryPercents.Keys.ToList().ForEach(k => industryPercents[k] = industryInvestments.ContainsKey(k) && !double.IsNaN(industryInvestments[k]) && industryInvestments[k] != 0 ? Math.Abs(industryInvestments[k] / portfolioBalance).ToString(".00%") : "");
+					subIndustryPercents.Keys.ToList().ForEach(k => subIndustryPercents[k] = subIndustryInvestments.ContainsKey(k) && !double.IsNaN(subIndustryInvestments[k]) && subIndustryInvestments[k] != 0 ? Math.Abs(subIndustryInvestments[k] / portfolioBalance).ToString(".00%") : "");
 				}
 
 				// R = beta at last SETTLED rebalance date (optimizer enforced neutrality — near zero).
@@ -1624,6 +1624,39 @@ namespace ATMML
 				// Portfolio Const
 				("BtnMktNeutral",  "10",  _alertNetBeta        <= _limitNetBeta,       $"{_alertNetBeta * 100:F1}"),
 				("BtnVolNeutral",  "12",  _alertVolImbalance   <= _limitVolNeutral,    $"{_alertVolImbalance * 100:F1}"),
+				// IntradayDD: circle only — clear the static "3" TextBlock, write nothing
+				("BtnIntradayDD", "", _alertIntradayDD >= -_limitIntradayDD, ""),
+				// UCAP: green when utilization >= 50% (capital deployed); red when under-utilised
+				("BtnUtilization",  "50",  _alertUtilization         >= _limitUtilization,                  $"{_alertUtilization * 100:F1}"),
+				// Gross book: sum of |longs| + |shorts| / NAV — limit 200%
+				("BtnGrossBook",    "200", _alertGrossBook           <= _limitGrossBook,                    $"{_alertGrossBook * 100:F1}"),
+				// Net exposure: signed (longAmt - shortAmt) / NAV — limit ±10%
+				("BtnNetExposure",  "10",  Math.Abs(_alertNetExposure) <= _limitNetExposure,                $"{_alertNetExposure * 100:F1}"),
+				// Max single-name position weight — red when any position reaches or exceeds 10%
+				("BtnMaxPosition",  "10",  _alertMaxPositionWeight   <= _limitMaxPosition,                   $"{_alertMaxPositionWeight * 100:F1}"),
+				// Concentration: sector / industry / sub-industry
+				("BtnSectorGross",   "200", _alertMaxSectorGross     <= _limitSectorGross,    $"{_alertMaxSectorGross * 100:F1}"),
+				("BtnSectorNet",     "12",  _alertMaxSectorNet       <= _limitSectorNet,      $"{_alertMaxSectorNet * 100:F1}"),
+				("BtnIndustryGross", "150", _alertMaxIndustryGross   <= _limitIndustryGross,  $"{_alertMaxIndustryGross * 100:F1}"),
+				("BtnIndustryNet",   "12",  _alertMaxIndustryNet     <= _limitIndustryNet,    $"{_alertMaxIndustryNet * 100:F1}"),
+				("BtnSubIndGross",   "100", _alertMaxSubIndGross     <= _limitSubIndGross,    $"{_alertMaxSubIndGross * 100:F1}"),
+				("BtnSubIndNet",     "12",  _alertMaxSubIndNet       <= _limitSubIndNet,      $"{_alertMaxSubIndNet * 100:F1}"),
+				// Concentration: top-N weight sums
+				("BtnTop5Long",   "40",  _alertTop5LongSum   <= _limitTop5LongSum,   $"{_alertTop5LongSum * 100:F1}"),
+				("BtnTop5Short",  "35",  _alertTop5ShortSum  <= _limitTop5ShortSum,  $"{_alertTop5ShortSum * 100:F1}"),
+				("BtnTop10Long",  "75",  _alertTop10LongSum  <= _limitTop10LongSum,  $"{_alertTop10LongSum * 100:F1}"),
+				("BtnTop10Short", "65",  _alertTop10ShortSum <= _limitTop10ShortSum, $"{_alertTop10ShortSum * 100:F1}"),
+				// Liquidity: color the static threshold text lime/red — actual % shown as text
+				("BtnADV20",  "30", _alertADV20  <= _limitADV20,  "30"),
+				("BtnADV50",  "10", _alertADV50  <= _limitADV50,  "10"),
+				("BtnADV100", "0",  _alertADV100 <= _limitADV100, "0"),
+				// Market cap tiers: gross and |net| as % of NAV
+				("BtnLargeCapGross", "175", _alertLargeCapGross <= _limitLargeCapGross, _alertLargeCapGross > 0 ? $"{_alertLargeCapGross * 100:F1}" : ""),
+				("BtnLargeCapNet",   "15",  _alertLargeCapNet   <= _limitLargeCapNet,   _alertLargeCapNet   > 0 ? $"{_alertLargeCapNet   * 100:F1}" : ""),
+				("BtnMidCapGross",   "100", _alertMidCapGross   <= _limitMidCapGross,   _alertMidCapGross   > 0 ? $"{_alertMidCapGross   * 100:F1}" : ""),
+				("BtnMidCapNet",     "15",  _alertMidCapNet     <= _limitMidCapNet,     _alertMidCapNet     > 0 ? $"{_alertMidCapNet     * 100:F1}" : ""),
+				("BtnSmallCapGross", "25",  _alertSmallCapGross <= _limitSmallCapGross, _alertSmallCapGross > 0 ? $"{_alertSmallCapGross * 100:F1}" : ""),
+				("BtnSmallCapNet",   "2.5", _alertSmallCapNet   <= _limitSmallCapNet,   _alertSmallCapNet   > 0 ? $"{_alertSmallCapNet   * 100:F1}" : ""),
 				// Statistical Risk
 				("BtnMaxVaR95",   "1",    _alertPortfolioVaR95 <= _limitMaxVaR95,     $"{_alertPortfolioVaR95 * 100:F2}"),
 				("BtnCVaR95",     "1.5",  _alertCVaR95         <= _limitCVaR95,       $"{_alertCVaR95 * 100:F2}"),
@@ -1637,18 +1670,35 @@ namespace ATMML
 			foreach (var (btnName, limitText, isGreen, actualText) in riskAlerts)
 			{
 				if (!allButtons.TryGetValue(btnName, out var btn)) continue;
-				var parentGrid = btn.Parent as Grid;
-				if (parentGrid == null) continue;
-				var threshold = parentGrid.Children.OfType<TextBlock>()
-					.FirstOrDefault(tb => Grid.GetColumn(tb) == 1);
-				if (threshold == null) continue;
+				var color = isGreen ? Brushes.Lime : Brushes.Red;
 
-				// Always show actual only — lime when within limit, red when violating
-				threshold.Inlines.Clear();
-				threshold.Inlines.Add(new System.Windows.Documents.Run(actualText)
+				// Primary path: TextBlock at column 1 of button's parent Grid.
+				// Works for alerts whose XAML row has an inline threshold TextBlock.
+				var parentGrid = btn.Parent as Grid;
+				if (parentGrid != null)
 				{
-					Foreground = isGreen ? Brushes.Lime : Brushes.Red
-				});
+					var threshold = parentGrid.Children.OfType<TextBlock>()
+						.FirstOrDefault(tb => Grid.GetColumn(tb) == 1);
+					if (threshold != null)
+					{
+						threshold.Inlines.Clear();
+						threshold.Inlines.Add(new System.Windows.Documents.Run(actualText) { Foreground = color });
+						continue;  // done — skip fallback
+					}
+				}
+
+				// Fallback path: write directly to the registered Lbl* TextBox.
+				// Used for ADV, market cap, concentration and any alert whose parent
+				// Grid does not contain a column-1 TextBlock.
+				// NOTE: FindName() cannot see into Expander content namescopes, so
+				// we use a visual tree walk (same technique as allButtons) instead.
+				var lblName = btnName.Replace("Btn", "Lbl");
+				var lbl = FindVisualChildren<TextBox>(this).FirstOrDefault(tb => tb.Name == lblName);
+				if (lbl != null)
+				{
+					lbl.Text = actualText;
+					lbl.Foreground = color;
+				}
 			}
 		}
 		private void collapseAllAlertCategories()
@@ -2473,7 +2523,7 @@ namespace ATMML
 				var ticker = fields[0];
 				if (!tickers.Contains(" Index"))
 				{
-					string[] dataFieldNames = { "REL_INDEX" };
+					string[] dataFieldNames = { "REL_INDEX", "CUR_MKT_CAP" };
 					_portfolio.RequestReferenceData(ticker, dataFieldNames, true);
 				}
 			}

@@ -570,7 +570,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblIntradayDD" Grid.Column="0" Text="Intraday DD"
+                                            <TextBox x:Name="LblIntradayDD" Grid.Column="0" Text="Intraday DD &#8804;3"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -608,7 +608,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblUtilization" Grid.Column="0" Text="UCAP"
+                                            <TextBox x:Name="LblUtilization" Grid.Column="0" Text="UCAP &#8805;50"
                                                 FontSize="9" Foreground="Silver" Background="Transparent"
                                                 BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                                 VerticalAlignment="Center" Margin="3,0,0,0"
@@ -645,7 +645,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblGrossBook" Grid.Column="0" Text="Gross Book"
+                                            <TextBox x:Name="LblGrossBook" Grid.Column="0" Text="Gross Book &#8804;200"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -682,7 +682,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblNetExposure" Grid.Column="0" Text="Net Exposure"
+                                            <TextBox x:Name="LblNetExposure" Grid.Column="0" Text="Net Exposure &#8804;10"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -719,7 +719,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblMaxPosition" Grid.Column="0" Text="Max Position"
+                                            <TextBox x:Name="LblMaxPosition" Grid.Column="0" Text="Max Position &#8804;10"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -1342,7 +1342,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblSectorGross" Grid.Column="0" Text="Sector Gross"
+                                            <TextBox x:Name="LblSectorGross" Grid.Column="0" Text="SECT Gross &#8804;200"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -1379,7 +1379,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblSectorNet" Grid.Column="0" Text="Sector Net"
+                                            <TextBox x:Name="LblSectorNet" Grid.Column="0" Text="SECT Net &#8804;12"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -1416,7 +1416,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblIndustryGross" Grid.Column="0" Text="Industry Gross"
+                                            <TextBox x:Name="LblIndustryGross" Grid.Column="0" Text="IND Gross &#8804;150"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -1453,7 +1453,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblIndustryNet" Grid.Column="0" Text="Industry Net"
+                                            <TextBox x:Name="LblIndustryNet" Grid.Column="0" Text="IND Net &#8804;12"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -1490,7 +1490,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblSubIndGross" Grid.Column="0" Text="Sub Ind Gross"
+                                            <TextBox x:Name="LblSubIndGross" Grid.Column="0" Text="Sub-IND Gross &#8804;100"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -1527,7 +1527,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblSubIndNet" Grid.Column="0" Text="Sub Ind Net"
+                                            <TextBox x:Name="LblSubIndNet" Grid.Column="0" Text="Sub-IND Net &#8804;12"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -1564,7 +1564,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblTop5Long" Grid.Column="0" Text="Top 5 Long"
+                                            <TextBox x:Name="LblTop5Long" Grid.Column="0" Text="Top 5 Long &#8804;40"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -1601,7 +1601,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblTop5Short" Grid.Column="0" Text="Top 5 Short"
+                                            <TextBox x:Name="LblTop5Short" Grid.Column="0" Text="Top 5 Short &#8804;35"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -1638,7 +1638,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblTop10Long" Grid.Column="0" Text="Top 10 Long"
+                                            <TextBox x:Name="LblTop10Long" Grid.Column="0" Text="Top 10 Long &#8804;75"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -1675,7 +1675,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblTop10Short" Grid.Column="0" Text="Top 10 Short"
+                                            <TextBox x:Name="LblTop10Short" Grid.Column="0" Text="Top 10 Short &#8804;65"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -1783,7 +1783,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblADV20" Grid.Column="0" Text="Gross ADV 20%"
+                                            <TextBox x:Name="LblADV20" Grid.Column="0" Text="ADV 20% &#8804;30"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -1820,7 +1820,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblADV50" Grid.Column="0" Text="Gross ADV 50%"
+                                            <TextBox x:Name="LblADV50" Grid.Column="0" Text="ADV 50% &#8804;50"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -1857,7 +1857,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblADV100" Grid.Column="0" Text="Gross ADV 100%"
+                                            <TextBox x:Name="LblADV100" Grid.Column="0" Text="ADV 100% &#8804;0"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -1965,7 +1965,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblLargeCapGross" Grid.Column="0" Text="Lg Cap Gross"
+                                            <TextBox x:Name="LblLargeCapGross" Grid.Column="0" Text="Lg Gross &#8804;175"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -2002,7 +2002,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblLargeCapNet" Grid.Column="0" Text="Lg Cap Net"
+                                            <TextBox x:Name="LblLargeCapNet" Grid.Column="0" Text="Lg Net &#8804;15"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -2039,7 +2039,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblMidCapGross" Grid.Column="0" Text="Mid Cap Gross"
+                                            <TextBox x:Name="LblMidCapGross" Grid.Column="0" Text="Mid Gross &#8804;100"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -2076,7 +2076,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblMidCapNet" Grid.Column="0" Text="Mid Cap Net"
+                                            <TextBox x:Name="LblMidCapNet" Grid.Column="0" Text="Mid Net &#8804;15"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -2113,7 +2113,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblSmallCapGross" Grid.Column="0" Text="Sm Cap Gross"
+                                            <TextBox x:Name="LblSmallCapGross" Grid.Column="0" Text="Sm Gross &#8804;25"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -2150,7 +2150,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblSmallCapNet" Grid.Column="0" Text="Sm Cap Net"
+                                            <TextBox x:Name="LblSmallCapNet" Grid.Column="0" Text="Sm Net &#8804;2.5"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
