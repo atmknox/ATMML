@@ -1,9 +1,0 @@
-<Application x:Class="PolygonFetcher.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:PolygonFetcher"
-             StartupUri="MainWindow.xaml">
-    <Application.Resources>
-        <local:LogColorConverter x:Key="LogColorConverter"/>
-    </Application.Resources>
-</Application>

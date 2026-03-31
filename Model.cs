@@ -9,32 +9,32 @@ using System.Windows;
 
 namespace ATMML
 {
-    public class TimeRange : IEquatable<TimeRange>
-    {
-        public DateTime Time1 { get; set; }
-        public DateTime Time2 { get; set; }
+	public class TimeRange : IEquatable<TimeRange>
+	{
+		public DateTime Time1 { get; set; }
+		public DateTime Time2 { get; set; }
 
-        public bool Equals(TimeRange other)
-        {
-            return other != null && Time1.Equals(other.Time1) && Time2.Equals(other.Time2);
-        }
+		public bool Equals(TimeRange other)
+		{
+			return other != null && Time1.Equals(other.Time1) && Time2.Equals(other.Time2);
+		}
 
 	}
 
-    public enum  Slippage
-    {
-        CurrentClose,
-        NextDayOpen,
-        NextDayVWAP
-    }
+	public enum Slippage
+	{
+		CurrentClose,
+		NextDayOpen,
+		NextDayVWAP
+	}
 
-    public enum SizeRecommendation
-    {
-        FullyInvested,
-        MaxDollar,
-        MaxPercent,
-        ATR
-    }
+	public enum SizeRecommendation
+	{
+		FullyInvested,
+		MaxDollar,
+		MaxPercent,
+		ATR
+	}
 
 	public class ModelGroup
 	{
@@ -103,15 +103,16 @@ namespace ATMML
 		public bool FreqPeriodCheckbox { get; set; }
 		public double FreqPeriod { get; set; }
 
-		public bool UseATMStrategies {
-			get 
-			{ 
+		public bool UseATMStrategies
+		{
+			get
+			{
 				return useATMStrategies;
 			}
 			set
-			{ 
+			{
 				useATMStrategies = value;
-			} 
+			}
 		}
 		private bool useATMStrategies = false;
 
@@ -154,7 +155,7 @@ namespace ATMML
 			{
 				_strategy = value;
 			}
-		} 
+		}
 		private string _strategy = "SC | SC";
 
 	}
@@ -197,10 +198,12 @@ namespace ATMML
 			public string Name { get; set; } = "";
 
 			private bool _enable = false;
-			public bool Enable { 
-				get {
+			public bool Enable
+			{
+				get
+				{
 					return _enable;
-				} 
+				}
 				set
 				{
 					bool bp = false;
@@ -237,7 +240,7 @@ namespace ATMML
 				{
 					return Hard ? Visibility.Hidden : Visibility.Visible;
 				}
-			}				
+			}
 
 			public string ValueText
 			{
@@ -285,7 +288,7 @@ namespace ATMML
 			output.Add(new Constraint { Category = "Book", Name = "NetBookAbs", Enable = true, Value = 10.0, Penalty = 1.0, Hard = false });
 			output.Add(new Constraint { Category = "Position", Name = "SingleNameCapAbs", Enable = true, Value = 10.0, Penalty = 1.0, Hard = false });
 			output.Add(new Constraint { Category = "Position", Name = "MaxSumT10Long", Enable = false, Value = 75.0, Penalty = 1.0, Hard = false });
-			output.Add(new Constraint { Category = "Position", Name = "MaxSumT10Shorts",Enable = false,  Value = 65.0, Penalty = 1.0, Hard = false});
+			output.Add(new Constraint { Category = "Position", Name = "MaxSumT10Shorts", Enable = false, Value = 65.0, Penalty = 1.0, Hard = false });
 			output.Add(new Constraint { Category = "Position", Name = "MaxSumT5Longs", Enable = false, Value = 40.0, Penalty = 1.0, Hard = false });
 			output.Add(new Constraint { Category = "Position", Name = "MaxSumT5Shorts", Enable = false, Value = 35.0, Penalty = 1.0, Hard = false }); ;
 			output.Add(new Constraint { Category = "Sector", Name = "SectorGross", Enable = true, Value = 200.0, Penalty = 1.0, Hard = false });
@@ -315,11 +318,11 @@ namespace ATMML
 			//output.Add(new Constraint { Category = "Position", Name = "MaxSum T 10 Shorts", Enable = true, Value = 65.0, Penalty = 1.0, Hard = false});
 			//output.Add(new Constraint { Category = "Position", Name = "MaxSum T 5 Longs", Enable = true, Value = 40.0, Penalty = 1.0, Hard = false});
 			//output.Add(new Constraint { Category = "Position", Name = "MaxSum T 5 Shorts", Enable = true, Value = 35.0, Penalty = 1.0, Hard = false});
-			output.Add(new Constraint { Category = "Position", Name = "Under5LongCap", Enable = false, Value = 2.0, Penalty = 1.0, Hard = false});
-			output.Add(new Constraint { Category = "Position", Name = "Under5ShortCap", Enable = false, Value = .0, Penalty = 1.0, Hard = false});
-			output.Add(new Constraint { Category = "Liq", Name = "LiquidityADV20", Enable = false, Value = 30.0, Penalty = 1.0, Hard = false});
-			output.Add(new Constraint { Category = "Liq", Name = "LiquidityADV50", Enable = false, Value = 10.0, Penalty = 1.0, Hard = false});
-			output.Add(new Constraint { Category = "Liq", Name = "LiquidityADV100", Enable = false, Value = 0.0, Penalty = 1.0, Hard = false});
+			output.Add(new Constraint { Category = "Position", Name = "Under5LongCap", Enable = false, Value = 2.0, Penalty = 1.0, Hard = false });
+			output.Add(new Constraint { Category = "Position", Name = "Under5ShortCap", Enable = false, Value = .0, Penalty = 1.0, Hard = false });
+			output.Add(new Constraint { Category = "Liq", Name = "LiquidityADV20", Enable = false, Value = 30.0, Penalty = 1.0, Hard = false });
+			output.Add(new Constraint { Category = "Liq", Name = "LiquidityADV50", Enable = false, Value = 10.0, Penalty = 1.0, Hard = false });
+			output.Add(new Constraint { Category = "Liq", Name = "LiquidityADV100", Enable = false, Value = 0.0, Penalty = 1.0, Hard = false });
 			//output.Add(new Constraint { Category = "Liq", Name = "LiquidityADV200", Enable = true, Value = 0.0, Penalty = 1.0, Hard = false});
 			//output.Add(new Constraint { Category = "MktCap", Name = "Max Gross > 5B", Enable = true, Value = 175.0, Penalty = 1.0, Hard = false});
 			//output.Add(new Constraint { Category = "MktCap", Name = "Max Net > 5B", Enable = true, Value = 15.0, Penalty = 1.0, Hard = false});
@@ -340,7 +343,7 @@ namespace ATMML
 			//output.Add(new Constraint { Category = "Opt", Name = "Net Vega | Vol", Enable = true, Value = 0.05, Penalty = 1.0, Hard = false});
 			//output.Add(new Constraint { Category = "Greek", Name = "Min Gam | Port Lvl", VEnable = true, alue = 0.0, Penalty = 1.0, Hard = false});
 			//output.Add(new Constraint { Category = "Greek", Name = "Min Vega | Port Lvl", Enable = true, Value = 0.0, Penalty = 1.0, Hard = false});
-			output.Add(new Constraint { Category = "FX", Name = "CurrencyNetAbs", Enable = false, Value = 10.0, Penalty = 1.0, Hard = false});
+			output.Add(new Constraint { Category = "FX", Name = "CurrencyNetAbs", Enable = false, Value = 10.0, Penalty = 1.0, Hard = false });
 			//output.Add(new Constraint { Category = "FX", Name = "Max ADR Pos", Enable = true, Value = 0.0, Penalty = 1.0, Hard = false});
 			//output.Add(new Constraint { Category = "FX", Name = "Max Non-USD", Enable = true, Value = 12.5, Penalty = 1.0, Hard = false});
 			//output.Add(new Constraint { Category = "FX", Name = "Max Gr N-USD", Enable = true, Value = 15.0, Penalty = 1.0, Hard = false});
@@ -357,15 +360,15 @@ namespace ATMML
 			//output.Add(new Constraint { Category = "Earn", Name = "Sgl Name Related", Enable = true, Value = 20.0, Penalty = 1.0, Hard = false});
 			//output.Add(new Constraint { Category = "Earn", Name = "Sgl Name Explicit", Enable = true, Value = 20.0, Penalty = 1.0, Hard = false});
 			//output.Add(new Constraint { Category = "M&A", Name = "Max Sgl Pos M&A", Enable = true, Value = 5.0, Penalty = 1.0, Hard = false});
-			output.Add(new Constraint { Category = "VaR95", Name = "MaxPortVaR95", Enable = false, Value = 1.0, Penalty = 1.0, Hard = false});
-			output.Add(new Constraint { Category = "CVaR95", Name = "MaxPortCVaR95", Enable = false, Value = 0.5, Penalty = 1.0, Hard = false});
-			output.Add(new Constraint { Category = "MVaR95", Name = "MaxPosVaR95", Enable = false, Value = 15.0, Penalty = 1.0, Hard = false});
-			output.Add(new Constraint { Category = "Idio Risk", Name = "MinIdioRisk", Enable = false, Value = 70.0, Penalty = 1.0, Hard = false});
-			output.Add(new Constraint { Category = "Fact Risk", Name = "Max Factor Risk", Enable = false, Value = 18.0, Penalty = 1.0, Hard = false});
-			output.Add(new Constraint { Category = "Pred Vol", Name = "MaxPredVOL", Enable = false, Value = 10.0, Penalty = 1.0, Hard = false});
+			output.Add(new Constraint { Category = "VaR95", Name = "MaxPortVaR95", Enable = false, Value = 1.0, Penalty = 1.0, Hard = false });
+			output.Add(new Constraint { Category = "CVaR95", Name = "MaxPortCVaR95", Enable = false, Value = 0.5, Penalty = 1.0, Hard = false });
+			output.Add(new Constraint { Category = "MVaR95", Name = "MaxPosVaR95", Enable = false, Value = 15.0, Penalty = 1.0, Hard = false });
+			output.Add(new Constraint { Category = "Idio Risk", Name = "MinIdioRisk", Enable = false, Value = 70.0, Penalty = 1.0, Hard = false });
+			output.Add(new Constraint { Category = "Fact Risk", Name = "Max Factor Risk", Enable = false, Value = 18.0, Penalty = 1.0, Hard = false });
+			output.Add(new Constraint { Category = "Pred Vol", Name = "MaxPredVOL", Enable = false, Value = 10.0, Penalty = 1.0, Hard = false });
 			//output.Add(new Constraint { Category = "Eq Stress", Name = "Max Loss +/- 5%", Enable = true, Value = 2.0, Penalty = 1.0, Hard = false});
 			//output.Add(new Constraint { Category = "Eq Stress", Name = "Max Loss +/- 10%", Enable = true, Value = 3.5, Penalty = 1.0, Hard = false});
-			
+
 			return output;
 		}
 
@@ -458,7 +461,7 @@ namespace ATMML
 		//	output.Add(new Constraint { Category = "Greek", Name = "Min Vega | Port Lvl", Value = 0.0 });
 		//	return output;
 		//}
-	
+
 		public static string[] Alignments => new string[]
 		{
 		"Quarterly", "", "Monthly", "", "Weekly", "", "Daily", "",
@@ -730,8 +733,9 @@ namespace ATMML
 		public string Ranking { get; set; } = DefaultRanking;
 		public string RankingInterval { get; set; } = DefaultRankingInterval;
 
-		public string Universe { 
-			get 
+		public string Universe
+		{
+			get
 			{
 				string output = "";
 				if (Groups.Count > 0)
@@ -753,7 +757,7 @@ namespace ATMML
 		public List<Symbol> Symbols
 		{
 			get
-			{ 
+			{
 				return Groups.SelectMany(g => g.AlphaSymbols).ToList();
 			}
 		}
@@ -975,7 +979,7 @@ namespace ATMML
 
 		public string ConditionsDetailed => Conditions; // read-only alias if needed
 		public string RiskIntervalDetail => RiskInterval; // read-only alias if needed
-		
+
 		#endregion
 
 		#region Toggle Groups (alphabetized)
@@ -1061,6 +1065,8 @@ namespace ATMML
 			{
 				m = JsonConvert.DeserializeObject<Model>(input);
 
+				if (m == null) return null;
+
 				if (m.RiskInterval == null)
 				{
 					m.RiskInterval = "Daily";
@@ -1071,7 +1077,8 @@ namespace ATMML
 				//	m.Constraints = getDefaultConstraints();
 				//}
 			}
-			catch(Exception x) {
+			catch (Exception x)
+			{
 				bp = true;
 			}
 
