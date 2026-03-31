@@ -2156,6 +2156,7 @@ namespace ATMML
 			if (e.Id == ChartEventType.ChangeDate)
 			{
 				var date = chart.GetCursorTime();
+				if (date == default(DateTime)) return;   // ignore reset fired by symbol change
 				setHoldingsCursorTime(date);
 			}
 			else if (e.Id == ChartEventType.SettingChange)
