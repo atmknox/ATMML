@@ -2971,6 +2971,10 @@ namespace ATMML
 							model.NeedsLoading = false;
 							_userFactorModels[name] = model;
 							userFactorModel_to_ui(name);
+							// Update meta index so LIVE/TEST grouping stays accurate
+							// as each model is lazily loaded for the first time.
+							saveModelMeta();
+							updateUserFactorModelList();
 						}
 					});
 				}
@@ -4418,7 +4422,7 @@ namespace ATMML
 		private List<double> getCompareToValues()
 		{
 			var output = new List<double>();
-			var bars = _barCache.GetBars(_compareToSymbol, _ic.GetLowestInterval(), 0);
+			var bars = _barCache.GetBars(_compareToSymbol, _ic != null ? _ic.GetLowestInterval() : "Daily", 0);
 
 			var startDate = _portfolioTimes.FirstOrDefault();
 			var endDate = _portfolioTimes.LastOrDefault();
@@ -5264,6 +5268,23 @@ namespace ATMML
 		{
 			Label label = sender as Label;
 			label.Foreground = new SolidColorBrush(Color.FromRgb(0xff, 0xff, 0xff));
+		}
+
+		private void RunPortfolio_MouseDown(object sender, MouseButtonEventArgs e)
+		{
+			// Run the currently selected model and show ProgressCalculations2.
+			// UserFactorModelGrid must be visible - ProgressCalculations2 is a child of it.
+			ui_to_userFactorModel(_selectedUserFactorModel);
+			hideNavigation();
+			TISetup.Visibility = Visibility.Visible;
+			TIOpenPL.Visibility = Visibility.Collapsed;
+			TIAllocations.Visibility = Visibility.Collapsed;
+			RebalanceGrid.Visibility = Visibility.Collapsed;
+			RebalanceChartGrid.Visibility = Visibility.Collapsed;
+			RebalanceSideNav.Visibility = Visibility.Collapsed;
+			UserFactorModelGrid.Visibility = Visibility.Visible;
+			setModelRadioButtons();
+			_run = true;
 		}
 
 		private void SendOrders_MouseEnter(object sender, MouseEventArgs e)
@@ -9746,23 +9767,24 @@ namespace ATMML
 
 			var path = MainView.GetDataFolder() + @"\models\Models";
 			var files = Directory.GetFiles(path).ToList();
+			// Read lightweight meta index so LIVE/TEST grouping is correct without
+			// loading full model files (which is slow for many portfolios).
+			var liveMeta = loadModelMeta();
+
 			files.ForEach(f =>
 			{
 				var p = f.Split('\\');
 				var name = p.Last();
+				if (name == "_meta") return; // skip meta index file
 
-				//var fileName = String.Join("\\", p.Reverse().Take(3).Reverse());
-				//var data = MainView.LoadUserData(fileName);          
-				//var model = Model.load(data);
 				var model = new Model();
 				model.Name = name;
-				//if (model != null)
-				{
-					//var name = model.Name;
-					_userFactorModels[name] = model;
-					model.NeedsLoading = true;
-					model.SetTimeRanges();
-				}
+				model.NeedsLoading = true;
+				model.SetTimeRanges();
+				// Apply cached IsLiveMode from meta so grouping is correct immediately.
+				if (liveMeta.ContainsKey(name))
+					model.IsLiveMode = liveMeta[name];
+				_userFactorModels[name] = model;
 			});
 
 			if (!_userFactorModels.ContainsKey(_selectedUserFactorModel))
@@ -9789,6 +9811,36 @@ namespace ATMML
 					MainView.SaveUserData(path + @"\" + modelName, data);
 				}
 			}
+			// Keep meta index in sync so startup grouping is always current.
+			saveModelMeta();
+		}
+
+		/// <summary>Writes a lightweight name->IsLiveMode index to models\Models\_meta.</summary>
+		private void saveModelMeta()
+		{
+			var sb = new System.Text.StringBuilder();
+			foreach (var kvp in _userFactorModels)
+				sb.AppendLine(kvp.Key + "\t" + (kvp.Value.IsLiveMode ? "1" : "0"));
+			try { MainView.SaveUserData(@"models\Models\_meta", sb.ToString()); } catch { }
+		}
+
+		/// <summary>Reads the lightweight meta index. Returns name->isLive dictionary.</summary>
+		private Dictionary<string, bool> loadModelMeta()
+		{
+			var result = new Dictionary<string, bool>(StringComparer.Ordinal);
+			try
+			{
+				var data = MainView.LoadUserData(@"models\Models\_meta");
+				if (data == null) return result;
+				foreach (var line in data.Split('\n'))
+				{
+					var parts = line.Trim().Split('\t');
+					if (parts.Length == 2)
+						result[parts[0]] = parts[1] == "1";
+				}
+			}
+			catch { }
+			return result;
 		}
 
 		private void UserFactorModelSave_Mousedown(object sender, MouseButtonEventArgs e)
@@ -9820,10 +9872,16 @@ namespace ATMML
 					string newName = tb.Text;
 					changeSelectedUserFactorModel(newName);
 					ui_to_userFactorModel(_selectedUserFactorModel);
-					userFactorModel_to_ui(_selectedUserFactorModel);
-					saveUserFactorModels(name);
 					var model = _userFactorModels[_selectedUserFactorModel];
+					// Ensure new portfolios (NeedsLoading=true) are not skipped by saveUserFactorModels.
+					model.NeedsLoading = false;
+					// Save BEFORE userFactorModel_to_ui triggers initializeCalculator -> loadModel
+					// -> SetTimeRanges, which would otherwise overwrite the date we just committed.
+					saveUserFactorModels(name);
+					userFactorModel_to_ui(_selectedUserFactorModel);
 					updateChartAnalysisSettings(model);
+					// Re-render grouped list now that IsLiveMode is committed.
+					updateUserFactorModelList();
 					hideNavigation();
 				}
 			}
@@ -10807,7 +10865,27 @@ namespace ATMML
 				var st = UserFactorModelTrainStartDate.SelectedDate;
 				var et = UserFactorModelTrainEndDate.Text.Length == 0 ? null : UserFactorModelTrainEndDate.SelectedDate;
 
-				model.DataRange.Time1 = (st != null) ? st.Value : DateTime.UtcNow - new TimeSpan(500, 0, 0, 0);
+				// Read live/test mode from radio buttons and apply correct date semantics.
+				// For live mode: picker shows LiveStartDate; DataRange.Time1 is pushed back 90 days.
+				// For test mode: picker is DataRange.Time1 directly.
+				bool isLiveFromUI = LiveTrade.IsChecked == true;
+				model.IsLiveMode = isLiveFromUI;
+				if (st != null)
+				{
+					if (isLiveFromUI)
+					{
+						model.LiveStartDate = st.Value;
+						model.DataRange.Time1 = st.Value.AddDays(-90);
+					}
+					else
+					{
+						model.DataRange.Time1 = st.Value;
+					}
+				}
+				else
+				{
+					model.DataRange.Time1 = DateTime.UtcNow - new TimeSpan(500, 0, 0, 0);
+				}
 				model.DataRange.Time2 = (et != null) ? et.Value : DateTime.UtcNow;
 
 				model.SetTimeRanges();
@@ -10833,152 +10911,183 @@ namespace ATMML
 			}
 		}
 
+		private Grid MakeGroupHeader(string text)
+		{
+			var header = new Grid();
+			header.Background = new SolidColorBrush(Color.FromRgb(0x0d, 0x2b, 0x45));
+			header.Width = 120;
+			header.Margin = new Thickness(0);
+			header.HorizontalAlignment = HorizontalAlignment.Left;
+			header.PreviewMouseDown += (s, e) => e.Handled = true;
+			var tb = new TextBlock();
+			tb.Text = text;
+			tb.Foreground = Brushes.White;
+			tb.FontFamily = new FontFamily("Helvetica Neue");
+			tb.FontSize = 11;
+			tb.FontWeight = FontWeights.Normal;
+			tb.Padding = new Thickness(3, 3, 0, 3);
+			header.Children.Add(tb);
+			return header;
+		}
+
 		private void updateUserFactorModelList()
 		{
 			var selectedModel = _selectedUserFactorModel;
-			var modelNames = new List<string>(_userFactorModels.Keys);
-			//Example.Visibility = (modelNames.FindIndex(x => x == "EXAMPLE") == -1) ? Visibility.Visible : Visibility.Hidden;
-			updateModelList(selectedModel, modelNames, UserFactorModelPanel1, false);
-			updateModelList(selectedModel, modelNames, UserFactorModelPanel2, true);
-			updateModelList(selectedModel, modelNames, UserFactorModelPanel3, true);
-			updateModelList(selectedModel, modelNames, UserFactorModelPanel4, true);
-			updateModelListBlue(selectedModel, modelNames, UserFactorModelPanelCompare, true);
+			var allNames = new List<string>(_userFactorModels.Keys);
+			var liveNames = allNames.Where(n => _userFactorModels[n].IsLiveMode).OrderBy(n => n).ToList();
+			var testNames = allNames.Where(n => !_userFactorModels[n].IsLiveMode).OrderBy(n => n).ToList();
+			//Example.Visibility = (allNames.FindIndex(x => x == "EXAMPLE") == -1) ? Visibility.Visible : Visibility.Hidden;
+			updateModelList(selectedModel, liveNames, testNames, UserFactorModelPanel1, false);
+			updateModelList(selectedModel, liveNames, testNames, UserFactorModelPanel2, true);
+			updateModelList(selectedModel, liveNames, testNames, UserFactorModelPanel3, true);
+			updateModelList(selectedModel, liveNames, testNames, UserFactorModelPanel4, true);
+			updateModelListBlue(selectedModel, liveNames, testNames, UserFactorModelPanelCompare, true);
 		}
 
-		private void updateModelList(string selectedModel, List<string> modelNames, ListBox input, bool readOnly)
+		private void updateModelList(string selectedModel, List<string> liveNames, List<string> testNames, ListBox input, bool readOnly)
 		{
 			input.Items.Clear();
-			modelNames.Sort();
-			foreach (var name in modelNames)
+			var groups = new (string Label, List<string> Names)[] { ("LIVE", liveNames), ("TEST", testNames) };
+			foreach (var (groupLabel, modelNames) in groups)
 			{
-				if (readOnly)
+				if (modelNames.Count == 0) continue;
+				input.Items.Add(MakeGroupHeader(groupLabel));
+				foreach (var name in modelNames)
 				{
-					var panel = new Grid();
-
-					var col1 = new ColumnDefinition();
-					col1.Width = new GridLength(1, GridUnitType.Star);
-
-					panel.ColumnDefinitions.Add(col1);
-
-					var lb = new Label();
-					lb.Content = name;
-					lb.Tag = name;
-					lb.Background = Brushes.Transparent;
-					lb.Foreground = name == selectedModel ? new SolidColorBrush(Color.FromRgb(0x00, 0xcc, 0xff)) : Brushes.White;
-					lb.BorderBrush = Brushes.Transparent;
-					lb.PreviewMouseDown += Tb_PreviewMouseDown;
-					lb.Height = 18;
-					lb.Padding = new Thickness(0, 2, 0, 2);
-					lb.Margin = new Thickness(2, 0, 0, 0);
-					lb.HorizontalAlignment = HorizontalAlignment.Left;
-					lb.VerticalAlignment = VerticalAlignment.Center;
-					lb.MouseEnter += Portfolio_MouseEnter;
-					lb.MouseLeave += Portfolio_MouseLeave_SelectedModel;
-					lb.FontFamily = new FontFamily("Helvetica Neue");
-					lb.FontWeight = FontWeights.Normal;
-					lb.FontSize = 11;
-					lb.Cursor = Cursors.Hand;
-					panel.Children.Add(lb);
-
-					if (name == selectedModel)
+					if (readOnly)
 					{
-						input.SelectedItem = panel;
+						var panel = new Grid();
+
+						var col1 = new ColumnDefinition();
+						col1.Width = new GridLength(1, GridUnitType.Star);
+
+						panel.ColumnDefinitions.Add(col1);
+
+						var lb = new Label();
+						lb.Content = name;
+						lb.Tag = name;
+						lb.Background = Brushes.Transparent;
+						lb.Foreground = name == selectedModel ? new SolidColorBrush(Color.FromRgb(0x00, 0xcc, 0xff)) : Brushes.White;
+						lb.BorderBrush = Brushes.Transparent;
+						lb.PreviewMouseDown += Tb_PreviewMouseDown;
+						lb.Height = 18;
+						lb.Padding = new Thickness(0, 2, 0, 2);
+						lb.Margin = new Thickness(2, 0, 0, 0);
+						lb.HorizontalAlignment = HorizontalAlignment.Left;
+						lb.VerticalAlignment = VerticalAlignment.Center;
+						lb.MouseEnter += Portfolio_MouseEnter;
+						lb.MouseLeave += Portfolio_MouseLeave_SelectedModel;
+						lb.FontFamily = new FontFamily("Helvetica Neue");
+						lb.FontWeight = FontWeights.Normal;
+						lb.FontSize = 11;
+						lb.Cursor = Cursors.Hand;
+						panel.Children.Add(lb);
+
+						if (name == selectedModel)
+						{
+							input.SelectedItem = panel;
+						}
+
+						input.Items.Add(panel);
+
 					}
-
-					input.Items.Add(panel);
-
-				}
-				else
-				{
-					var panel = new Grid();
-
-					var col1 = new ColumnDefinition();
-					col1.Width = new GridLength(1, GridUnitType.Star);
-					var col2 = new ColumnDefinition();
-					col2.Width = new GridLength(1, GridUnitType.Auto);
-
-					panel.ColumnDefinitions.Add(col1);
-					panel.ColumnDefinitions.Add(col2);
-
-
-					var tb = new TextBox();
-					tb.Text = name;
-					tb.Tag = name;
-					tb.Background = Brushes.Transparent;
-					tb.Foreground = name == selectedModel ? new SolidColorBrush(Color.FromRgb(0x00, 0xcc, 0xff)) : Brushes.White;
-					tb.BorderBrush = Brushes.Transparent;
-					tb.BorderThickness = new Thickness(0);
-					tb.MouseEnter += Portfolio_MouseEnter;
-					tb.MouseLeave += Portfolio_MouseLeave_SelectedModel;
-					tb.PreviewMouseDown += Tb_PreviewMouseDown;
-					tb.Height = 18;
-					tb.Padding = new Thickness(0, 2, 0, 2);
-					tb.Margin = new Thickness(2, 0, 0, 0);
-					tb.HorizontalAlignment = HorizontalAlignment.Left;
-					tb.VerticalAlignment = VerticalAlignment.Center;
-					tb.FontFamily = new FontFamily("Helvetica Neue");
-					tb.FontWeight = FontWeights.Normal;
-					tb.FontSize = 11;
-					tb.Cursor = Cursors.Hand;
-					tb.Width = 90;
-					tb.CharacterCasing = CharacterCasing.Upper;
-					panel.Children.Add(tb);
-
-					if (name == selectedModel)
+					else
 					{
-						input.SelectedItem = panel;
-					}
+						var panel = new Grid();
 
-					input.Items.Add(panel);
+						var col1 = new ColumnDefinition();
+						col1.Width = new GridLength(1, GridUnitType.Star);
+						var col2 = new ColumnDefinition();
+						col2.Width = new GridLength(1, GridUnitType.Auto);
+
+						panel.ColumnDefinitions.Add(col1);
+						panel.ColumnDefinitions.Add(col2);
+
+
+						var tb = new TextBox();
+						tb.Text = name;
+						tb.Tag = name;
+						tb.Background = Brushes.Transparent;
+						tb.Foreground = name == selectedModel ? new SolidColorBrush(Color.FromRgb(0x00, 0xcc, 0xff)) : Brushes.White;
+						tb.BorderBrush = Brushes.Transparent;
+						tb.BorderThickness = new Thickness(0);
+						tb.MouseEnter += Portfolio_MouseEnter;
+						tb.MouseLeave += Portfolio_MouseLeave_SelectedModel;
+						tb.PreviewMouseDown += Tb_PreviewMouseDown;
+						tb.Height = 18;
+						tb.Padding = new Thickness(0, 2, 0, 2);
+						tb.Margin = new Thickness(2, 0, 0, 0);
+						tb.HorizontalAlignment = HorizontalAlignment.Left;
+						tb.VerticalAlignment = VerticalAlignment.Center;
+						tb.FontFamily = new FontFamily("Helvetica Neue");
+						tb.FontWeight = FontWeights.Normal;
+						tb.FontSize = 11;
+						tb.Cursor = Cursors.Hand;
+						tb.Width = 90;
+						tb.CharacterCasing = CharacterCasing.Upper;
+						panel.Children.Add(tb);
+
+						if (name == selectedModel)
+						{
+							input.SelectedItem = panel;
+						}
+
+						input.Items.Add(panel);
+					}
 				}
 			}
 		}
 
 
-		private void updateModelListBlue(string selectedModel, List<string> modelNames, ListBox input, bool readOnly)
+		private void updateModelListBlue(string selectedModel, List<string> liveNames, List<string> testNames, ListBox input, bool readOnly)
 		{
 
 			input.Items.Clear();
-			modelNames.Sort();
-			foreach (var name in modelNames)
+			var groups = new (string Label, List<string> Names)[] { ("LIVE", liveNames), ("TEST", testNames) };
+			foreach (var (groupLabel, modelNames) in groups)
 			{
-				if (readOnly)
+				if (modelNames.Count == 0) continue;
+				input.Items.Add(MakeGroupHeader(groupLabel));
+				foreach (var name in modelNames)
 				{
-					var panel = new Grid();
-
-					var col1 = new ColumnDefinition();
-					col1.Width = new GridLength(1, GridUnitType.Star);
-
-					panel.ColumnDefinitions.Add(col1);
-
-					var lb = new Label();
-					lb.Content = name;
-					lb.Background = Brushes.Transparent;
-					lb.Foreground = Brushes.White;
-					//lb.Foreground = lb.Foreground = new SolidColorBrush(Color.FromArgb(0xff, 0xff, 0x8c, 00));
-					lb.BorderBrush = Brushes.Transparent;
-					lb.PreviewMouseDown += Tb_PreviewMouseDown;
-					lb.Height = 18;
-					lb.Padding = new Thickness(0, 2, 0, 2);
-					lb.Margin = new Thickness(4, 0, 0, 0);
-					lb.HorizontalAlignment = HorizontalAlignment.Left;
-					lb.VerticalAlignment = VerticalAlignment.Center;
-					lb.MouseEnter += PortfolioBlue_MouseLeave2;
-					lb.MouseLeave += PortfolioWhite_MouseEnter;
-					//lb.MouseLeave += PortfolioOrg_MouseLeave2;
-					lb.FontFamily = new FontFamily("Helvetica Neue");
-					lb.FontWeight = FontWeights.Normal;
-					lb.FontSize = 11;
-					lb.Cursor = Cursors.Hand;
-					panel.Children.Add(lb);
-
-					if (name == selectedModel)
+					if (readOnly)
 					{
-						input.SelectedItem = panel;
+						var panel = new Grid();
+
+						var col1 = new ColumnDefinition();
+						col1.Width = new GridLength(1, GridUnitType.Star);
+
+						panel.ColumnDefinitions.Add(col1);
+
+						var lb = new Label();
+						lb.Content = name;
+						lb.Background = Brushes.Transparent;
+						lb.Foreground = Brushes.White;
+						//lb.Foreground = lb.Foreground = new SolidColorBrush(Color.FromArgb(0xff, 0xff, 0x8c, 00));
+						lb.BorderBrush = Brushes.Transparent;
+						lb.PreviewMouseDown += Tb_PreviewMouseDown;
+						lb.Height = 18;
+						lb.Padding = new Thickness(0, 2, 0, 2);
+						lb.Margin = new Thickness(4, 0, 0, 0);
+						lb.HorizontalAlignment = HorizontalAlignment.Left;
+						lb.VerticalAlignment = VerticalAlignment.Center;
+						lb.MouseEnter += PortfolioBlue_MouseLeave2;
+						lb.MouseLeave += PortfolioWhite_MouseEnter;
+						//lb.MouseLeave += PortfolioOrg_MouseLeave2;
+						lb.FontFamily = new FontFamily("Helvetica Neue");
+						lb.FontWeight = FontWeights.Normal;
+						lb.FontSize = 11;
+						lb.Cursor = Cursors.Hand;
+						panel.Children.Add(lb);
+
+						if (name == selectedModel)
+						{
+							input.SelectedItem = panel;
+						}
+
+						input.Items.Add(panel);
+
 					}
-
-					input.Items.Add(panel);
-
 				}
 			}
 		}
@@ -13785,7 +13894,7 @@ namespace ATMML
 		{
 			_compareToSymbolChange = true;
 			_compareToSymbol = symbol;
-			_barCache.RequestBars(_compareToSymbol, _ic.GetLowestInterval());
+			_barCache.RequestBars(_compareToSymbol, _ic != null ? _ic.GetLowestInterval() : "Daily");
 		}
 
 

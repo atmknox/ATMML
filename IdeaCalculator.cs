@@ -1904,9 +1904,12 @@ namespace ATMML
 							{
 								var symbol = _model.Symbols.FirstOrDefault(x => x.Ticker == ticker);
 								var t = member.Ticker;
-								var s = symbol.Sector;
-								var ind = symbol.Industry;
-								var subInd = symbol.SubIndustry;
+								var rawSector = symbol.Sector ?? "";
+								var rawInd = symbol.Industry ?? "";
+								var rawSubInd = symbol.SubIndustry ?? "";
+								var s = rawSector.Length >= 2 ? rawSector.Substring(0, 2) : rawSector;
+								var ind = rawInd.Length >= 4 ? rawInd.Substring(0, 4) : rawInd;
+								var subInd = rawSubInd.Length >= 6 ? rawSubInd.Substring(0, 6) : rawSubInd;
 								var k = date.ToString("yyyy-MM-dd");
 								double beta;
 								if (symbol.Beta.ContainsKey(k))
@@ -2233,9 +2236,12 @@ namespace ATMML
 							{
 								var symbol = _model.Symbols.FirstOrDefault(x => x.Ticker == ticker);
 								var t = member.Ticker;
-								var s = symbol.Sector;
-								var ind = symbol.Industry;
-								var subInd = symbol.SubIndustry;
+								var rawSector = symbol.Sector ?? "";
+								var rawInd = symbol.Industry ?? "";
+								var rawSubInd = symbol.SubIndustry ?? "";
+								var s = rawSector.Length >= 2 ? rawSector.Substring(0, 2) : rawSector;
+								var ind = rawInd.Length >= 4 ? rawInd.Substring(0, 4) : rawInd;
+								var subInd = rawSubInd.Length >= 6 ? rawSubInd.Substring(0, 6) : rawSubInd;
 								var k = date.ToString("yyyy-MM-dd");
 								double beta;
 								if (symbol.Beta.ContainsKey(k))
@@ -2485,6 +2491,40 @@ namespace ATMML
 									}
 
 									// ============================================================
+									// ============================================================
+									// PHASE 1b: Enforce signed-net sector limit on positionWeights
+									// The optimizer enforces MaxSectorFraction as GROSS (|L|+|S|).
+									// SectorNet constraint targets signed NET (L-S). Cap it here.
+									// ============================================================
+									if (cfg.EnforceSectorLimits && cfg.MaxSectorFraction > 0)
+									{
+										// Pass 1: compute signed-net per sector
+										var sectorNet1b = new Dictionary<string, double>();
+										foreach (var kv in positionWeights)
+										{
+											if (!positionStocks.ContainsKey(kv.Key)) continue;
+											var sec1b = positionStocks[kv.Key].Sector ?? "";
+											if (!sectorNet1b.ContainsKey(sec1b)) sectorNet1b[sec1b] = 0;
+											sectorNet1b[sec1b] += kv.Value;
+										}
+										// Pass 2: scale down dominant side in any violating sector
+										foreach (var sec1b in sectorNet1b.Keys.ToList())
+										{
+											var net1b = sectorNet1b[sec1b];
+											if (Math.Abs(net1b) <= cfg.MaxSectorFraction) continue;
+											var sf = cfg.MaxSectorFraction / Math.Abs(net1b);
+											foreach (var rk1b in positionWeights.Keys.ToList())
+											{
+												if (!positionStocks.ContainsKey(rk1b)) continue;
+												if ((positionStocks[rk1b].Sector ?? "") != sec1b) continue;
+												if (net1b > 0 && positionWeights[rk1b] > 0)
+													positionWeights[rk1b] *= sf;
+												else if (net1b < 0 && positionWeights[rk1b] < 0)
+													positionWeights[rk1b] *= sf;
+											}
+										}
+									}
+
 									// PHASE 2: Convert final weights to share counts
 									// ============================================================
 									double longGross = 0;
@@ -2593,9 +2633,12 @@ namespace ATMML
 							{
 								var symbol = _model.Symbols.FirstOrDefault(x => x.Ticker == ticker);
 								var t = member.Ticker;
-								var s = symbol.Sector;
-								var ind = symbol.Industry;
-								var subInd = symbol.SubIndustry;
+								var rawSector = symbol.Sector ?? "";
+								var rawInd = symbol.Industry ?? "";
+								var rawSubInd = symbol.SubIndustry ?? "";
+								var s = rawSector.Length >= 2 ? rawSector.Substring(0, 2) : rawSector;
+								var ind = rawInd.Length >= 4 ? rawInd.Substring(0, 4) : rawInd;
+								var subInd = rawSubInd.Length >= 6 ? rawSubInd.Substring(0, 6) : rawSubInd;
 								var k = date.ToString("yyyy-MM-dd");
 								double beta;
 								if (symbol.Beta.ContainsKey(k))
@@ -7706,6 +7749,7 @@ namespace ATMML
 				if (timeSpan.TotalSeconds > 10) // give up on getting all of the requested bars
 				{
 					_progressCompletedNumber = _progressTotalNumber;
+					_waitForBars = false;
 				}
 			}
 		}
