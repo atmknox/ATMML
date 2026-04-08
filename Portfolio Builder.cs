@@ -1354,9 +1354,46 @@ namespace ATMML
 
 					if (totalInvestment != 0)
 					{
-						sectorPercents.Keys.ToList().ForEach(k => sectorPercents[k] = sectorInvestments.ContainsKey(k) && !double.IsNaN(sectorInvestments[k]) ? Math.Abs(sectorInvestments[k] / portfolioBalance).ToString(".00%") : "");
-						industryPercents.Keys.ToList().ForEach(k => industryPercents[k] = industryInvestments.ContainsKey(k) && !double.IsNaN(industryInvestments[k]) ? Math.Abs(industryInvestments[k] / portfolioBalance).ToString(".00%") : "");
-						subIndustryPercents.Keys.ToList().ForEach(k => subIndustryPercents[k] = subIndustryInvestments.ContainsKey(k) && !double.IsNaN(subIndustryInvestments[k]) ? Math.Abs(subIndustryInvestments[k] / portfolioBalance).ToString(".00%") : "");
+						// Try loading optimizer-saved sector fractions (exact values from PHASE 1b/1c).
+						// These are saved by IdeaCalculator after each rebalance and are guaranteed
+						// to match the constraint-enforced allocation, regardless of current prices.
+						var savedFracsData = MainView.LoadUserData(@"portfolios\sectorFracs\" + model.Name + @"\" + tradesTime2.ToString("yyyy-MM-dd"));
+						if (!string.IsNullOrEmpty(savedFracsData))
+						{
+							// Map 2-digit GICS sector code to sector label for display
+							var gicsToLabel = new Dictionary<string, string>();
+							foreach (var sym in model.Symbols)
+							{
+								if (sym.Sector == null) continue;
+								var raw = sym.Sector;
+								var code2 = raw.Length >= 2 ? raw.Substring(0, 2) : raw;
+								if (gicsToLabel.ContainsKey(code2)) continue;
+								int sn; int.TryParse(raw, out sn);
+								gicsToLabel[code2] = _portfolio1.GetSectorLabel(sn);
+							}
+							foreach (var line in savedFracsData.Split('\n'))
+							{
+								var commaIdx = line.IndexOf(',');
+								if (commaIdx < 0) continue;
+								var code = line.Substring(0, commaIdx).Trim();
+								if (!double.TryParse(line.Substring(commaIdx + 1).Trim(),
+									System.Globalization.NumberStyles.Any,
+									System.Globalization.CultureInfo.InvariantCulture, out double frac)) continue;
+								if (!gicsToLabel.TryGetValue(code, out var label)) continue;
+								if (sectorPercents.ContainsKey(label))
+									sectorPercents[label] = Math.Abs(frac).ToString(".00%");
+							}
+							// Industry and sub-industry still use computed values (no optimizer save yet)
+							industryPercents.Keys.ToList().ForEach(k => industryPercents[k] = industryInvestments.ContainsKey(k) && !double.IsNaN(industryInvestments[k]) ? Math.Abs(industryInvestments[k] / portfolioBalance).ToString(".00%") : "");
+							subIndustryPercents.Keys.ToList().ForEach(k => subIndustryPercents[k] = subIndustryInvestments.ContainsKey(k) && !double.IsNaN(subIndustryInvestments[k]) ? Math.Abs(subIndustryInvestments[k] / portfolioBalance).ToString(".00%") : "");
+						}
+						else
+						{
+							// Fallback: compute from shares and prices
+							sectorPercents.Keys.ToList().ForEach(k => sectorPercents[k] = sectorInvestments.ContainsKey(k) && !double.IsNaN(sectorInvestments[k]) ? Math.Abs(sectorInvestments[k] / portfolioBalance).ToString(".00%") : "");
+							industryPercents.Keys.ToList().ForEach(k => industryPercents[k] = industryInvestments.ContainsKey(k) && !double.IsNaN(industryInvestments[k]) ? Math.Abs(industryInvestments[k] / portfolioBalance).ToString(".00%") : "");
+							subIndustryPercents.Keys.ToList().ForEach(k => subIndustryPercents[k] = subIndustryInvestments.ContainsKey(k) && !double.IsNaN(subIndustryInvestments[k]) ? Math.Abs(subIndustryInvestments[k] / portfolioBalance).ToString(".00%") : "");
+						}
 					}
 
 					//var beta = getPortfolioBeta(time2);

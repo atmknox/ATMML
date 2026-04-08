@@ -312,7 +312,7 @@ namespace ATMML
 			_alertController.CheckBloomberg = () => _bloombergConnected;
 			_alertController.CheckMktNeutral = () => _alertNetBeta <= _limitNetBeta;
 			_alertController.CheckVolNeutral = () => _alertVolImbalance <= _limitVolNeutral;
-			_alertController.CheckMaxPosition = () => _alertMaxPositionWeight <= _limitMaxPosition;
+			_alertController.CheckMaxPosition = () => _alertMaxPositionWeight < _limitMaxPosition;
 			_alertController.CheckGrossBook = () => _alertGrossBook <= _limitGrossBook;
 			_alertController.CheckNetExposure = () => Math.Abs(_alertNetExposure) <= _limitNetExposure;
 			_alertController.CheckSectorGross = () => _alertMaxSectorGross <= _limitSectorGross;
@@ -1288,11 +1288,23 @@ namespace ATMML
 				industryPercents = percents[1];
 				subIndustryPercents = percents[2];
 
-				if (totalInvestment != 0 && portfolioBalance > 0)
+				// For live portfolios, use sector percents published by Portfolio Builder
+				// (calculated at rebalance prices) instead of recalculating with current
+				// market prices which causes apparent drift above the constraint limit.
+				var pbSectorStr = _mainView?.GetInfo("SectorPercents");
+				var pbIndustryStr = _mainView?.GetInfo("IndustryPercents");
+				var pbSubIndStr = _mainView?.GetInfo("SubIndustryPercents");
+				if (!string.IsNullOrEmpty(pbSectorStr))
 				{
-					sectorPercents.Keys.ToList().ForEach(k => sectorPercents[k] = sectorInvestments.ContainsKey(k) && !double.IsNaN(sectorInvestments[k]) && sectorInvestments[k] != 0 ? Math.Abs(sectorInvestments[k] / portfolioBalance).ToString(".00%") : "");
-					industryPercents.Keys.ToList().ForEach(k => industryPercents[k] = industryInvestments.ContainsKey(k) && !double.IsNaN(industryInvestments[k]) && industryInvestments[k] != 0 ? Math.Abs(industryInvestments[k] / portfolioBalance).ToString(".00%") : "");
-					subIndustryPercents.Keys.ToList().ForEach(k => subIndustryPercents[k] = subIndustryInvestments.ContainsKey(k) && !double.IsNaN(subIndustryInvestments[k]) && subIndustryInvestments[k] != 0 ? Math.Abs(subIndustryInvestments[k] / portfolioBalance).ToString(".00%") : "");
+					deserializePercents(pbSectorStr, sectorPercents);
+					deserializePercents(pbIndustryStr, industryPercents);
+					deserializePercents(pbSubIndStr, subIndustryPercents);
+				}
+				else if (totalInvestment != 0 && portfolioBalance > 0)
+				{
+					sectorPercents.Keys.ToList().ForEach(k => sectorPercents[k] = sectorInvestments.ContainsKey(k) && !double.IsNaN(sectorInvestments[k]) ? Math.Abs(sectorInvestments[k] / portfolioBalance).ToString(".00%") : "");
+					industryPercents.Keys.ToList().ForEach(k => industryPercents[k] = industryInvestments.ContainsKey(k) && !double.IsNaN(industryInvestments[k]) ? Math.Abs(industryInvestments[k] / portfolioBalance).ToString(".00%") : "");
+					subIndustryPercents.Keys.ToList().ForEach(k => subIndustryPercents[k] = subIndustryInvestments.ContainsKey(k) && !double.IsNaN(subIndustryInvestments[k]) ? Math.Abs(subIndustryInvestments[k] / portfolioBalance).ToString(".00%") : "");
 				}
 
 				// R = beta at last SETTLED rebalance date (optimizer enforced neutrality — near zero).
@@ -1633,7 +1645,7 @@ namespace ATMML
 				// Net exposure: signed (longAmt - shortAmt) / NAV — limit ±10%
 				("BtnNetExposure",  "10",  Math.Abs(_alertNetExposure) <= _limitNetExposure,                $"{_alertNetExposure * 100:F1}"),
 				// Max single-name position weight — red when any position reaches or exceeds 10%
-				("BtnMaxPosition",  "10",  _alertMaxPositionWeight   <= _limitMaxPosition,                   $"{_alertMaxPositionWeight * 100:F1}"),
+				("BtnMaxPosition",  "10",  _alertMaxPositionWeight   < _limitMaxPosition,                   $"{_alertMaxPositionWeight * 100:F1}"),
 				// Concentration: sector / industry / sub-industry
 				("BtnSectorGross",   "200", _alertMaxSectorGross     <= _limitSectorGross,    $"{_alertMaxSectorGross * 100:F1}"),
 				("BtnSectorNet",     "12",  _alertMaxSectorNet       <= _limitSectorNet,      $"{_alertMaxSectorNet * 100:F1}"),
@@ -1651,12 +1663,12 @@ namespace ATMML
 				("BtnADV50",  "10", _alertADV50  <= _limitADV50,  "10"),
 				("BtnADV100", "0",  _alertADV100 <= _limitADV100, "0"),
 				// Market cap tiers: gross and |net| as % of NAV
-				("BtnLargeCapGross", "175", _alertLargeCapGross <= _limitLargeCapGross, _alertLargeCapGross > 0 ? $"{_alertLargeCapGross * 100:F1}" : ""),
-				("BtnLargeCapNet",   "15",  _alertLargeCapNet   <= _limitLargeCapNet,   _alertLargeCapNet   > 0 ? $"{_alertLargeCapNet   * 100:F1}" : ""),
-				("BtnMidCapGross",   "100", _alertMidCapGross   <= _limitMidCapGross,   _alertMidCapGross   > 0 ? $"{_alertMidCapGross   * 100:F1}" : ""),
-				("BtnMidCapNet",     "15",  _alertMidCapNet     <= _limitMidCapNet,     _alertMidCapNet     > 0 ? $"{_alertMidCapNet     * 100:F1}" : ""),
-				("BtnSmallCapGross", "25",  _alertSmallCapGross <= _limitSmallCapGross, _alertSmallCapGross > 0 ? $"{_alertSmallCapGross * 100:F1}" : ""),
-				("BtnSmallCapNet",   "2.5", _alertSmallCapNet   <= _limitSmallCapNet,   _alertSmallCapNet   > 0 ? $"{_alertSmallCapNet   * 100:F1}" : ""),
+				("BtnLargeCapGross", "175", _alertLargeCapGross <= _limitLargeCapGross, $"{_alertLargeCapGross * 100:F1}"),
+				("BtnLargeCapNet",   "15",  _alertLargeCapNet   <= _limitLargeCapNet,   $"{_alertLargeCapNet   * 100:F1}"),
+				("BtnMidCapGross",   "100", _alertMidCapGross   <= _limitMidCapGross,   $"{_alertMidCapGross   * 100:F1}"),
+				("BtnMidCapNet",     "15",  _alertMidCapNet     <= _limitMidCapNet,     $"{_alertMidCapNet     * 100:F1}"),
+				("BtnSmallCapGross", "25",  _alertSmallCapGross <= _limitSmallCapGross, $"{_alertSmallCapGross * 100:F1}"),
+				("BtnSmallCapNet",   "2.5", _alertSmallCapNet   <= _limitSmallCapNet,   $"{_alertSmallCapNet   * 100:F1}"),
 				// Statistical Risk
 				("BtnMaxVaR95",   "1",    _alertPortfolioVaR95 <= _limitMaxVaR95,     $"{_alertPortfolioVaR95 * 100:F2}"),
 				("BtnCVaR95",     "1.5",  _alertCVaR95         <= _limitCVaR95,       $"{_alertCVaR95 * 100:F2}"),
@@ -1768,6 +1780,20 @@ namespace ATMML
 			}).ToList();
 
 			TilesList.ItemsSource = rows;
+		}
+
+		/// <summary>Deserializes pipe-delimited sector percents from Portfolio Builder into the dict.</summary>
+		private void deserializePercents(string data, Dictionary<string, string> target)
+		{
+			if (string.IsNullOrEmpty(data) || target == null) return;
+			foreach (var pair in data.Split('|'))
+			{
+				var idx = pair.IndexOf('=');
+				if (idx < 0) continue;
+				var key = pair.Substring(0, idx);
+				var val = pair.Substring(idx + 1);
+				if (target.ContainsKey(key)) target[key] = val;
+			}
 		}
 
 		private void Sector_MouseEnter(object sender, MouseEventArgs e)

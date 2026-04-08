@@ -2492,35 +2492,40 @@ namespace ATMML
 
 									// ============================================================
 									// ============================================================
-									// PHASE 1b: Enforce signed-net sector limit on positionWeights
-									// The optimizer enforces MaxSectorFraction as GROSS (|L|+|S|).
-									// SectorNet constraint targets signed NET (L-S). Cap it here.
+									// PHASE 1b: Enforce signed-net sector limit
+									// The optimizer enforces MaxSectorFraction as GROSS.
+									// SectorNet constraint targets signed NET (long-short).
+									// Use RequiredBook for sign -- DollarWeights may be unsigned.
 									// ============================================================
 									if (cfg.EnforceSectorLimits && cfg.MaxSectorFraction > 0)
 									{
-										// Pass 1: compute signed-net per sector
+										// Pass 1: compute signed-net per sector using RequiredBook
 										var sectorNet1b = new Dictionary<string, double>();
-										foreach (var kv in positionWeights)
+										foreach (var kv1b in positionWeights)
 										{
-											if (!positionStocks.ContainsKey(kv.Key)) continue;
-											var sec1b = positionStocks[kv.Key].Sector ?? "";
+											if (!positionStocks.ContainsKey(kv1b.Key)) continue;
+											var stk1b = positionStocks[kv1b.Key];
+											var sec1b = stk1b.Sector ?? "";
+											var sign1b = stk1b.RequiredBook == BetaNeutralRiskEngine.BookSide.Long ? 1.0 : -1.0;
 											if (!sectorNet1b.ContainsKey(sec1b)) sectorNet1b[sec1b] = 0;
-											sectorNet1b[sec1b] += kv.Value;
+											sectorNet1b[sec1b] += sign1b * Math.Abs(kv1b.Value);
 										}
 										// Pass 2: scale down dominant side in any violating sector
 										foreach (var sec1b in sectorNet1b.Keys.ToList())
 										{
 											var net1b = sectorNet1b[sec1b];
 											if (Math.Abs(net1b) <= cfg.MaxSectorFraction) continue;
-											var sf = cfg.MaxSectorFraction / Math.Abs(net1b);
+											var sf1b = cfg.MaxSectorFraction / Math.Abs(net1b);
 											foreach (var rk1b in positionWeights.Keys.ToList())
 											{
 												if (!positionStocks.ContainsKey(rk1b)) continue;
-												if ((positionStocks[rk1b].Sector ?? "") != sec1b) continue;
-												if (net1b > 0 && positionWeights[rk1b] > 0)
-													positionWeights[rk1b] *= sf;
-												else if (net1b < 0 && positionWeights[rk1b] < 0)
-													positionWeights[rk1b] *= sf;
+												var stk1bR = positionStocks[rk1b];
+												if ((stk1bR.Sector ?? "") != sec1b) continue;
+												var isDominant = net1b > 0
+													? stk1bR.RequiredBook == BetaNeutralRiskEngine.BookSide.Long
+													: stk1bR.RequiredBook == BetaNeutralRiskEngine.BookSide.Short;
+												if (isDominant)
+													positionWeights[rk1b] *= sf1b;
 											}
 										}
 									}
@@ -3886,7 +3891,6 @@ namespace ATMML
 			var portfolioEndDate = _model.UseCurrentDate ? DateTime.MaxValue : _model.DataRange.Time2;
 			// Live mode: hide lookback period from UI
 			var uiStartDate = _model.IsLiveMode ? _model.LiveStartDate : startDate;
-			System.Diagnostics.Debug.WriteLine($"[PVAlign] START model={_model.Name} isLive={_model.IsLiveMode} uiStartDate={uiStartDate:yyyy-MM-dd} liveStartDate={(_model.IsLiveMode ? _model.LiveStartDate.ToString("yyyy-MM-dd") : "n/a")}");
 
 			// LIVE MODE: Intra-week daily MtM NAV
 			// On non-rebalance days compute today's NAV from daily bars.
@@ -4090,8 +4094,6 @@ namespace ATMML
 			saveList<double>(_model.Name + " PortfolioNavs", finalNav.Select(kvp => kvp.Value).ToList());
 			// Debug: show portfolioTimes vs values alignment
 			for (int dbg = 0; dbg < Math.Min(portfolioTimes.Count, values.Count); dbg++)
-				System.Diagnostics.Debug.WriteLine($"[PVAlign] {_model.Name} idx={dbg} date={portfolioTimes[dbg]:yyyy-MM-dd} pv={values[dbg]:F4} bal={(100000000 * (1 + values[dbg] / 100)):N0}");
-			System.Diagnostics.Debug.WriteLine($"[PVAlign] ptCount={portfolioTimes.Count} pvCount={values.Count}");
 
 			saveList<double>(_model.Name + " PortfolioValues", values);
 			saveList<double>(_model.Name + " PortfolioReturns", returns);
@@ -5583,6 +5585,13 @@ namespace ATMML
 		/// </summary>
 		private Dictionary<string, double> LoadLockedDecisions(DateTime rebalanceDate)
 		{
+			// If sector/industry constraints are enabled, never replay locks --
+			// always re-run the optimizer so constraints are enforced fresh.
+			if (_model.getConstraint("SectorNet").Enable ||
+				_model.getConstraint("IndustryNet").Enable ||
+				_model.getConstraint("SubIndNet").Enable)
+				return null;
+
 			// Check in-memory set first — covers dates written earlier in this same run
 			// where MainView.LoadUserData may not yet see the newly written file
 			if (_decisionLockedDates.Contains(rebalanceDate))
