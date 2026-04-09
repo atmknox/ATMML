@@ -1,4 +1,4 @@
-﻿using RiskEngine2;
+using RiskEngine2;
 using RiskEngine3;
 using System;
 using System.Collections.Generic;
@@ -326,7 +326,24 @@ namespace ATMML
 			_alertController.CheckMVaR95 = () => _alertMVaR95Pct <= _limitMVaR95Pct;
 			_alertController.CheckIdioRisk = () => !_alertDataValid || _alertIdioRiskPct >= _limitIdioRiskMin;
 			_alertController.CheckEqStress5 = () => _alertEqStress5 <= _limitEqStress5;
-			_alertController.CheckEqStress10 = () => _alertEqStress10 <= _limitEqStress10;
+			_alertController.CheckEqStress10    = () => _alertEqStress10    <= _limitEqStress10;
+			// Extended checks — wired here so a single ForceRefresh() covers everything
+			_alertController.CheckUtilization   = () => _alertUtilization   >= _limitUtilization;
+			_alertController.CheckMaxVaR95      = () => _alertPortfolioVaR95 <= _limitMaxVaR95;
+			_alertController.CheckCVaR95        = () => _alertCVaR95         <= _limitCVaR95;
+			_alertController.CheckTop5Long      = () => _alertTop5LongSum    <= _limitTop5LongSum;
+			_alertController.CheckTop5Short     = () => _alertTop5ShortSum   <= _limitTop5ShortSum;
+			_alertController.CheckTop10Long     = () => _alertTop10LongSum   <= _limitTop10LongSum;
+			_alertController.CheckTop10Short    = () => _alertTop10ShortSum  <= _limitTop10ShortSum;
+			_alertController.CheckADV20         = () => _alertADV20          <= _limitADV20;
+			_alertController.CheckADV50         = () => _alertADV50          <= _limitADV50;
+			_alertController.CheckADV100        = () => _alertADV100         <= _limitADV100;
+			_alertController.CheckLargeCapGross = () => _alertLargeCapGross  <= _limitLargeCapGross;
+			_alertController.CheckLargeCapNet   = () => _alertLargeCapNet    <= _limitLargeCapNet;
+			_alertController.CheckMidCapGross   = () => _alertMidCapGross    <= _limitMidCapGross;
+			_alertController.CheckMidCapNet     = () => _alertMidCapNet      <= _limitMidCapNet;
+			_alertController.CheckSmallCapGross = () => _alertSmallCapGross  <= _limitSmallCapGross;
+			_alertController.CheckSmallCapNet   = () => _alertSmallCapNet    <= _limitSmallCapNet;
 			// Note: do NOT call _alertController.Start() here.
 			// Start() is called from UserControl_Loaded after buttons are registered.
 
@@ -1096,8 +1113,8 @@ namespace ATMML
 			}
 			// Override with live MtM only when viewing the current live date (not historical)
 			var liveNavStr = _mainView.GetInfo("LiveNav");
-			bool isLiveDate = time2 == default(DateTime) || time2.Date >= DateTime.Today.AddDays(-7);
-			if (isLiveDate && !string.IsNullOrEmpty(liveNavStr) && double.TryParse(liveNavStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double liveNavEarly) && liveNavEarly > 0)
+			bool isLivePortfolio = model.IsLiveMode;
+			if (isLivePortfolio && !string.IsNullOrEmpty(liveNavStr) && double.TryParse(liveNavStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double liveNavEarly) && liveNavEarly > 0)
 				portfolioBalance = liveNavEarly;
 
 			var totalInvestment = 0.0;
@@ -1294,11 +1311,25 @@ namespace ATMML
 				var pbSectorStr = _mainView?.GetInfo("SectorPercents");
 				var pbIndustryStr = _mainView?.GetInfo("IndustryPercents");
 				var pbSubIndStr = _mainView?.GetInfo("SubIndustryPercents");
+				// Reset net values so the fallback calculation can run if PB data is absent.
+				bool pbSectorDataUsed = false;
+				_alertMaxSectorNet   = 0;
+				_alertMaxIndustryNet = 0;
+				_alertMaxSubIndNet   = 0;
+
 				if (!string.IsNullOrEmpty(pbSectorStr))
 				{
 					deserializePercents(pbSectorStr, sectorPercents);
 					deserializePercents(pbIndustryStr, industryPercents);
 					deserializePercents(pbSubIndStr, subIndustryPercents);
+
+					// Derive alert max values directly from PB's already-pushed percents.
+					// sectorPercents values are absolute net per sector (e.g. "12.00%") — the
+					// same numbers the tiles display. Max of these = _alertMaxSectorNet.
+					_alertMaxSectorNet   = parseMaxPercent(sectorPercents);
+					_alertMaxIndustryNet = parseMaxPercent(industryPercents);
+					_alertMaxSubIndNet   = parseMaxPercent(subIndustryPercents);
+					pbSectorDataUsed = true;
 				}
 				else if (totalInvestment != 0 && portfolioBalance > 0)
 				{
@@ -1382,6 +1413,24 @@ namespace ATMML
 				// Liquidity accumulators (position size as % of 20-day ADV)
 				double adv20DollarSum = 0, adv50DollarSum = 0, adv100DollarSum = 0;
 
+				// Request CUR_MKT_CAP on a background thread for any ticker not yet cached.
+				// RequestReferenceData must not be called from the UI thread or responses
+				// may never arrive. Fire-and-forget via Task.Run.
+				var _uncachedTickers = trades
+					.Select(tr => tr.Ticker)
+					.Where(tk => { lock (_marketCapCache) { return !_marketCapCache.ContainsKey(tk); } })
+					.Distinct()
+					.ToList();
+				if (_uncachedTickers.Count > 0)
+				{
+					var _capFields = new[] { "CUR_MKT_CAP" };
+					System.Threading.Tasks.Task.Run(() =>
+					{
+						foreach (var _tk in _uncachedTickers)
+							_portfolio.RequestReferenceData(_tk, _capFields, true);
+					});
+				}
+
 				// Market cap tier accumulators ($ values, signed by direction)
 				double largeLong = 0, largeShort = 0;
 				double midLong = 0, midShort = 0;
@@ -1392,11 +1441,38 @@ namespace ATMML
 					if (price.ContainsKey(t) && shares.ContainsKey(t) && portfolioBalance > 0)
 					{
 						double curPx = currentPrice.ContainsKey(t) ? currentPrice[t] : price[t];
-						double w = Math.Abs(curPx * shares[t]) / portfolioBalance;
+						// shares[t] may be 0 if the date lookup at tradesTime2 found no match.
+						// For cap tier purposes use the most recent non-zero shares from the trade.
+						// Only include trades active at time2 — same gate as the first loop.
+						// Closed historical trades must contribute 0 to avoid inflating totals.
+						var _capExitTime = trade.CloseDateTime;
+						bool _activeAtTime2 = trade.IsOpen() || _capExitTime == default(DateTime) || time2 < _capExitTime;
+						double sharesForCap;
+						if (!_activeAtTime2)
+						{
+							sharesForCap = 0;  // closed position — no current exposure
+						}
+						else if (shares[t] != 0)
+						{
+							sharesForCap = shares[t];
+						}
+						else
+						{
+							// Active trade but exact date lookup missed — use two-step fallback.
+							var capShKey = trade.Shares.Keys
+								.Where(k => k.Date == time2.Date && trade.Shares[k] != 0)
+								.OrderByDescending(k => k).FirstOrDefault();
+							if (capShKey == default(DateTime))
+								capShKey = trade.Shares.Keys
+									.Where(k => k.Date <= time2.Date && trade.Shares[k] != 0)
+									.OrderByDescending(k => k).FirstOrDefault();
+							sharesForCap = capShKey != default(DateTime) ? Math.Abs(trade.Shares[capShKey]) : 0;
+						}
+						double w = Math.Abs(curPx * sharesForCap) / portfolioBalance;
 						lock (_positionWeights) { _positionWeights[t] = w; }  // for yellow circle in getSymbolLabel
 						if (w > maxPosWeight) maxPosWeight = w;
 						int dir = (int)trade.Direction;
-						double posDollar = Math.Abs(curPx * shares[t]);
+						double posDollar = Math.Abs(curPx * sharesForCap);
 
 						// Top-N concentration
 						if (dir > 0) longWeights.Add(w);
@@ -1433,6 +1509,12 @@ namespace ATMML
 								if (mktCapB > 5.0) { if (dir > 0) largeLong += posDollar; else largeShort += posDollar; }
 								else if (mktCapB > 1.0) { if (dir > 0) midLong += posDollar; else midShort += posDollar; }
 								else if (mktCapB > 0.5) { if (dir > 0) smallLong += posDollar; else smallShort += posDollar; }
+							}
+							else
+							{
+								// No Bloomberg CUR_MKT_CAP available — SPX constituents are
+								// all large cap (min ~$12B), so classify as large cap by default.
+								if (dir > 0) largeLong += posDollar; else largeShort += posDollar;
 							}
 						}
 
@@ -1498,22 +1580,26 @@ namespace ATMML
 					_alertMaxSectorGross = sectorInvestments
 						.Where(p => !string.IsNullOrEmpty(p.Key) && !double.IsNaN(p.Value))
 						.DefaultIfEmpty(new KeyValuePair<string, double>("", 0)).Max(p => Math.Abs(p.Value)) / portfolioBalance;
-					_alertMaxSectorNet = sectorNetAmounts
-						.Where(p => !string.IsNullOrEmpty(p.Key))
-						.DefaultIfEmpty(new KeyValuePair<string, double>("", 0)).Max(p => Math.Abs(p.Value)) / portfolioBalance;
 					_alertMaxIndustryGross = industryInvestments
 						.Where(p => !string.IsNullOrEmpty(p.Key) && !double.IsNaN(p.Value))
-						.DefaultIfEmpty(new KeyValuePair<string, double>("", 0)).Max(p => Math.Abs(p.Value)) / portfolioBalance;
-					_alertMaxIndustryNet = industryNetAmounts
-						.Where(p => !string.IsNullOrEmpty(p.Key))
 						.DefaultIfEmpty(new KeyValuePair<string, double>("", 0)).Max(p => Math.Abs(p.Value)) / portfolioBalance;
 					_alertMaxSubIndGross = subIndustryInvestments
 						.Where(p => !string.IsNullOrEmpty(p.Key) && !double.IsNaN(p.Value))
 						.DefaultIfEmpty(new KeyValuePair<string, double>("", 0)).Max(p => Math.Abs(p.Value)) / portfolioBalance;
-					// SubIndNet: same as gross per bucket — "no single sub-industry > 12% of portfolio"
-					_alertMaxSubIndNet = subIndustryInvestments
-						.Where(p => !string.IsNullOrEmpty(p.Key) && !double.IsNaN(p.Value))
-						.DefaultIfEmpty(new KeyValuePair<string, double>("", 0)).Max(p => Math.Abs(p.Value)) / portfolioBalance;
+					// NET values: only use Timing's bar-close fallback when PB hasn't pushed data.
+					if (!pbSectorDataUsed)
+					{
+						_alertMaxSectorNet = sectorNetAmounts
+							.Where(p => !string.IsNullOrEmpty(p.Key))
+							.DefaultIfEmpty(new KeyValuePair<string, double>("", 0)).Max(p => Math.Abs(p.Value)) / portfolioBalance;
+						_alertMaxIndustryNet = industryNetAmounts
+							.Where(p => !string.IsNullOrEmpty(p.Key))
+							.DefaultIfEmpty(new KeyValuePair<string, double>("", 0)).Max(p => Math.Abs(p.Value)) / portfolioBalance;
+						// SubIndNet: same as gross per bucket
+						_alertMaxSubIndNet = subIndustryInvestments
+							.Where(p => !string.IsNullOrEmpty(p.Key) && !double.IsNaN(p.Value))
+							.DefaultIfEmpty(new KeyValuePair<string, double>("", 0)).Max(p => Math.Abs(p.Value)) / portfolioBalance;
+					}
 				}
 
 				// Predicted vol (annualised %, already computed above) and daily VaR95
@@ -1638,8 +1724,7 @@ namespace ATMML
 				("BtnVolNeutral",  "12",  _alertVolImbalance   <= _limitVolNeutral,    $"{_alertVolImbalance * 100:F1}"),
 				// IntradayDD: circle only — clear the static "3" TextBlock, write nothing
 				("BtnIntradayDD", "", _alertIntradayDD >= -_limitIntradayDD, ""),
-				// UCAP: green when utilization >= 50% (capital deployed); red when under-utilised
-				("BtnUtilization",  "50",  _alertUtilization         >= _limitUtilization,                  $"{_alertUtilization * 100:F1}"),
+				// UCAP: circle color handled by updateExtendedAlertCircles; LblUtilization stays silver
 				// Gross book: sum of |longs| + |shorts| / NAV — limit 200%
 				("BtnGrossBook",    "200", _alertGrossBook           <= _limitGrossBook,                    $"{_alertGrossBook * 100:F1}"),
 				// Net exposure: signed (longAmt - shortAmt) / NAV — limit ±10%
@@ -1658,17 +1743,18 @@ namespace ATMML
 				("BtnTop5Short",  "35",  _alertTop5ShortSum  <= _limitTop5ShortSum,  $"{_alertTop5ShortSum * 100:F1}"),
 				("BtnTop10Long",  "75",  _alertTop10LongSum  <= _limitTop10LongSum,  $"{_alertTop10LongSum * 100:F1}"),
 				("BtnTop10Short", "65",  _alertTop10ShortSum <= _limitTop10ShortSum, $"{_alertTop10ShortSum * 100:F1}"),
-				// Liquidity: color the static threshold text lime/red — actual % shown as text
-				("BtnADV20",  "30", _alertADV20  <= _limitADV20,  "30"),
-				("BtnADV50",  "10", _alertADV50  <= _limitADV50,  "10"),
-				("BtnADV100", "0",  _alertADV100 <= _limitADV100, "0"),
-				// Market cap tiers: gross and |net| as % of NAV
-				("BtnLargeCapGross", "175", _alertLargeCapGross <= _limitLargeCapGross, $"{_alertLargeCapGross * 100:F1}"),
-				("BtnLargeCapNet",   "15",  _alertLargeCapNet   <= _limitLargeCapNet,   $"{_alertLargeCapNet   * 100:F1}"),
-				("BtnMidCapGross",   "100", _alertMidCapGross   <= _limitMidCapGross,   $"{_alertMidCapGross   * 100:F1}"),
-				("BtnMidCapNet",     "15",  _alertMidCapNet     <= _limitMidCapNet,     $"{_alertMidCapNet     * 100:F1}"),
-				("BtnSmallCapGross", "25",  _alertSmallCapGross <= _limitSmallCapGross, $"{_alertSmallCapGross * 100:F1}"),
-				("BtnSmallCapNet",   "2.5", _alertSmallCapNet   <= _limitSmallCapNet,   $"{_alertSmallCapNet   * 100:F1}"),
+				// Liquidity: circle color only — no number shown next to dot
+				("BtnADV20",  "", _alertADV20  <= _limitADV20,  ""),
+				("BtnADV50",  "", _alertADV50  <= _limitADV50,  ""),
+				("BtnADV100", "", _alertADV100 <= _limitADV100, ""),
+				// Market cap tiers: show actual % only when non-zero (zero = no data yet).
+				// Numbers appear automatically when mid cap stocks are added or Bloomberg delivers cap data.
+				("BtnLargeCapGross", "", _alertLargeCapGross <= _limitLargeCapGross, _alertLargeCapGross > 0 ? $"{_alertLargeCapGross * 100:F1}" : ""),
+				("BtnLargeCapNet",   "", _alertLargeCapNet   <= _limitLargeCapNet,   _alertLargeCapNet   > 0 ? $"{_alertLargeCapNet   * 100:F1}" : ""),
+				("BtnMidCapGross",   "", _alertMidCapGross   <= _limitMidCapGross,   _alertMidCapGross   > 0 ? $"{_alertMidCapGross   * 100:F1}" : ""),
+				("BtnMidCapNet",     "", _alertMidCapNet     <= _limitMidCapNet,     _alertMidCapNet     > 0 ? $"{_alertMidCapNet     * 100:F1}" : ""),
+				("BtnSmallCapGross", "", _alertSmallCapGross <= _limitSmallCapGross, _alertSmallCapGross > 0 ? $"{_alertSmallCapGross * 100:F1}" : ""),
+				("BtnSmallCapNet",   "", _alertSmallCapNet   <= _limitSmallCapNet,   _alertSmallCapNet   > 0 ? $"{_alertSmallCapNet   * 100:F1}" : ""),
 				// Statistical Risk
 				("BtnMaxVaR95",   "1",    _alertPortfolioVaR95 <= _limitMaxVaR95,     $"{_alertPortfolioVaR95 * 100:F2}"),
 				("BtnCVaR95",     "1.5",  _alertCVaR95         <= _limitCVaR95,       $"{_alertCVaR95 * 100:F2}"),
@@ -1783,6 +1869,25 @@ namespace ATMML
 		}
 
 		/// <summary>Deserializes pipe-delimited sector percents from Portfolio Builder into the dict.</summary>
+		/// <summary>
+		/// Returns the maximum absolute percent value from a sector/industry/subind
+		/// percents dictionary (values like "12.00%") as a decimal fraction.
+		/// Used to derive _alertMaxSectorNet etc. from PB's already-pushed data.
+		/// </summary>
+		private double parseMaxPercent(Dictionary<string, string> percents)
+		{
+			double max = 0;
+			foreach (var val in percents.Values)
+			{
+				if (string.IsNullOrEmpty(val)) continue;
+				var clean = val.TrimEnd('%').Trim();
+				if (double.TryParse(clean, System.Globalization.NumberStyles.Any,
+					System.Globalization.CultureInfo.InvariantCulture, out double d))
+					max = Math.Max(max, Math.Abs(d) / 100.0);
+			}
+			return max;
+		}
+
 		private void deserializePercents(string data, Dictionary<string, string> target)
 		{
 			if (string.IsNullOrEmpty(data) || target == null) return;
@@ -2995,6 +3100,7 @@ namespace ATMML
 				NavCol1.Visibility = Visibility.Visible;
 
 				var modelNames = MainView.getModelNames();
+				modelNames.Remove("_meta");
 				modelNames.Insert(0, "NO PREDICTION");
 
 				nav.setNavigation(NavCol1, Model_MouseDown, modelNames.ToArray());
@@ -3985,20 +4091,21 @@ namespace ATMML
 		{
 			// Update Balance2 from Portfolio_Builder's live MtM every tick (200ms)
 			var liveNavStr = _mainView.GetInfo("LiveNav");
-			if (!string.IsNullOrEmpty(liveNavStr) && double.TryParse(liveNavStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double timerLiveNav) && timerLiveNav > 0)
+			var currentModel = getModel(getPortfolioName());
+			bool isLivePortfolio = currentModel != null && currentModel.IsLiveMode;
+			if (isLivePortfolio && !string.IsNullOrEmpty(liveNavStr) && double.TryParse(liveNavStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double timerLiveNav) && timerLiveNav > 0)
 				Balance2.Content = "$ " + timerLiveNav.ToString("#,##0");
 
-			// BarServer._bloombergConnectionOk is maintained live by bloombergConnectionThread
-			// (sets false when sessions drop, true when openSession() succeeds).
-			// Poll every 200ms and refresh alerts immediately on any state change.
+			// Refresh all alert circles every tick (200ms) — covers view switches and
+			// any data changes without waiting for the 30-second poll timer.
+			_alertController?.ForceRefresh();
+			updateCategoryCircles();
+			updateExtendedAlertCircles();
+
+			// Track Bloomberg connection state change.
 			bool bbgNow = BarServer.ConnectedToBloomberg();
 			if (bbgNow != _bloombergConnected)
-			{
 				_bloombergConnected = bbgNow;
-				_alertController?.ForceRefresh();
-				updateCategoryCircles();
-				updateExtendedAlertCircles();
-			}
 
 			if ((DateTime.Now - _calculateTime).TotalMinutes >= 5)
 			{

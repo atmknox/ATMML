@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,35 +11,52 @@ namespace ATMML
 	{
 		// ── State ─────────────────────────────────────────────────────────────────
 
-		private readonly Dictionary<string, bool> _acknowledged = new();
-		private readonly Dictionary<string, Button> _buttons = new();
-		private readonly Dictionary<string, TextBox> _labels = new();
-		private readonly Dictionary<string, string> _displayOverride = new();
-		private readonly Dictionary<string, Brush> _colorOverride = new();
-		private readonly Dictionary<string, Brush> _labelColorOverride = new();
+		private readonly Dictionary<string, bool>    _acknowledged       = new();
+		private readonly Dictionary<string, Button>  _buttons            = new();
+		private readonly Dictionary<string, TextBox> _labels             = new();
+		private readonly Dictionary<string, string>  _displayOverride    = new();
+		private readonly Dictionary<string, Brush>   _colorOverride      = new();
+		private readonly Dictionary<string, Brush>   _labelColorOverride = new();
 		private readonly DispatcherTimer _timer;
 
 		// ── Data-source lambdas ───────────────────────────────────────────────────
 
-		public Func<bool> CheckFlexOne { get; set; } = () => true;
-		public Func<bool> CheckBloomberg { get; set; } = () => true;
-		public Func<bool> CheckMktNeutral { get; set; } = () => true;
-		public Func<bool> CheckVolNeutral { get; set; } = () => true;
-		public Func<bool> CheckMaxPosition { get; set; } = () => true;
-		public Func<bool> CheckGrossBook { get; set; } = () => true;
-		public Func<bool> CheckNetExposure { get; set; } = () => true;
-		public Func<bool> CheckSectorGross { get; set; } = () => true;
-		public Func<bool> CheckSectorNet { get; set; } = () => true;
+		public Func<bool> CheckFlexOne       { get; set; } = () => true;
+		public Func<bool> CheckBloomberg     { get; set; } = () => true;
+		public Func<bool> CheckMktNeutral    { get; set; } = () => true;
+		public Func<bool> CheckVolNeutral    { get; set; } = () => true;
+		public Func<bool> CheckMaxPosition   { get; set; } = () => true;
+		public Func<bool> CheckGrossBook     { get; set; } = () => true;
+		public Func<bool> CheckNetExposure   { get; set; } = () => true;
+		public Func<bool> CheckSectorGross   { get; set; } = () => true;
+		public Func<bool> CheckSectorNet     { get; set; } = () => true;
 		public Func<bool> CheckIndustryGross { get; set; } = () => true;
-		public Func<bool> CheckIndustryNet { get; set; } = () => true;
-		public Func<bool> CheckSubIndGross { get; set; } = () => true;
-		public Func<bool> CheckSubIndNet { get; set; } = () => true;
-		public Func<bool> CheckMaxPredVol { get; set; } = () => true;
-		public Func<bool> CheckMVaR95 { get; set; } = () => true;
-		public Func<bool> CheckIdioRisk { get; set; } = () => true;
-		public Func<bool> CheckEqStress5 { get; set; } = () => true;
-		public Func<bool> CheckEqStress10 { get; set; } = () => true;
-		public Func<bool> CheckIntradayDD { get; set; } = () => true;
+		public Func<bool> CheckIndustryNet   { get; set; } = () => true;
+		public Func<bool> CheckSubIndGross   { get; set; } = () => true;
+		public Func<bool> CheckSubIndNet     { get; set; } = () => true;
+		public Func<bool> CheckMaxPredVol    { get; set; } = () => true;
+		public Func<bool> CheckMVaR95        { get; set; } = () => true;
+		public Func<bool> CheckIdioRisk      { get; set; } = () => true;
+		public Func<bool> CheckEqStress5     { get; set; } = () => true;
+		public Func<bool> CheckEqStress10    { get; set; } = () => true;
+		public Func<bool> CheckIntradayDD    { get; set; } = () => true;
+		// Extended
+		public Func<bool> CheckUtilization   { get; set; } = () => true;
+		public Func<bool> CheckMaxVaR95      { get; set; } = () => true;
+		public Func<bool> CheckCVaR95        { get; set; } = () => true;
+		public Func<bool> CheckTop5Long      { get; set; } = () => true;
+		public Func<bool> CheckTop5Short     { get; set; } = () => true;
+		public Func<bool> CheckTop10Long     { get; set; } = () => true;
+		public Func<bool> CheckTop10Short    { get; set; } = () => true;
+		public Func<bool> CheckADV20         { get; set; } = () => true;
+		public Func<bool> CheckADV50         { get; set; } = () => true;
+		public Func<bool> CheckADV100        { get; set; } = () => true;
+		public Func<bool> CheckLargeCapGross { get; set; } = () => true;
+		public Func<bool> CheckLargeCapNet   { get; set; } = () => true;
+		public Func<bool> CheckMidCapGross   { get; set; } = () => true;
+		public Func<bool> CheckMidCapNet     { get; set; } = () => true;
+		public Func<bool> CheckSmallCapGross { get; set; } = () => true;
+		public Func<bool> CheckSmallCapNet   { get; set; } = () => true;
 
 		// ── Constructor ───────────────────────────────────────────────────────────
 
@@ -51,20 +68,23 @@ namespace ATMML
 
 		// ── Registration ─────────────────────────────────────────────────────────
 
+		/// <summary>
+		/// Register a button and optional label with the controller.
+		/// Called from UserControl_Loaded after the visual tree is built.
+		/// Preserves acknowledged state on re-registration.
+		/// </summary>
 		public void Register(string key, Button button, TextBox label = null)
 		{
-			_acknowledged[key] = false;
+			if (!_acknowledged.ContainsKey(key))
+				_acknowledged[key] = false;
 			if (button != null) _buttons[key] = button;
-			if (label != null) _labels[key] = label;
+			if (label  != null) _labels[key]  = label;
 		}
 
-		/// <summary>
-		/// Register by searching the visual tree — use when FindName fails due to
-		/// ItemsControl namescope boundaries.
-		/// </summary>
 		public void RegisterFromHost(string key, FrameworkElement host, TextBox label = null)
 		{
-			_acknowledged[key] = false;
+			if (!_acknowledged.ContainsKey(key))
+				_acknowledged[key] = false;
 			var btn = FindInVisualTree<Button>(host, "Btn" + key);
 			if (btn != null) _buttons[key] = btn;
 			var lbl = label ?? FindInVisualTree<TextBox>(host, "Lbl" + key);
@@ -94,32 +114,49 @@ namespace ATMML
 			_timer.Start();
 		}
 
-		public void Stop() => _timer.Stop();
+		public void Stop()         => _timer.Stop();
 		public void ForceRefresh() => EvaluateAll();
 
 		// ── Evaluation ────────────────────────────────────────────────────────────
 
 		private void EvaluateAll()
 		{
-			SetCircle("FlexOne", CheckFlexOne());
-			SetCircle("Bloomberg", CheckBloomberg());
-			SetCircle("MktNeutral", CheckMktNeutral());
-			SetCircle("VolNeutral", CheckVolNeutral());
-			SetCircle("MaxPosition", CheckMaxPosition());
-			SetCircle("GrossBook", CheckGrossBook());
-			SetCircle("NetExposure", CheckNetExposure());
-			SetCircle("SectorGross", CheckSectorGross());
-			SetCircle("SectorNet", CheckSectorNet());
+			SetCircle("FlexOne",       CheckFlexOne());
+			SetCircle("Bloomberg",     CheckBloomberg());
+			SetCircle("MktNeutral",    CheckMktNeutral());
+			SetCircle("VolNeutral",    CheckVolNeutral());
+			SetCircle("MaxPosition",   CheckMaxPosition());
+			SetCircle("GrossBook",     CheckGrossBook());
+			SetCircle("NetExposure",   CheckNetExposure());
+			SetCircle("SectorGross",   CheckSectorGross());
+			SetCircle("SectorNet",     CheckSectorNet());
 			SetCircle("IndustryGross", CheckIndustryGross());
-			SetCircle("IndustryNet", CheckIndustryNet());
-			SetCircle("SubIndGross", CheckSubIndGross());
-			SetCircle("SubIndNet", CheckSubIndNet());
-			SetCircle("MaxPredVol", CheckMaxPredVol());
-			SetCircle("MVaR95", CheckMVaR95());
-			SetCircle("IdioRisk", CheckIdioRisk());
-			SetCircle("EqStress5", CheckEqStress5());
-			SetCircle("EqStress10", CheckEqStress10());
-			SetCircle("IntradayDD", CheckIntradayDD());
+			SetCircle("IndustryNet",   CheckIndustryNet());
+			SetCircle("SubIndGross",   CheckSubIndGross());
+			SetCircle("SubIndNet",     CheckSubIndNet());
+			SetCircle("MaxPredVol",    CheckMaxPredVol());
+			SetCircle("MVaR95",        CheckMVaR95());
+			SetCircle("IdioRisk",      CheckIdioRisk());
+			SetCircle("EqStress5",     CheckEqStress5());
+			SetCircle("EqStress10",    CheckEqStress10());
+			SetCircle("IntradayDD",    CheckIntradayDD());
+			// Extended
+			SetCircle("Utilization",   CheckUtilization());
+			SetCircle("MaxVaR95",      CheckMaxVaR95());
+			SetCircle("CVaR95",        CheckCVaR95());
+			SetCircle("Top5Long",      CheckTop5Long());
+			SetCircle("Top5Short",     CheckTop5Short());
+			SetCircle("Top10Long",     CheckTop10Long());
+			SetCircle("Top10Short",    CheckTop10Short());
+			SetCircle("ADV20",         CheckADV20());
+			SetCircle("ADV50",         CheckADV50());
+			SetCircle("ADV100",        CheckADV100());
+			SetCircle("LargeCapGross", CheckLargeCapGross());
+			SetCircle("LargeCapNet",   CheckLargeCapNet());
+			SetCircle("MidCapGross",   CheckMidCapGross());
+			SetCircle("MidCapNet",     CheckMidCapNet());
+			SetCircle("SmallCapGross", CheckSmallCapGross());
+			SetCircle("SmallCapNet",   CheckSmallCapNet());
 			ApplyLabelOverrides();
 		}
 
@@ -135,14 +172,12 @@ namespace ATMML
 					? Brushes.Yellow
 					: Brushes.Red);
 
-			// Apply button color override if set
 			if (_colorOverride.TryGetValue(key, out var colorOverride))
 				btn.Foreground = colorOverride;
 
-			// Apply display override to button content if set
 			if (_displayOverride.TryGetValue(key, out var text))
 			{
-				btn.Content = text;
+				btn.Content  = text;
 				btn.FontSize = 9;
 			}
 		}
@@ -160,9 +195,6 @@ namespace ATMML
 
 		// ── Public display methods ────────────────────────────────────────────────
 
-		/// <summary>
-		/// For label-only rows (no button) — sets text and foreground color on the TextBox.
-		/// </summary>
 		public void SetLabelDisplay(string key, string text, Brush color)
 		{
 			if (text == null)
@@ -172,14 +204,11 @@ namespace ATMML
 			}
 			else
 			{
-				_displayOverride[key] = text;
+				_displayOverride[key]    = text;
 				_labelColorOverride[key] = color ?? Brushes.Lime;
 			}
 		}
 
-		/// <summary>
-		/// For button rows — stores a value to show in the button and optional color override.
-		/// </summary>
 		public void SetDisplay(string key, string labelText, Brush color = null)
 		{
 			if (labelText == null)
@@ -191,7 +220,7 @@ namespace ATMML
 			{
 				_displayOverride[key] = labelText;
 				if (color != null) _colorOverride[key] = color;
-				else _colorOverride.Remove(key);
+				else               _colorOverride.Remove(key);
 			}
 		}
 
@@ -207,12 +236,12 @@ namespace ATMML
 			if (!currentlyAcked)
 			{
 				_acknowledged[key] = true;
-				btn.Foreground = Brushes.Yellow;
+				btn.Foreground     = Brushes.Yellow;
 			}
 			else
 			{
 				_acknowledged[key] = false;
-				btn.Foreground = Brushes.Red;
+				btn.Foreground     = Brushes.Red;
 			}
 		}
 	}

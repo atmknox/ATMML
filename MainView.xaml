@@ -493,7 +493,7 @@
                     <RowDefinition Height="30"/>
                 </Grid.RowDefinitions>
 
-                <Label Grid.Row="0" VerticalContentAlignment="Top" HorizontalContentAlignment="Center"  Grid.Column="0" Grid.ColumnSpan="8" Grid.RowSpan="2" Margin="0,0,-5,8"  Content="Portfolio Optimizer"
+                <Label Grid.Row="0" VerticalContentAlignment="Top" HorizontalContentAlignment="Center"  Grid.Column="0" Grid.ColumnSpan="8" Grid.RowSpan="2" Margin="0,0,-5,8"  Content="Portfolio Builder"
 FontFamily="Helvetica Neue" FontSize="20" Foreground="White" />
 
                 <Label   Content="PASSCODE" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Left"  FontFamily="Helvetica Neue" FontSize="12" Foreground="White"  VerticalAlignment="Top"  Margin="10,0,0,7"/>

@@ -2530,6 +2530,28 @@ namespace ATMML
 										}
 									}
 
+									// ============================================================
+									// PHASE 1c: Save final sector fractions so Portfolio Builder
+									// can display them directly (bypasses price mismatch).
+									// ============================================================
+									if (cfg.EnforceSectorLimits)
+									{
+										var sectorFinal = new Dictionary<string, double>();
+										foreach (var kv1c in positionWeights)
+										{
+											if (!positionStocks.ContainsKey(kv1c.Key)) continue;
+											var stk1c = positionStocks[kv1c.Key];
+											var sec1c = stk1c.Sector ?? "";
+											var sign1c = stk1c.RequiredBook == BetaNeutralRiskEngine.BookSide.Long ? 1.0 : -1.0;
+											if (!sectorFinal.ContainsKey(sec1c)) sectorFinal[sec1c] = 0;
+											sectorFinal[sec1c] += sign1c * Math.Abs(kv1c.Value);
+										}
+										var sb1c = new System.Text.StringBuilder();
+										foreach (var kvf in sectorFinal)
+											sb1c.AppendLine(kvf.Key + "," + kvf.Value.ToString("R"));
+										MainView.SaveUserData(@"portfolios\sectorFracs\" + _model.Name + @"\" + date.ToString("yyyy-MM-dd"), sb1c.ToString());
+									}
+
 									// PHASE 2: Convert final weights to share counts
 									// ============================================================
 									double longGross = 0;
@@ -7755,7 +7777,7 @@ namespace ATMML
 			if (_progressState == ProgressState.CollectingData)
 			{
 				var timeSpan = DateTime.UtcNow - _barReceivedTime;
-				if (timeSpan.TotalSeconds > 10) // give up on getting all of the requested bars
+				if (timeSpan.TotalSeconds > 60) // give up on getting all of the requested bars
 				{
 					_progressCompletedNumber = _progressTotalNumber;
 					_waitForBars = false;

@@ -357,6 +357,7 @@ namespace ATMML
 		private List<string> getFactorModelNames()
 		{
 			var output = MainView.getFactorModelNames();
+			output.Remove("_meta");
 			output.Sort();
 			return output;
 		}

@@ -446,7 +446,7 @@
                 <Label Grid.Row="0" Grid.Column="0" Margin="0,0,38,13" HorizontalAlignment="Right"
                        VerticalContentAlignment="Center" Background="Transparent" Content="ML" FontFamily="Helvetica Neue"
                        FontSize="12" FontStyle="Normal" FontWeight="Normal" Foreground="White" />
-                <Label Grid.Row="1" Margin="0,0,0,12"  Content="Portfolio Optimizer"
+                <Label Grid.Row="1" Margin="0,0,0,12"  Content="Portfolio Builder"
                        HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" FontFamily="Helvetica Neue"
                        FontSize="9" FontWeight="Normal" Foreground="White" />
                 <Label Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="2" Margin="0,0,0,0"

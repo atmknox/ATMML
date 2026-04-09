@@ -1410,6 +1410,24 @@ namespace ATMML
 
 					LoadTiles(sectorPercents);
 
+					// Push sector percents + alert max values to shared info so Timing reads
+					// PB's live-price calculations instead of recalculating from stale bar closes.
+					if (_mainView != null)
+					{
+						_mainView.SetInfo("SectorPercents",      string.Join("|", sectorPercents.Select(kv      => $"{kv.Key}={kv.Value}")));
+						_mainView.SetInfo("IndustryPercents",    string.Join("|", industryPercents.Select(kv    => $"{kv.Key}={kv.Value}")));
+						_mainView.SetInfo("SubIndustryPercents", string.Join("|", subIndustryPercents.Select(kv => $"{kv.Key}={kv.Value}")));
+						if (portfolioBalance > 0)
+						{
+							double maxSectorNet = sectorInvestments.Count      > 0 ? sectorInvestments.Values.Max(v      => Math.Abs(v)) / portfolioBalance : 0;
+							double maxIndNet    = industryInvestments.Count    > 0 ? industryInvestments.Values.Max(v    => Math.Abs(v)) / portfolioBalance : 0;
+							double maxSubIndNet = subIndustryInvestments.Count > 0 ? subIndustryInvestments.Values.Max(v => Math.Abs(v)) / portfolioBalance : 0;
+							_mainView.SetInfo("AlertMaxSectorNet",   maxSectorNet.ToString("R"));
+							_mainView.SetInfo("AlertMaxIndustryNet", maxIndNet.ToString("R"));
+							_mainView.SetInfo("AlertMaxSubIndNet",   maxSubIndNet.ToString("R"));
+						}
+					}
+
 					Dictionary<string, double> scores = loadData("scores", model, rebalanceTime);
 					Dictionary<string, double> weights = loadData("weights", model, rebalanceTime);
 
