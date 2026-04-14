@@ -6453,7 +6453,42 @@ namespace ATMML
             }
         }
 
-        private void UserFactorModelTestStartDate_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+		private void BtnSettings_Click(object sender, System.Windows.RoutedEventArgs e)
+		{
+			var menu = new System.Windows.Controls.ContextMenu();
+
+			var changePassword = new System.Windows.Controls.MenuItem { Header = "Change Password" };
+			changePassword.Click += (_, _) =>
+				new ATMML.Auth.ChangePasswordDialog { Owner = System.Windows.Window.GetWindow(this) }.ShowDialog();
+			menu.Items.Add(changePassword);
+
+			if (ATMML.Auth.AuthContext.Current.CanManageUsers)
+			{
+				var manageUsers = new System.Windows.Controls.MenuItem { Header = "User Management" };
+				manageUsers.Click += (_, _) =>
+					new ATMML.Auth.UserManagementWindow { Owner = System.Windows.Window.GetWindow(this) }.ShowDialog();
+				menu.Items.Add(manageUsers);
+			}
+
+			menu.Items.Add(new System.Windows.Controls.Separator());
+
+			var logout = new System.Windows.Controls.MenuItem { Header = "Logout" };
+			logout.Click += (_, _) =>
+			{
+				ATMML.Auth.AuthContext.Current.Logout();
+				var login = new ATMML.Auth.LoginWindow();
+				bool? result = login.ShowDialog();
+				if (result != true)
+					System.Windows.Application.Current.Shutdown();
+			};
+			menu.Items.Add(logout);
+
+			menu.PlacementTarget = BtnSettings;
+			menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+			menu.IsOpen = true;
+		}
+
+		private void UserFactorModelTestStartDate_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
             var dp = sender as DatePicker;
             var dt = dp.SelectedDate.GetValueOrDefault(DateTime.Now);

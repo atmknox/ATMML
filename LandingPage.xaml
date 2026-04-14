@@ -1,5 +1,6 @@
 <ContentControl x:Class="ATMML.LandingPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                xmlns:local="clr-namespace:ATMML" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" d:DesignHeight="670"
+                xmlns:local="clr-namespace:ATMML" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:auth="clr-namespace:ATMML.Auth" d:DesignHeight="670"
                 d:DesignWidth="940" mc:Ignorable="d">
 
 
@@ -82,15 +83,21 @@
                                     <Grid>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto" />
-                                            --><!--  caption and close button  --><!--
+                                            -->
+        <!--  caption and close button  -->
+        <!--
                                             <RowDefinition Height="*" />
-                                            --><!--  content  --><!--
+                                            -->
+        <!--  content  -->
+        <!--
                                         </Grid.RowDefinitions>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
 
-                                        --><!--  Caption with dragging enabled  --><!--
+                                        -->
+        <!--  Caption with dragging enabled  -->
+        <!--
                                         <Border x:Name="PART_DragWidget" Grid.Row="0" Grid.Column="0" Height="16"
                                                 Background="{StaticResource ChromeBackgroundBrush}">
                                             <Grid>
@@ -101,7 +108,9 @@
                                             </Grid>
                                         </Border>
 
-                                        --><!--  Close button  --><!--
+                                        -->
+        <!--  Close button  -->
+        <!--
                                         <StackPanel Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"
                                                     Background="{StaticResource ChromeBackgroundBrush}"
                                                     Orientation="Horizontal">
@@ -113,7 +122,9 @@
                                             </Button>
                                         </StackPanel>
 
-                                        --><!--  Content  --><!--
+                                        -->
+        <!--  Content  -->
+        <!--
                                         <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
                                                 Background="{TemplateBinding Background}"
                                                 BorderBrush="{TemplateBinding BorderBrush}"
@@ -463,6 +474,36 @@
                     <RowDefinition Height="35" />
                 </Grid.RowDefinitions>
 
+                <!-- ── Logged-in user display + settings gear ──────────────── -->
+                <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="12"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right" VerticalAlignment="Center"
+                            Margin="0,0,10,0">
+                    <TextBlock Text="{Binding DisplayName, Source={x:Static auth:AuthContext.Current}}"
+                               Foreground="#00ccff" FontSize="10" FontFamily="Helvetica Neue"
+                               VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <Button x:Name="BtnSettings"
+                            Width="22" Height="22"
+                            Background="Transparent" BorderThickness="0"
+                            Cursor="Hand" ToolTip="Settings"
+                            Click="BtnSettings_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Grid Background="Transparent">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Opacity" Value="1.0"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Path Fill="#ffffff" Stretch="Uniform" Width="14" Height="14"
+                              Data="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
+                    </Button>
+                </StackPanel>
+
                 <!--<Rectangle Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="12"  Grid.RowSpan="14" Width="5" Height="600" HorizontalAlignment="Center"
 Fill="red" Stroke="DarkRed" StrokeThickness="2" />-->
 
@@ -493,15 +534,15 @@ Fill="red" Stroke="DarkRed" StrokeThickness="2" />-->
                             </Path>
                             <Path Data="F1 M 58.429,22.367 C 58.429,22.828 58.317,23.327 57.985,23.751 C 57.247,24.730 55.955,24.748 54.939,24.748 L 48.498,24.748 L 48.498,20.023 L 55.660,20.023 C 56.508,20.041 57.450,20.041 58.041,20.983 C 58.298,21.370 58.429,21.869 58.429,22.367 L 58.429,22.367 Z M 60.348,22.293 C 60.348,20.724 59.609,19.875 59.185,19.506 C 58.059,18.491 56.674,18.472 55.530,18.454 L 46.669,18.454 L 46.669,31.486 L 48.516,31.486 L 48.516,26.280 L 54.811,26.280 L 59.222,31.486 L 61.641,31.486 L 56.840,25.985 C 57.708,25.837 60.348,25.413 60.348,22.293 L 60.348,22.293 M 22.581,27.499 C 22.396,27.886 21.972,28.551 21.271,29.068 C 20.477,29.695 19.128,30.212 17.117,30.194 C 14.772,30.194 13.258,29.437 12.373,28.532 C 11.395,27.443 11.025,26.114 11.025,24.822 C 11.025,21.149 13.904,19.690 17.006,19.690 C 18.667,19.690 20.070,20.152 20.865,20.669 C 21.677,21.204 21.990,21.758 22.286,22.275 L 24.278,21.832 C 23.929,21.241 23.283,20.152 21.897,19.284 C 20.145,18.195 17.874,18.066 16.933,18.066 C 13.591,18.066 12.041,19.266 11.486,19.709 C 10.601,20.373 9.068,21.795 9.068,24.877 C 9.068,28.754 11.689,31.800 16.987,31.800 C 18.557,31.800 20.625,31.504 22.230,30.489 C 23.522,29.677 24.040,28.791 24.538,27.905 L 22.581,27.499 L 22.581,27.499 M 27.029,31.486 L 28.765,31.486 L 28.765,23.364 C 28.728,21.315 28.728,21.056 28.617,20.060 C 29.022,21.149 29.208,21.555 29.928,23.032 L 34.006,31.486 L 35.706,31.486 L 40.153,22.293 C 40.652,21.241 40.763,21.020 41.132,20.004 C 41.002,21.075 40.965,21.499 40.965,23.991 L 40.965,31.486 L 42.702,31.486 L 42.702,18.454 L 40.190,18.454 L 36.075,27.000 C 35.483,28.292 35.335,28.625 34.893,29.861 C 34.395,28.625 34.284,28.348 33.638,26.945 L 29.577,18.454 L 27.029,18.454 L 27.029,31.486 L 27.029,31.486 Z" Fill="#ffffffff" />
                             <Path Data="F1 M 68.174,26.412 L 73.499,18.312 L 62.901,18.312 L 68.174,26.412 L 68.174,26.412 Z" Fill="#ff000000" />
-                            
+
                         </Canvas>
 
                     </Viewbox>
 
                 </Grid>
-                
+
                 <Label Content=" ML" Grid.Row="2"  Grid.Column="8" Grid.ColumnSpan="2"  HorizontalAlignment="Left" Margin="23.5,0,0,9.5" FontFamily="Helvetica Neue" FontSize="34" Foreground="#e1e1e1"  VerticalAlignment="Bottom" />
-                
+
                 <Label Grid.Row="2" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"  Grid.Column="3" Grid.ColumnSpan="7" Grid.RowSpan="3" Margin="5,240,0,8"  Content="Portfolio Builder"
        FontFamily="Helvetica Neue" FontSize="20" Foreground="White" />
 
@@ -1169,7 +1210,7 @@ Fill="red" Stroke="DarkRed" StrokeThickness="2" />-->
 
 
 
-                        <Grid Grid.Row="0" Grid.Column="4" Margin="10,0,10,0" Background="Transparent"  Visibility="Visible"> 
+                        <Grid Grid.Row="0" Grid.Column="4" Margin="10,0,10,0" Background="Transparent"  Visibility="Visible">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
@@ -1249,7 +1290,7 @@ Fill="red" Stroke="DarkRed" StrokeThickness="2" />-->
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    
+
 
                     <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" >
                         <Label Grid.ColumnSpan="2" Height="16" Margin="0,0,5,0" Padding="0,4,0,0"

@@ -12392,6 +12392,44 @@ namespace ATMML
 			showView();
 		}
 
+		private void BtnSettings_Click(object sender, RoutedEventArgs e)
+		{
+			var menu = new ContextMenu();
+
+			// Change Password — available to all roles
+			var changePassword = new MenuItem { Header = "Change Password" };
+			changePassword.Click += (_, _) =>
+				new ATMML.Auth.ChangePasswordDialog { Owner = Window.GetWindow(this) }.ShowDialog();
+			menu.Items.Add(changePassword);
+
+			// User Management — Admin only
+			if (ATMML.Auth.AuthContext.Current.CanManageUsers)
+			{
+				var manageUsers = new MenuItem { Header = "User Management" };
+				manageUsers.Click += (_, _) =>
+					new ATMML.Auth.UserManagementWindow { Owner = Window.GetWindow(this) }.ShowDialog();
+				menu.Items.Add(manageUsers);
+			}
+
+			menu.Items.Add(new Separator());
+
+			// Logout
+			var logout = new MenuItem { Header = "Logout" };
+			logout.Click += (_, _) =>
+			{
+				ATMML.Auth.AuthContext.Current.Logout();
+				var login = new ATMML.Auth.LoginWindow();
+				bool? result = login.ShowDialog();
+				if (result != true)
+					Application.Current.Shutdown();
+			};
+			menu.Items.Add(logout);
+
+			menu.PlacementTarget = BtnSettings;
+			menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+			menu.IsOpen = true;
+		}
+
 		private void Iterations_MouseDown(object sender, MouseButtonEventArgs e)
 		{
 			if (BenchmarkMenu1.Visibility == Visibility.Collapsed)

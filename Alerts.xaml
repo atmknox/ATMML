@@ -5,6 +5,7 @@
                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
                 xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2" 
                 xmlns:local ="clr-namespace:ATMML"
+                xmlns:auth="clr-namespace:ATMML.Auth"
                 mc:Ignorable="d">
 
     <ContentControl.Resources>
@@ -86,9 +87,13 @@
                                     <Grid>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto" />
-                                            --><!--  caption and close button  --><!--
+                                            -->
+        <!--  caption and close button  -->
+        <!--
                                             <RowDefinition Height="*" />
-                                            --><!--  content  --><!--
+                                            -->
+        <!--  content  -->
+        <!--
                                         </Grid.RowDefinitions>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
@@ -104,7 +109,9 @@
                                             </Grid>
                                         </Border>
 
-                                        --><!--  Close button  --><!--
+                                        -->
+        <!--  Close button  -->
+        <!--
                                         <StackPanel Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"
                                                     Background="{StaticResource ChromeBackgroundBrush}"
                                                     Orientation="Horizontal">
@@ -116,7 +123,9 @@
                                             </Button>
                                         </StackPanel>
 
-                                        --><!--  Content  --><!--
+                                        -->
+        <!--  Content  -->
+        <!--
                                         <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
                                                 Background="{TemplateBinding Background}"
                                                 BorderBrush="{TemplateBinding BorderBrush}"
@@ -453,6 +462,36 @@
                        HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" Content=""
                        FontFamily="Helvetica Neue" FontSize="11" FontWeight="Normal" Foreground="WHITE" />
             </Grid>
+
+            <!-- Logged-in user display + settings gear -->
+            <StackPanel Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Margin="0,12,10,0">
+                <TextBlock Text="{Binding DisplayName, Source={x:Static auth:AuthContext.Current}}"
+                           Foreground="#00ccff" FontSize="10" FontFamily="Helvetica Neue"
+                           VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <Button x:Name="BtnSettings"
+                        Width="22" Height="22"
+                        Background="Transparent" BorderThickness="0"
+                        Cursor="Hand" ToolTip="Settings"
+                        Click="BtnSettings_Click">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Grid Background="Transparent">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Opacity" Value="1.0"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <Path Fill="#ffffff" Stretch="Uniform" Width="14" Height="14"
+                          Data="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
+                </Button>
+            </StackPanel>
 
             <Grid Grid.Column="0" Grid.ColumnSpan="3">
 
@@ -1161,10 +1200,12 @@
                             </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                Once <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                Once
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     'SAVED'
                                 </Run>
-                                the changes to Your Alert are stored for its next use.</Paragraph>
+                                the changes to Your Alert are stored for its next use.
+                            </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11" />
 
@@ -1221,10 +1262,12 @@
                             </Table>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                Alert Editing tools are located on the <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                Alert Editing tools are located on the
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     RIGHT
                                 </Run>
-                                side of each Alert Bar.</Paragraph>
+                                side of each Alert Bar.
+                            </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
                                 They include:
@@ -1293,7 +1336,8 @@
                             </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                To access the Alert Dialog box, select the<Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                To access the Alert Dialog box, select the
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     &#x1F589; PENCIL.
                                 </Run>
                             </Paragraph>
@@ -1344,13 +1388,16 @@
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
                                 To add additional securities to your Alert, find the group you wish to add select the CHECKBOX next to the group.
-                                Remember that Security Lists are <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="YELLOW">
+                                Remember that Security Lists are
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="YELLOW">
                                     AND
                                 </Run>
-                                together.  So adding more securities <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                together.  So adding more securities
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     INCREASES
                                 </Run>
-                                the number of symbols that  met your Alert's criteria.</Paragraph>
+                                the number of symbols that  met your Alert's criteria.
+                            </Paragraph>
 
                             <Paragraph />
 
@@ -1362,20 +1409,25 @@
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
                                 To add additional ATM Conditions to your Alert, find the condition or study you wish to add and select the time frame
-                                associated with that condition.  Remember that Conditions are <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="YELLOW">
+                                associated with that condition.  Remember that Conditions are
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="YELLOW">
                                     AND
                                 </Run>
-                                together.  So adding more conditions (which are restrictions) <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                together.  So adding more conditions (which are restrictions)
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     REDUCE
                                 </Run>
                                 the number of symbols that met your criteria.   And likewise,
-                                eliminating conditions (decreasing restrictions) by <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                eliminating conditions (decreasing restrictions) by
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     UNCHECKING
                                 </Run>
-                                their time frame <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                their time frame
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     INCREASES
                                 </Run>
-                                the number of symbols that met your criteria.</Paragraph>
+                                the number of symbols that met your criteria.
+                            </Paragraph>
 
                             <Paragraph />
 
@@ -1387,10 +1439,12 @@
                             </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                To change the name of your Alert, highlight the name and begin typing.   Once complete, click the <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                To change the name of your Alert, highlight the name and begin typing.   Once complete, click the
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     SAVE
                                 </Run>
-                                Button.</Paragraph>
+                                Button.
+                            </Paragraph>
                             <Paragraph />
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
@@ -1406,72 +1460,92 @@
                             <List>
                                 <ListItem>
                                     <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                        The <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                        The
+                                        <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                             ON - OFF
                                         </Run>
-                                        checkbox.</Paragraph>
+                                        checkbox.
+                                    </Paragraph>
                                 </ListItem>
                                 <ListItem>
                                     <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                        The <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                        The
+                                        <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                             Alert on Top at Notification
                                         </Run>
-                                        checkbox.</Paragraph>
+                                        checkbox.
+                                    </Paragraph>
                                 </ListItem>
                             </List>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                If the Checkbox is <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                If the Checkbox is
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     Checked
                                 </Run>
-                                you are notified of new Alerts, with the following:</Paragraph>
+                                you are notified of new Alerts, with the following:
+                            </Paragraph>
                             <List>
                                 <ListItem>
                                     <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                        The <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="Red">
+                                        The
+                                        <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="Red">
                                             ALERTS
                                         </Run>
-                                        button at the top of the application <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="Red">
+                                        button at the top of the application
+                                        <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="Red">
                                             BLINKING
                                         </Run>
-                                        and changing to <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="Red">
+                                        and changing to
+                                        <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="Red">
                                             RED
                                         </Run>
-                                        .</Paragraph>
+                                        .
+                                    </Paragraph>
                                 </ListItem>
                                 <ListItem>
                                     <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                        A Red Diamond <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="Red">
+                                        A Red Diamond
+                                        <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="Red">
                                             &#x2666;
                                         </Run>
-                                        displayed to the left of the <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                        displayed to the left of the
+                                        <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                             ALERT TITLE
                                         </Run>
-                                        .</Paragraph>
+                                        .
+                                    </Paragraph>
                                 </ListItem>
                                 <ListItem>
                                     <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                        A Red Diamond<Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="Red">
+                                        A Red Diamond
+                                        <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="Red">
                                             &#x2666;
                                         </Run>
-                                        next to the <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                        next to the
+                                        <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                             SYMBOL
                                         </Run>
-                                        .</Paragraph>
+                                        .
+                                    </Paragraph>
                                 </ListItem>
                             </List>
 
                             <Paragraph>
-                                To Stop All Notifications, <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                To Stop All Notifications,
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     UNCHECK
                                 </Run>
-                                the checkbox.</Paragraph>
+                                the checkbox.
+                            </Paragraph>
 
                             <Paragraph>
-                                To Stop Alert on top at Notification, <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                To Stop Alert on top at Notification,
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     UNCHECK
                                 </Run>
-                                its checkbox.</Paragraph>
+                                its checkbox.
+                            </Paragraph>
 
                             <Paragraph />
 
@@ -1482,12 +1556,14 @@
                             </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                The initial time setting for each Alert is <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                The initial time setting for each Alert is
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     5 minutes .
                                 </Run>
                                 Usually, this amount is adequate to retrieve the needed data and calculate
                                 the required conditions for about 500 securities.  However, should you find the your Alerts do not conclude within the allotted
-                                time, lengthen the default.</Paragraph>
+                                time, lengthen the default.
+                            </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
                                 Or, if you would like your Alerts to run less often, lengthen the default.
@@ -1616,19 +1692,23 @@
                             </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                Calculations begin, after selecting the '<Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="PaleGreen">
+                                Calculations begin, after selecting the '
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="PaleGreen">
                                     START
                                 </Run>
-                                ' button on your ATM Alert and continue every five minutes until stopped.</Paragraph>
+                                ' button on your ATM Alert and continue every five minutes until stopped.
+                            </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
                                 <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="RED">
                                     STOP
                                 </Run>
-                                a calculation by selecting the red Time Area '<Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="Red">
+                                a calculation by selecting the red Time Area '
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="Red">
                                     NEXT: 4:30
                                 </Run>
-                                ' where 4 is minutes and 30 is seconds.</Paragraph>
+                                ' where 4 is minutes and 30 is seconds.
+                            </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11" />
 
@@ -1639,10 +1719,12 @@
                             </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                Once the calculation has completed, a white triangle '<Run FontFamily="Helvetica Neue" FontSize="8" FontWeight="Regular" Foreground="White">
+                                Once the calculation has completed, a white triangle '
+                                <Run FontFamily="Helvetica Neue" FontSize="8" FontWeight="Regular" Foreground="White">
                                     &#x25B6;
                                 </Run>
-                                ' appears on the left side of the Alert Title Bar.</Paragraph>
+                                ' appears on the left side of the Alert Title Bar.
+                            </Paragraph>
 
                             <Table CellSpacing="0">
                                 <TableRowGroup>
@@ -1668,16 +1750,20 @@
                             </Table>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                Selecting the white triangle '<Run FontFamily="Helvetica Neue" FontSize="8" FontWeight="Regular" Foreground="White">
+                                Selecting the white triangle '
+                                <Run FontFamily="Helvetica Neue" FontSize="8" FontWeight="Regular" Foreground="White">
                                     &#x25B6;
                                 </Run>
-                                ' opens the results for your Alert.</Paragraph>
+                                ' opens the results for your Alert.
+                            </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                Selecting the gray triangle '<Run FontFamily="Helvetica Neue" FontSize="10" FontWeight="Regular">
+                                Selecting the gray triangle '
+                                <Run FontFamily="Helvetica Neue" FontSize="10" FontWeight="Regular">
                                     &#x25e2;
                                 </Run>
-                                ' closes the results.</Paragraph>
+                                ' closes the results.
+                            </Paragraph>
 
 
                             <Table CellSpacing="0">
@@ -1711,13 +1797,16 @@
                             </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                New or removed results cause the '<Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="RED">
+                                New or removed results cause the '
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="RED">
                                     ALERTS
                                 </Run>
-                                ' button to blink red.  Also, new results have a <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="RED">
+                                ' button to blink red.  Also, new results have a
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="RED">
                                     Red Diamond &#x2666;
                                 </Run>
-                                next to their Symbol.</Paragraph>
+                                next to their Symbol.
+                            </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
                                 To close the Alert notifications, either select the ALERTS button at the top of the application or Open the Alert and select a Symbol.
@@ -1741,10 +1830,12 @@
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
                                 The ATM Alert calculator samples your condition every five minutes.  If your formula’s shortest time frame is longer than five minutes,
-                                a ‘TRUE’ reading could occur before the close of the shortest time frame. Should this occur, a <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                a ‘TRUE’ reading could occur before the close of the shortest time frame. Should this occur, a
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     white strike &#x23AF;
                                 </Run>
-                                 appears over the symbol.</Paragraph>
+                                appears over the symbol.
+                            </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
                                 Once the bar of the shortest time frame in your condition closes, and the condition is confirmed true, it remains true.
@@ -1764,19 +1855,24 @@
                             </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                A vertical blue line '<Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="DodgerBlue">
+                                A vertical blue line '
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="DodgerBlue">
                                     &#x2502;
                                 </Run>
-                                ' appears on the bottom chart and represents the time bar that met your condition.</Paragraph>
+                                ' appears on the bottom chart and represents the time bar that met your condition.
+                            </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                To <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                To
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     CLOSE
                                 </Run>
-                                the charts and return to the ATM Alerts display, select the <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                the charts and return to the ATM Alerts display, select the
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     ' X '
                                 </Run>
-                                located at the top left of any of the three charts.</Paragraph>
+                                located at the top left of any of the three charts.
+                            </Paragraph>
 
                         </Section>
 
@@ -1916,16 +2012,20 @@
                             </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                Should you decide to delete the Example Alert, a <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                Should you decide to delete the Example Alert, a
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     RESTORE EXAMPLE
                                 </Run>
-                                button will appear at the top right of the application.</Paragraph>
+                                button will appear at the top right of the application.
+                            </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                Add a new alert by clicking on the <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                Add a new alert by clicking on the
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     ADD NEW ALERT
                                 </Run>
-                                button.  This will open the ATM ALERT SETUP Dialog Box.</Paragraph>
+                                button.  This will open the ATM ALERT SETUP Dialog Box.
+                            </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
                                 Complete each of the following steps:
@@ -2014,10 +2114,12 @@
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
                                 ATM Alerts automatically names your alert as you build it. You can change the default name by highlighting
-                                it and typing your desired name.   Click the <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                it and typing your desired name.   Click the
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     'SAVE'
                                 </Run>
-                                button when finished.</Paragraph>
+                                button when finished.
+                            </Paragraph>
 
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11" />
@@ -2030,17 +2132,21 @@
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
                                 ATM Alerts Notification is a two-step process.  First - decide if you want to be Alerted
-                                once a symbol meets your condition requirements.  If you do, select the <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                once a symbol meets your condition requirements.  If you do, select the
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     'CHECKBOX'
                                 </Run>
-                                just to the right of &quot;Turn Notification ON&quot;.</Paragraph>
+                                just to the right of &quot;Turn Notification ON&quot;.
+                            </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
                                 Second - determine if you want the new alert to push the
-                                ATMML application to the top of all other applications each time there is a new alert. If you do, select the <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                ATMML application to the top of all other applications each time there is a new alert. If you do, select the
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     'CHECKBOX'
                                 </Run>
-                                located just to the right of &quot;Alert on Top at Notification&quot;</Paragraph>
+                                located just to the right of &quot;Alert on Top at Notification&quot;
+                            </Paragraph>
 
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11" />
@@ -2064,10 +2170,12 @@
                             </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                An additional method to add a new ATM Alert is with the feature '<Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                An additional method to add a new ATM Alert is with the feature '
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     REPLICATE
                                 </Run>
-                                '.</Paragraph>
+                                '.
+                            </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
                                 Replicate will duplicate an ATM Alert.
@@ -2079,13 +2187,16 @@
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
                                 Make changes to the replicated Alert by
-                                selecting the <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                selecting the
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     Edit &#x1F589; Icon.
                                 </Run>
-                                Once your edits are complete, click the <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
+                                Once your edits are complete, click the
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="#ff8c00">
                                     'SAVE'
                                 </Run>
-                                button.</Paragraph>
+                                button.
+                            </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11" />
 
@@ -2096,11 +2207,13 @@
                             </Paragraph>
 
                             <Paragraph FontFamily="Helvetica Neue" FontSize="11">
-                                Select the <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="PaleGreen">
+                                Select the
+                                <Run FontFamily="Helvetica Neue" FontSize="11" FontWeight="Regular" Foreground="PaleGreen">
                                     'START'
                                 </Run>
                                 button
-                                to begin calculating your alert.</Paragraph>
+                                to begin calculating your alert.
+                            </Paragraph>
 
                         </Section>
 

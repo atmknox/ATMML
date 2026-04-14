@@ -383,8 +383,8 @@
             </Style.Triggers>
 
         </Style>
-        
-        
+
+
     </Window.Resources>
 
 
@@ -455,7 +455,7 @@
                         <Path Fill="#ffFFFFFF" Data="F1 M 58.429,22.367 C 58.429,22.828 58.317,23.327 57.985,23.751 C 57.247,24.730 55.955,24.748 54.939,24.748 L 48.498,24.748 L 48.498,20.023 L 55.660,20.023 C 56.508,20.041 57.450,20.041 58.041,20.983 C 58.298,21.370 58.429,21.869 58.429,22.367 L 58.429,22.367 Z M 60.348,22.293 C 60.348,20.724 59.609,19.875 59.185,19.506 C 58.059,18.491 56.674,18.472 55.530,18.454 L 46.669,18.454 L 46.669,31.486 L 48.516,31.486 L 48.516,26.280 L 54.811,26.280 L 59.222,31.486 L 61.641,31.486 L 56.840,25.985 C 57.708,25.837 60.348,25.413 60.348,22.293 L 60.348,22.293 M 22.581,27.499 C 22.396,27.886 21.972,28.551 21.271,29.068 C 20.477,29.695 19.128,30.212 17.117,30.194 C 14.772,30.194 13.258,29.437 12.373,28.532 C 11.395,27.443 11.025,26.114 11.025,24.822 C 11.025,21.149 13.904,19.690 17.006,19.690 C 18.667,19.690 20.070,20.152 20.865,20.669 C 21.677,21.204 21.990,21.758 22.286,22.275 L 24.278,21.832 C 23.929,21.241 23.283,20.152 21.897,19.284 C 20.145,18.195 17.874,18.066 16.933,18.066 C 13.591,18.066 12.041,19.266 11.486,19.709 C 10.601,20.373 9.068,21.795 9.068,24.877 C 9.068,28.754 11.689,31.800 16.987,31.800 C 18.557,31.800 20.625,31.504 22.230,30.489 C 23.522,29.677 24.040,28.791 24.538,27.905 L 22.581,27.499 L 22.581,27.499 M 27.029,31.486 L 28.765,31.486 L 28.765,23.364 C 28.728,21.315 28.728,21.056 28.617,20.060 C 29.022,21.149 29.208,21.555 29.928,23.032 L 34.006,31.486 L 35.706,31.486 L 40.153,22.293 C 40.652,21.241 40.763,21.020 41.132,20.004 C 41.002,21.075 40.965,21.499 40.965,23.991 L 40.965,31.486 L 42.702,31.486 L 42.702,18.454 L 40.190,18.454 L 36.075,27.000 C 35.483,28.292 35.335,28.625 34.893,29.861 C 34.395,28.625 34.284,28.348 33.638,26.945 L 29.577,18.454 L 27.029,18.454 L 27.029,31.486 L 27.029,31.486 Z"/>
                         <Path Fill="#ff000000" Data="F1 M 68.174,26.412 L 73.499,18.312 L 62.901,18.312 L 68.174,26.412 L 68.174,26.412 Z"/>
                         <!--<Label Content=" ML" FontFamily="Helvetica Neue" FontSize="28" Foreground="White" Canvas.Left="160" Canvas.Top="45" Padding="0,0,0,0"   />-->
-                        
+
                     </Canvas>
 
 
@@ -472,122 +472,6 @@
 
 
 
-
-            <Grid Name="Login" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="12" Grid.RowSpan="9" HorizontalAlignment="Center" Margin="0,267,0,0" Visibility="Visible">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="60"/>
-                    <ColumnDefinition Width="60"/>
-                    <ColumnDefinition Width="60"/>
-                    <ColumnDefinition Width="60"/>
-                    <ColumnDefinition Width="60"/>
-                </Grid.ColumnDefinitions>
-
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                </Grid.RowDefinitions>
-
-                <Label Grid.Row="0" VerticalContentAlignment="Top" HorizontalContentAlignment="Center"  Grid.Column="0" Grid.ColumnSpan="8" Grid.RowSpan="2" Margin="0,0,-5,8"  Content="Portfolio Builder"
-FontFamily="Helvetica Neue" FontSize="20" Foreground="White" />
-
-                <Label   Content="PASSCODE" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Left"  FontFamily="Helvetica Neue" FontSize="12" Foreground="White"  VerticalAlignment="Top"  Margin="10,0,0,7"/>
-                <TextBox Name="usernameBox"      KeyDown="usernameBox_KeyDown"  Grid.Row="2" Grid.Column="1"  GotFocus="usernameBox_GotFocus" Grid.ColumnSpan="7" BorderBrush="#FF124b72" BorderThickness="1" Margin="20,0,0,7" Height="20"  Background="#101010"   FontFamily="Helvetica Neue" FontSize="12" Foreground="White"  HorizontalAlignment="Left" VerticalContentAlignment="Center" VerticalAlignment="Top" Width="210" />
-                
-                <!--<Label   Content="Password"        Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"  HorizontalAlignment="Left" FontFamily="Helvetica Neue"   FontSize="11"  Foreground="White"  VerticalAlignment="Center" />
-                <PasswordBox Name="passwordBox"  KeyDown="passwordBox_KeyDown"  Grid.Row="2" GotFocus="passwordBox_GotFocus" Grid.Column="2" Grid.ColumnSpan="3" BorderBrush="#FF124b72" BorderThickness="1" Background="#101010"  FontFamily="Helvetica Neue" FontSize="11" Foreground="White"   Margin="0,0,0,0"  Height="20" HorizontalAlignment="Left"  VerticalContentAlignment="Center"  VerticalAlignment="Center" Width="180" />-->
-                
-                <!--<Label Name="LoginError"   Content="BLOOMBERG EMAIL NOT AUTHORIZED" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5"  Visibility="Collapsed" HorizontalAlignment="Center" FontFamily="Helvetica Neue"   FontSize="11"  Foreground="Red"  VerticalAlignment="Center" />-->
-
-                <Label  Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5" Grid.RowSpan="2" Name="LoginError"   HorizontalAlignment="Center" FontFamily="Helvetica Neue"   FontSize="11"  Foreground="Red"  VerticalAlignment="Center" Visibility="Collapsed" >
-                    <TextBlock   >   <Run>  LOGIN IS NOT AUTHORIZED </Run>   <LineBreak/>  <Run> </Run>  </TextBlock>
-                </Label>
-
-                <!--<Label  Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="5" Grid.RowSpan="2" Name="LoginError2"   HorizontalAlignment="Center" FontFamily="Helvetica Neue"   FontSize="11"  Foreground="Red"  VerticalAlignment="Top" Visibility="Collapsed" >
-                    <TextBlock   >   <Run> </Run>   <LineBreak/>  <Run> SUBSCRIBE TO ATM STUDIES  &#64; APPS GO </Run></TextBlock>
-                </Label>-->
-
-                <Label Name="exitButton"   Content="CANCEL"  Grid.Row="4" Grid.Column="0" Margin="10,0,0,7" Height="30" HorizontalContentAlignment="Left" Grid.ColumnSpan="2"  VerticalContentAlignment="Center"   FontSize="12"  Foreground="White" FontFamily="Helvetica Neue"  BorderBrush="Transparent"  MouseEnter="Exit_Enter" MouseLeave="Exit_Leave"  MouseDown="Exit_Mousedown"    Cursor="Hand" Visibility="Visible" />
-                <Label Name="loginButton"  Content="LOGIN"   Grid.Row="4" Grid.Column="4" Margin="0,0,5,0"   Height="30" HorizontalContentAlignment="Right"  VerticalContentAlignment="Center"   FontSize="12"  Foreground="White" FontFamily="Helvetica Neue"  BorderBrush="Transparent"  MouseEnter="Exit_Enter" MouseLeave="Exit_Leave"  MouseDown="Login_Mousedown"   Cursor="Hand" Visibility="Visible" />
-
-                <!--<Label Name="createPassword"  Content="CREATE PASSWORD"  Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2"  Height="30" HorizontalContentAlignment="Left"   VerticalContentAlignment="Center"  FontSize="11"  Foreground="White" FontFamily="Helvetica Neue"    BorderBrush="Transparent" MouseEnter="Exit_Enter" MouseLeave="Exit_Leave"  MouseDown="CreatePW_Mousedown"   Cursor="Hand" Visibility="Visible" />-->
-                <!--<Label Name="forgotPassword"  Content="CHANGE PASSWORD"  Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="3"  Height="30" HorizontalContentAlignment="Right"  VerticalContentAlignment="Center"  FontSize="11"  Foreground="White" FontFamily="Helvetica Neue"    BorderBrush="Transparent" MouseEnter="Exit_Enter" MouseLeave="Exit_Leave"  MouseDown="ForgotPW_Mousedown"   Cursor="Hand" Visibility="Visible" />-->
-
-                <!--<CheckBox Name="checkBox" Content="  REMEMBER ME"  Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="5" Margin="0,0,0,0" BorderBrush="Transparent" Background="#303030"  HorizontalAlignment="Center"   VerticalAlignment="Bottom" FontFamily="Helvetica Neue"   FontSize="11" Padding="10,0"  Foreground="White" Width="120"  />-->
-
-            </Grid>
-
-
-            <Grid Name="SetPW" Grid.Row="3" Grid.Column="4" Grid.ColumnSpan="5" Grid.RowSpan="9" Visibility="Collapsed">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="60"/>
-                    <ColumnDefinition Width="60"/>
-                    <ColumnDefinition Width="60"/>
-                    <ColumnDefinition Width="60"/>
-                    <ColumnDefinition Width="60"/>
-                </Grid.ColumnDefinitions>
-
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                </Grid.RowDefinitions>
-
-                <Label   Content="New Password" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"  HorizontalAlignment="Left"  FontFamily="Helvetica Neue" FontSize="11" Foreground="White"  VerticalAlignment="Center" />
-                <PasswordBox Name="NewPasswordBox"    Grid.Row="3" GotFocus="passwordBox_GotFocus" Grid.Column="2" Grid.ColumnSpan="3" BorderBrush="#FF124b72" BorderThickness="1" Background="#101010"  FontFamily="Helvetica Neue" FontSize="11" Foreground="White"   Margin="0,0,0,0"  Height="20" HorizontalAlignment="Left"  VerticalContentAlignment="Center"  VerticalAlignment="Center" Width="180" />
-
-                <Label   Content="Retype Password"        Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"  HorizontalAlignment="Left" FontFamily="Helvetica Neue"   FontSize="11"  Foreground="White"  VerticalAlignment="Center" />
-                <PasswordBox Name="RetypepasswordBox"    Grid.Row="4" GotFocus="passwordBox_GotFocus" Grid.Column="2" Grid.ColumnSpan="3" BorderBrush="#FF124b72" BorderThickness="1" Background="#101010"  FontFamily="Helvetica Neue" FontSize="11" Foreground="White"   Margin="0,0,0,0"  Height="20" HorizontalAlignment="Left"  VerticalContentAlignment="Center"  VerticalAlignment="Center" Width="180" />
-
-                <Label Name="PWError" Content="PASSWORDs DON'T MATCH" Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5"  Visibility="Collapsed" HorizontalAlignment="Center" FontFamily="Helvetica Neue"   FontSize="11"  Foreground="Red"  VerticalAlignment="Center" />
-
-                <Label Name="cancelButton2"  Content="CANCEL"  Grid.Row="6" Grid.Column="3"  Grid.ColumnSpan="2" Margin="0,0,57,0"  Width="50"  Height="30" HorizontalContentAlignment="Left"  VerticalContentAlignment="Center"   FontSize="11"  Foreground="White" FontFamily="Helvetica Neue"   BorderBrush="Transparent"  MouseEnter="Exit_Enter" MouseLeave="Exit_Leave"  MouseDown="LoginPage_Mousedown"   Cursor="Hand" Visibility="Visible" />
-                <Label Name="OK2"  Content="OK"  Grid.Row="6" Grid.Column="4"  Height="30" HorizontalContentAlignment="Right"  VerticalContentAlignment="Center"   FontSize="11"  Foreground="White" FontFamily="Helvetica Neue"   BorderBrush="Transparent"  MouseEnter="Exit_Enter" MouseLeave="Exit_Leave"  MouseDown="LoginPage_Mousedown"   Cursor="Hand" Visibility="Visible" />
-
-
-            </Grid>
-
-
-            <Grid Name="SendReset" Grid.Row="3" Grid.Column="4" Grid.ColumnSpan="5" Grid.RowSpan="9" Visibility="Collapsed">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="60"/>
-                    <ColumnDefinition Width="60"/>
-                    <ColumnDefinition Width="60"/>
-                    <ColumnDefinition Width="60"/>
-                    <ColumnDefinition Width="60"/>
-                </Grid.ColumnDefinitions>
-
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                </Grid.RowDefinitions>
-
-                <!--<Label   Content="Email"        Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"  HorizontalAlignment="Left" FontFamily="Helvetica Neue"   FontSize="11"  Foreground="White"  VerticalAlignment="Center" />
-                <PasswordBox Name="SendAddress"    Grid.Row="3" GotFocus="passwordBox_GotFocus" Grid.Column="2" Grid.ColumnSpan="3" BorderBrush="#FF124b72" BorderThickness="1" Background="#101010"  FontFamily="Helvetica Neue" FontSize="11" Foreground="White"   Margin="0,0,0,0"  Height="20" HorizontalAlignment="Left"  VerticalContentAlignment="Center"  VerticalAlignment="Center" Width="180" />-->
-
-                <Label Content="A Password Reset Link has been sent to your BBG Email."  Grid.Row="3" Grid.Column="0"  Grid.ColumnSpan="6" Height="30" HorizontalAlignment="Center"  VerticalContentAlignment="Center"   FontSize="11"  Foreground="White" FontFamily="Helvetica Neue"   BorderBrush="Transparent"   />
-                <Label Content="Please click on the confirmation link in the email message."  Grid.Row="4" Grid.Column="0"  Grid.ColumnSpan="6" Height="30" HorizontalAlignment="Center"  VerticalContentAlignment="Center"   FontSize="11"  Foreground="White" FontFamily="Helvetica Neue"   BorderBrush="Transparent"   />
-
-                <!--<Label Name="cancelButton3"   Content="CANCEL"  Grid.Row="6" Grid.Column="3"  Grid.ColumnSpan="2" Margin="0,0,57,0"  Width="50"  Height="30" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"      FontSize="11"  Foreground="White" FontFamily="Helvetica Neue"  BorderBrush="Transparent"  MouseEnter="Exit_Enter" MouseLeave="Exit_Leave"  MouseDown="LoginPage_Mousedown"   Cursor="Hand" Visibility="Visible" />-->
-                <Label Name="OK3"  Content="OK"  Grid.Row="6" Grid.Column="4"  Height="30" HorizontalContentAlignment="Right"  VerticalContentAlignment="Center"   FontSize="11"  Foreground="White" FontFamily="Helvetica Neue"   BorderBrush="Transparent"  MouseEnter="Exit_Enter" MouseLeave="Exit_Leave"  MouseDown="LoginPage_Mousedown"   Cursor="Hand" Visibility="Visible" />
-                
-            </Grid>
 
             <Grid
                     x:Name="Eula"
@@ -1234,7 +1118,7 @@ FontFamily="Helvetica Neue" FontSize="20" Foreground="White" />
                             FontFamily="Helvetica Neue"
                             FontSize="9"
                             Foreground="White"
-                            MouseDown="Label_MouseDown"/>
+                            />
                     <Label
                             Grid.Column="1"
                             Height="16"
@@ -1252,7 +1136,7 @@ FontFamily="Helvetica Neue" FontSize="20" Foreground="White" />
                             MouseLeave="Label7_MouseLeave" />
                     <Label/>
                 </StackPanel>
-                
+
                 <!--<Label Grid.Column="1"  VerticalAlignment="Center"  Foreground="White" Content="POWERED BY" Padding="2,4,0,0" FontFamily="Arial" FontStyle="Italic" FontSize="5" Margin="568,3,53,3"  Visibility="Hidden"/>-->
                 <!--<Label Grid.Column="1" VerticalAlignment="Center"  Foreground="White" Content="Bloomberg and Google TensorFlow" Padding="2,0,2,0" FontFamily="Verdana" FontSize="8" Grid.ColumnSpan="3" Margin="611,3,0,3" Visibility="Hidden"/>-->
             </Grid>
@@ -1281,9 +1165,11 @@ FontFamily="Helvetica Neue" FontSize="20" Foreground="White" />
 
                 <Label Content="CLOSE EULA" Grid.Column="0" Grid.Row="0"  Margin="0,5,5,0" HorizontalAlignment="Right"  MouseDown="CloseEULA_MouseDown"  FontSize="11"  FontFamily="Helvetica Neue"  Foreground="White"  />
 
-                --><!--<StackPanel  Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Left"  Orientation="Horizontal" >
+                -->
+            <!--<StackPanel  Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Left"  Orientation="Horizontal" >
                     <CheckBox Content="Dont Show Again"  x:Name="DontShow"  BorderBrush="Transparent"  HorizontalAlignment="Left"   Background="#FF00CCFF" Foreground="LightGray" FontFamily="Helvetica Neue"  FontSize="11"  FontWeight="Normal" Cursor="Hand" Margin="10,15,0,0"  />
-                </StackPanel>--><!--
+                </StackPanel>-->
+            <!--
 
                 <Label Content="AGREE" Grid.Column="1" Grid.Row="6"  Margin="20,0,0,0" HorizontalAlignment="Left"   FontSize="11"  FontFamily="Helvetica Neue"  Foreground="White"  />
                 <Label Content="DISAGREE" Grid.Column="2" Grid.Row="6"  Margin="0,0,0,0" HorizontalAlignment="Center"    FontSize="11"  FontFamily="Helvetica Neue"  Foreground="White"  />
@@ -1328,11 +1214,7 @@ FontFamily="Helvetica Neue" FontSize="20" Foreground="White" />
 
         </Grid>
 
-
-
     </Viewbox>
-
-
 
 </Window>
 

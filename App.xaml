@@ -5,7 +5,7 @@
     xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
     xmlns:dg="http://schemas.microsoft.com/wpf/2008/toolkit"
     xmlns:local="clr-namespace:ATMML"
-    StartupUri="MainView.xaml">
+    >
 
     <Application.Resources>
 
@@ -602,15 +602,21 @@
                                     <Grid>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto" />
-                                            --><!--  caption and close button  --><!--
+                                            -->
+        <!--  caption and close button  -->
+        <!--
                                             <RowDefinition Height="*" />
-                                            --><!--  content  --><!--
+                                            -->
+        <!--  content  -->
+        <!--
                                         </Grid.RowDefinitions>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
 
-                                        --><!--  Caption with dragging enabled  --><!--
+                                        -->
+        <!--  Caption with dragging enabled  -->
+        <!--
                                         <Border
                                             x:Name="PART_DragWidget"
                                             Grid.Row="0"
@@ -629,7 +635,9 @@
                                             </Grid>
                                         </Border>
 
-                                        --><!--  Close button  --><!--
+                                        -->
+        <!--  Close button  -->
+        <!--
                                         <StackPanel
                                             Grid.Row="0"
                                             Grid.Column="1"
@@ -656,7 +664,9 @@
                                             </Button>
                                         </StackPanel>
 
-                                        --><!--  Content  --><!--
+                                        -->
+        <!--  Content  -->
+        <!--
                                         <Border
                                             Grid.Row="1"
                                             Grid.Column="0"

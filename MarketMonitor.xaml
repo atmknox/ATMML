@@ -1,5 +1,6 @@
 <ContentControl x:Class="ATMML.MarketMonitor" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                 xmlns:local="clr-namespace:ATMML" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:my="clr-namespace:ATMML"
+                xmlns:auth="clr-namespace:ATMML.Auth"
                 DataContext="{Binding}"
                 mc:Ignorable="d">
 
@@ -4094,15 +4095,21 @@
                                     <Grid>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto" />
-                                            --><!--  caption and close button  --><!--
+                                            -->
+        <!--  caption and close button  -->
+        <!--
                                             <RowDefinition Height="*" />
-                                            --><!--  content  --><!--
+                                            -->
+        <!--  content  -->
+        <!--
                                         </Grid.RowDefinitions>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
 
-                                        --><!--  Caption with dragging enabled  --><!--
+                                        -->
+        <!--  Caption with dragging enabled  -->
+        <!--
                                         <Border x:Name="PART_DragWidget" Grid.Row="0" Grid.Column="0" Height="16"
                                                 Background="{StaticResource ChromeBackgroundBrush}">
                                             <Grid>
@@ -4113,7 +4120,9 @@
                                             </Grid>
                                         </Border>
 
-                                        --><!--  Close button  --><!--
+                                        -->
+        <!--  Close button  -->
+        <!--
                                         <StackPanel Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"
                                                     Background="{StaticResource ChromeBackgroundBrush}"
                                                     Orientation="Horizontal">
@@ -4125,7 +4134,9 @@
                                             </Button>
                                         </StackPanel>
 
-                                        --><!--  Content  --><!--
+                                        -->
+        <!--  Content  -->
+        <!--
                                         <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
                                                 Background="{TemplateBinding Background}"
                                                 BorderBrush="{TemplateBinding BorderBrush}"
@@ -4187,7 +4198,38 @@
                        HorizontalAlignment="Left" VerticalAlignment="BOTTOM" Background="Transparent" Content=""
                        FontFamily="Helvetica Neue" FontSize="11" FontWeight="Normal" Foreground="CRIMSON" />
 
-            </Grid> <!-- logo -->
+            </Grid>
+            <!-- logo -->
+
+            <!-- Logged-in user display + settings gear -->
+            <StackPanel Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Margin="0,12,10,0">
+                <TextBlock Text="{Binding DisplayName, Source={x:Static auth:AuthContext.Current}}"
+                           Foreground="#00ccff" FontSize="10" FontFamily="Helvetica Neue"
+                           VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <Button x:Name="BtnSettings"
+                        Width="22" Height="22"
+                        Background="Transparent" BorderThickness="0"
+                        Cursor="Hand" ToolTip="Settings"
+                        Click="BtnSettings_Click">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Grid Background="Transparent">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Opacity" Value="1.0"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <Path Fill="#ffffff" Stretch="Uniform" Width="14" Height="14"
+                          Data="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
+                </Button>
+            </StackPanel>
 
             <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3">
 
@@ -4363,9 +4405,9 @@
                         </Grid.RowDefinitions>
 
 
-   
+
                         <Image Grid.Row="1" Grid.RowSpan="5" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,8" HorizontalAlignment="Right" Opacity="0" Source="Images/A.png" Visibility="Collapsed" />
-                
+
                         <Label Grid.Row="2" Grid.RowSpan="3" Grid.ColumnSpan="2" Margin="0,0,0,0"  x:Name="ATMPROButton"
                                Padding="2" Content="PORTFOLIO SURVEILLANCE" FontFamily="Helvetica Neue" FontSize="12"
                                Foreground="White" MouseDown="Server_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"/>
@@ -4419,7 +4461,8 @@
 
                     </Grid>
 
-                </StackPanel> <!-- top level horizontal menu -->
+                </StackPanel>
+                <!-- top level horizontal menu -->
 
 
                 <StackPanel Name="GlobalCostNav" Grid.Row="3" Margin="140,0,0,0" HorizontalAlignment="Left"
@@ -4459,7 +4502,7 @@
                     </Grid>
 
 
-                
+
                     <Grid Grid.Row="0" Margin="10,0,0,0" Background="Transparent" Visibility="Visible">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -4646,7 +4689,7 @@
                                MouseDown="PredictionMatrix_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"  />
                     </Grid>
 
-                
+
                 </StackPanel>
 
             </Grid>
@@ -4870,7 +4913,8 @@
                     </ScrollViewer>
                 </Grid>
 
-            </Grid> <!-- Map Grid -->
+            </Grid>
+            <!-- Map Grid -->
 
             <Grid Name="MapNavigationGrid" Grid.Row="1" Grid.Column="0" d:IsHidden="False" d:IsLocked="False" Visibility="Visible" >
                 <Grid.RowDefinitions>
@@ -5127,7 +5171,8 @@
                     <TextBlock Name="ProgressBarLabel" Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#FFF16000"></TextBlock>
                 </StackPanel>-->
 
-            </Grid> <!-- Map Navigation -->
+            </Grid>
+            <!-- Map Navigation -->
 
             <Grid x:Name="AOD3ControlGrid" Grid.Row="1" Grid.Column="0" Margin="0,0,0,0"
                   Background="Black" Visibility="Collapsed">
@@ -6523,7 +6568,7 @@
                             </BlockUIContainer>
 
                             <Paragraph>
-                                
+
                             </Paragraph>
 
                             <Paragraph>
@@ -6569,7 +6614,7 @@
                                            Opacity="100" Source="Images/MMResults2.png" Visibility="Visible" />
                                 </StackPanel>
                             </BlockUIContainer>
-                           
+
                         </Section>
 
                     </FlowDocument>
@@ -6767,7 +6812,7 @@
 
                             <Paragraph>
                             </Paragraph>
-                
+
                             <Paragraph>
                                 Change a symbol by highlighting the ticker and typing your Bloomberg Symbol.
                             </Paragraph>
@@ -6809,7 +6854,7 @@
 
                             <Paragraph>
                             </Paragraph>
-                
+
                             <Paragraph>
                                 You can also change symbols by selecting the PX Source button to open the Navigation dialogue.
                             </Paragraph>
@@ -6835,7 +6880,7 @@
                             <Paragraph>
                                 The Current and Next Buttons will change the Model Prediction.
                             </Paragraph>
-                
+
                             <BlockUIContainer Margin="5,0,0,0">
                                 <StackPanel HorizontalAlignment="Left" Background="Transparent" Orientation="Horizontal">
                                     <Image Width="400" Height="280" Margin="0,0,20,0" HorizontalAlignment="Left"
@@ -6857,7 +6902,7 @@
                                 </StackPanel>
                             </BlockUIContainer>
 
-                           
+
                         </Section>
 
                     </FlowDocument>
@@ -7067,7 +7112,7 @@
                             </Paragraph>
 
 
-                
+
                             <Paragraph>
                                 Trend Analysis displays the current predicted trend direction of your security and time horizon.
                             </Paragraph>
@@ -7128,7 +7173,7 @@
                                            Opacity="100" Source="Images/MktMonitorPosition4.png" Visibility="Visible" />
                                 </StackPanel>
                             </BlockUIContainer>
-              
+
                         </Section>
 
                     </FlowDocument>
@@ -7200,7 +7245,7 @@
                             <RowDefinition Height="25" />
                             <RowDefinition Height="25" />
                         </Grid.RowDefinitions>
-                
+
                         <Label Grid.Row="0" Grid.Column="0" Margin="0,0,0,0" HorizontalAlignment="Left"
                                VerticalAlignment="Bottom" Content="Market Monitor" FontFamily="Helvetica Neue" FontSize="11"
                                Foreground="White" MouseDown="MktMonitorHelp_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"/>
