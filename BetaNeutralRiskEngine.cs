@@ -56,6 +56,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using ATMML.Compliance;
 
 namespace BetaNeutralRiskEngine
 {
@@ -701,9 +702,19 @@ namespace BetaNeutralRiskEngine
 				foreach (var kvp in sectors.OrderByDescending(x => x.Value))
 				{
 					if (kvp.Value > _cfg.MaxSectorFraction)
+					{
 						Debug.WriteLine($"[Engine] SECTOR VIOLATION {side}: '{kvp.Key}' = {kvp.Value:P2} > {_cfg.MaxSectorFraction:P0}");
+						AuditService.LogConstraintBreach(null,
+							$"SECTOR VIOLATION {side}: '{kvp.Key}' = {kvp.Value:P2} > {_cfg.MaxSectorFraction:P0}",
+							"High");
+					}
 					else if (kvp.Value > _cfg.MaxSectorFraction * 0.9)
+					{
 						Debug.WriteLine($"[Engine] SECTOR NEAR LIMIT {side}: '{kvp.Key}' = {kvp.Value:P2}");
+						AuditService.LogConstraintBreach(null,
+							$"SECTOR NEAR LIMIT {side}: '{kvp.Key}' = {kvp.Value:P2}",
+							"Warning");
+					}
 				}
 			}
 
@@ -720,7 +731,12 @@ namespace BetaNeutralRiskEngine
 				foreach (var kvp in industries.OrderByDescending(x => x.Value))
 				{
 					if (kvp.Value > _cfg.MaxIndustryFraction)
+					{
 						Debug.WriteLine($"[Engine] INDUSTRY VIOLATION {side}: '{kvp.Key}' = {kvp.Value:P2} > {_cfg.MaxIndustryFraction:P0}");
+						AuditService.LogConstraintBreach(null,
+							$"INDUSTRY VIOLATION {side}: '{kvp.Key}' = {kvp.Value:P2} > {_cfg.MaxIndustryFraction:P0}",
+							"High");
+					}
 				}
 			}
 
@@ -737,7 +753,12 @@ namespace BetaNeutralRiskEngine
 				foreach (var kvp in subIndustries.OrderByDescending(x => x.Value))
 				{
 					if (kvp.Value > _cfg.MaxSubIndustryFraction)
+					{
 						Debug.WriteLine($"[Engine] SUB-INDUSTRY VIOLATION {side}: '{kvp.Key}' = {kvp.Value:P2} > {_cfg.MaxSubIndustryFraction:P0}");
+						AuditService.LogConstraintBreach(null,
+							$"SUB-INDUSTRY VIOLATION {side}: '{kvp.Key}' = {kvp.Value:P2} > {_cfg.MaxSubIndustryFraction:P0}",
+							"High");
+					}
 				}
 			}
 		}
@@ -1252,6 +1273,7 @@ namespace BetaNeutralRiskEngine
 			// ---------------------------------------------------------------
 			var rg = ComputeRiskGovernorScale();
 			LastRiskGovernorResult = rg;
+			AuditService.LastRiskGovernorResult = rg;
 
 			if (Math.Abs(rg.FinalScale - 1.0) > 0.001)
 			{

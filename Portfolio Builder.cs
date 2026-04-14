@@ -1,3 +1,4 @@
+using ATMML.Compliance;
 using ATMML.Performance;
 using Google.Protobuf.WellKnownTypes;
 using HedgeFundReporting;
@@ -145,6 +146,29 @@ namespace ATMML
 		private Dictionary<string, string> industryPercents;
 		private Dictionary<string, string> subIndustryPercents;
 		private string _activeLabel = "Sector";
+		private double _lastGrossExposure = 0;
+		private double _lastNetExposure = 0;
+		private double _lastLongExposure = 0;
+		private double _lastShortExposure = 0;
+
+		private string SnapshotModelParams(Model model)
+		{
+			if (model == null) return "";
+			return $"Rebalance={model.RankingInterval}" +
+				   $"|Leverage={model.Groups[_g].Leverage}" +
+				   $"|InitialNAV={model.InitialPortfolioBalance}" +
+				   $"|MgmtFee={model.ManagementFee}" +
+				   $"|PerfFee={model.PerformanceFee}" +
+				   $"|PriceImpact={model.PriceImpactAmt}" +
+				   $"|UseRiskEngine2={model.UseRiskEngine2}" +
+				   $"|UseRiskEngine3={model.UseRiskEngine3}" +
+				   $"|UseHedge={model.UseHedge}" +
+				   $"|UseBetaHedge={model.UseBetaHedge}" +
+				   $"|Ranking={model.Ranking}" +
+				   $"|PortfolioWeight={model.PortfolioWeight}" +
+				   $"|UseExecutionCost={model.UseExecutionCost}" +
+				   $"|UseBorrowingCost={model.UseBorrowingCost}";
+		}
 
 		public class NameValueRow
 		{
@@ -1408,7 +1432,9 @@ namespace ATMML
 					BetaValue.Content = combinedBetaText;
 					BetaValue2.Content = combinedBetaText;
 
-					LoadTiles(sectorPercents);
+					if (_activeTileView == "Industry") LoadTiles(industryPercents);
+					else if (_activeTileView == "SubIndustry") LoadTiles(subIndustryPercents);
+					else LoadTiles(sectorPercents);
 
 					// Push sector percents + alert max values to shared info so Timing reads
 					// PB's live-price calculations instead of recalculating from stale bar closes.
@@ -1945,6 +1971,10 @@ namespace ATMML
 					var netExposure = (longAmount - shortAmount) / portfolioBalance;
 					var longExposure = longAmount / portfolioBalance;
 					var shortExposure = shortAmount / portfolioBalance;
+					_lastGrossExposure = grossInvestment;
+					_lastNetExposure = netExposure;
+					_lastLongExposure = longExposure;
+					_lastShortExposure = shortExposure;
 
 					var volatility = getAnnVol();
 					var annVol = volatility.Count > 0 ? volatility.Last() : double.NaN;
@@ -1953,6 +1983,21 @@ namespace ATMML
 					NetExposure.Content = netExposure.ToString("P2", CultureInfo.InvariantCulture); // → "12.34%"
 					TotalLongs.Content = longExposure.ToString("P2", CultureInfo.InvariantCulture); // → "12.34%"
 					TotalShorts.Content = shortExposure.ToString("P2", CultureInfo.InvariantCulture); // → "12.34%"
+
+					// Compliance: daily risk snapshot
+					//AuditService.LogDailyRisk(
+					//	portfolioId: model?.Name ?? _clientPortfolioName,
+					//	isLive: model?.IsLiveMode == true,
+					//	nav: portfolioBalance,
+					//	longExposure: longExposure,
+					//	shortExposure: shortExposure,
+					//	netExposure: netExposure,
+					//	grossExposure: grossInvestment,
+					//	longCount: (int)getHoldings(time2, 1, 1),
+					//	shortCount: (int)getHoldings(time2, -1, 1),
+					//	sectorPercents: sectorPercents,
+					//	modelVersion: model?.Name
+					//);
 				}
 			}
 			InvalidateVisual();
@@ -2044,34 +2089,45 @@ namespace ATMML
 		{
 			addCharts();
 
+			var gotoInterval2 = _interval;
+			var gotoInterval1 = Study.getForecastInterval(gotoInterval2, 1);
+
+			// Request bars for both intervals immediately -- each chart
+			// is independent and will populate as its bars arrive.
+			if (!string.IsNullOrEmpty(ticker))
+			{
+				_barCache.RequestBars(ticker, gotoInterval1, true);
+				_barCache.RequestBars(ticker, gotoInterval2, true);
+			}
+
 			var model = getModel();
-
 			updateChartAnalysisSettings(model);
-
-			var interval2 = _interval;
-			var interval1 = Study.getForecastInterval(interval2, 1);
-
 			var portfolioName = (model == null) ? "" : model.Name;
 
+			// Open both charts immediately -- bars populate as they arrive
 			if (_twoCharts)
 			{
-				changeChart(_chart1, ticker, interval1, portfolioName);
-				changeChart(_chart2, ticker, interval2, portfolioName);
+				changeChart(_chart1, ticker, gotoInterval1, portfolioName);
+				changeChart(_chart2, ticker, gotoInterval2, portfolioName);
 			}
 			else
 			{
-				changeChart(_chart1, ticker, interval2, portfolioName);
+				changeChart(_chart1, ticker, gotoInterval2, portfolioName);
 			}
-			if (date != null)
+
+			if (date != null && _chart1 != null)
 			{
 				_chart1.ScrollToTime(date.Value);
-				_chart2.ScrollToTime(date.Value);
+				if (_chart2 != null) _chart2.ScrollToTime(date.Value);
 			}
 		}
 
 		Chart _chart1 = null;
 		Chart _chart2 = null;
 		bool _twoCharts = true;
+		string _pendingChart2Ticker = null;
+		string _pendingChart2Interval = null;
+		string _pendingChart2Portfolio = null;
 		ConditionDialog _conditionDialog;
 
 		private void showCharts()
@@ -3165,11 +3221,41 @@ namespace ATMML
 					_portfolioResultsTimestamp = ""; // Force fresh archive re-read after backtest
 					loadModel();
 					updateModelData();
+					Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() =>
+					{
+						loadModel();
+						updateModelData();
+					}));
 					if (_chart1 != null) _chart1.ResetTrades();
 					if (_chart2 != null) _chart2.ResetTrades();
 					updateStatistics();
 					update();
 
+					// Compliance: daily risk snapshot — fires once per completed run
+					var _riskModel = getModel();
+					if (_riskModel != null)
+					{
+						var _riskBalance = getPortfolioBalance(_portfolioTimes.Count > 0 ? _portfolioTimes.Last() : DateTime.Today);
+						var _riskLong = (double)getHoldings(_portfolioTimes.Count > 0 ? _portfolioTimes.Last() : DateTime.Today, 1, 1);
+						var _riskShort = (double)getHoldings(_portfolioTimes.Count > 0 ? _portfolioTimes.Last() : DateTime.Today, -1, 1);
+						AuditService.LogDailyRisk(
+							portfolioId: _riskModel.Name,
+							isLive: _riskModel.IsLiveMode,
+							nav: _riskBalance,
+							longExposure: _lastLongExposure,
+							shortExposure: _lastShortExposure,
+							netExposure: _lastNetExposure,
+							grossExposure: _lastGrossExposure,
+							longCount: (int)_riskLong,
+							shortCount: (int)_riskShort,
+							sectorPercents: sectorPercents,
+							modelVersion: _riskModel.Name
+						);
+					}
+
+					// Compliance: generate exception and audit reports
+					ExceptionReportPdf.Generate(DateTime.UtcNow.AddDays(-30), DateTime.MaxValue);
+					AuditReportPdf.Generate(DateTime.UtcNow.AddDays(-30), DateTime.MaxValue);
 					// Reset pre-order flag on every fresh run so the user sees the
 					// current portfolio preview before pressing Send Orders to FlexOne.
 					_liveOrdersSent = false;
@@ -3693,13 +3779,40 @@ namespace ATMML
 			if (time1 == default(DateTime))
 			{
 				_liveMtMBalance = baseBalance;
-				_mainView.SetInfo("LiveNav", baseBalance.ToString("R"));
+				_mainView.SetInfo("LiveNav_" + (getModel()?.Name ?? ""), baseBalance.ToString("R"));
 				// Only update labels if currently viewing the live date
 				if (_showHoldingsTime == default(DateTime) || _showHoldingsTime.Date > time2.Date)
 				{
 					Balance.Content = "$ " + baseBalance.ToString("#,##0");
 					Balance2.Content = "$ " + baseBalance.ToString("#,##0");
 					Balance3.Content = baseBalance.ToString("##,##0");
+				}
+				return;
+			}
+
+			// On rebalance day, new positions were just entered at today's prices.
+			// Before 4 PM the settled NAV is suppressed -- show prior settled balance.
+			// After 4 PM show today's settled balance.
+			if (time2.Date == DateTime.Today)
+			{
+				var todayIdx = portfolioTimes2.FindIndex(x => x.Date == time2.Date);
+				var priorIdx = portfolioTimes2.FindLastIndex(x => x.Date < time2.Date);
+				var useIdx = (todayIdx >= 0 && todayIdx < portfolioValues.Count
+					&& portfolioValues[todayIdx] != 0) ? todayIdx : priorIdx;
+				if (useIdx >= 0 && useIdx < portfolioValues.Count)
+				{
+					var settledBalance = model.InitialPortfolioBalance * (1 + portfolioValues[useIdx] / 100);
+					if (settledBalance > 0)
+					{
+						_liveMtMBalance = settledBalance;
+						_mainView.SetInfo("LiveNav_" + (getModel()?.Name ?? ""), settledBalance.ToString("R"));
+						if (_showHoldingsTime == default(DateTime) || _showHoldingsTime.Date >= time2.Date)
+						{
+							Balance.Content = "$ " + settledBalance.ToString("#,##0");
+							Balance2.Content = "$ " + settledBalance.ToString("#,##0");
+							Balance3.Content = settledBalance.ToString("##,##0");
+						}
+					}
 				}
 				return;
 			}
@@ -3747,7 +3860,7 @@ namespace ATMML
 			if (liveMtM > 0)
 			{
 				_liveMtMBalance = liveMtM;
-				_mainView.SetInfo("LiveNav", liveMtM.ToString("R"));
+				_mainView.SetInfo("LiveNav_" + (getModel()?.Name ?? ""), liveMtM.ToString("R"));
 				// Only push to Balance labels when user is viewing the most recent date
 				if (_showHoldingsTime == default(DateTime) || _showHoldingsTime.Date > time2.Date)
 				{
@@ -3887,6 +4000,7 @@ namespace ATMML
 
 			// run selected Model
 			Model model = getModel();
+			AuditService.LogRebalanceRequest(model?.Name ?? "Unknown");
 			if (model != null)
 			{
 				// Capture live mode state at run time
@@ -4129,6 +4243,7 @@ namespace ATMML
 				// drawPortfolioGrid populates _lastKnownPrices, then refreshLiveBalance uses them
 				drawPortfolioGrid();
 				refreshLiveBalance();
+				drawReturnChart();
 			}
 
 			if (_addFlash)
@@ -4452,6 +4567,18 @@ namespace ATMML
 			}
 
 			var portfolioTimes = new List<DateTime>(_portfolioTimes);
+
+			// For live portfolios: override last graphData entry with live MtM return
+			var liveChartModel = getModel();
+			if (liveChartModel != null && liveChartModel.IsLiveMode
+				&& _liveMtMBalance > 0 && liveChartModel.InitialPortfolioBalance > 0
+				&& graphData != null && graphData.Count > 0
+				&& portfolioTimes.Count > 0)
+			{
+				var liveReturn = (_liveMtMBalance / liveChartModel.InitialPortfolioBalance - 1.0) * 100.0;
+				graphData = new List<double>(graphData);
+				graphData[graphData.Count - 1] = liveReturn;
+			}
 
 			List<double> secondPortfolioValues = null;
 			//if (_selectedUserFactorModel2 != _selectedUserFactorModel)
@@ -5440,13 +5567,38 @@ namespace ATMML
 				else
 				{
 					Console.WriteLine($"[FlexOne] All {result.OrdersPlaced} orders submitted successfully.");
+
+					// Log each submitted trade to the blotter
+					foreach (var detail in result.Details.Where(d => d.Success))
+					{
+						AuditService.LogTradeSubmitted(
+							portfolioId: _clientPortfolioName,
+							ticker: detail.Ticker,
+							side: detail.Message ?? "Unknown",
+							shares: 0,
+							price: null,
+							orderState: "Submitted",
+							modelVersion: getModel()?.Name,
+							isOverride: false
+						);
+					}
+
+					AuditService.LogAction("FLEXONE_SUBMISSION_SUCCESS",
+						objectType: "Portfolio",
+						objectId: _clientPortfolioName,
+						after: $"OrdersPlaced={result.OrdersPlaced}");
 				}
 			}
 			catch (Exception ex)
 			{
+				AuditService.LogAction("FLEXONE_SUBMISSION_FAILED",
+					objectType: "Portfolio",
+					objectId: _clientPortfolioName,
+					after: ex.Message);
+
 				MessageBox.Show(
 					$"FlexOne submission failed:\n\n{ex.Message}\n\n" +
-					 "Orders were NOT sent.\nThe portfolio grid has not been updated.",
+								 "Orders were NOT sent.\nThe portfolio grid has not been updated.",
 					"\u274C  FlexOne Error",
 					MessageBoxButton.OK,
 					MessageBoxImage.Error);
@@ -6332,6 +6484,7 @@ namespace ATMML
 			}
 			return portfolioName;
 		}
+
 
 		private void requestPortfolio(string name)
 		{
@@ -9906,12 +10059,55 @@ namespace ATMML
 			if (model != null && _userFactorModels.Keys.Count > 0)
 			{
 				var name = model.Name;
+
+				// Check if model is locked
+				var dataFolder = MainView.GetDataFolder();
+				var decisionLockPath = dataFolder + @"\decisionlock\" + name;
+				bool isLocked = Directory.Exists(decisionLockPath) || model.IsLiveMode;
+
+				if (isLocked)
+				{
+					// Log tamper attempt
+					AuditService.LogAction(
+						action: "TAMPER_ATTEMPT",
+						objectType: "Model",
+						objectId: name,
+						after: $"Attempted save on locked model. IsLiveMode={model.IsLiveMode}"
+					);
+					AuditService.LogConstraintBreach(
+						portfolioId: name,
+						description: $"Save attempted on locked model '{name}' — blocked.",
+						severity: "High"
+					);
+					MessageBox.Show(
+						$"Model '{name}' is locked and cannot be modified.\n\nThis attempt has been logged.",
+						"\uD83D\uDD12  Model Locked",
+						MessageBoxButton.OK,
+						MessageBoxImage.Warning);
+					return;
+				}
+
 				MessageBoxResult result = System.Windows.MessageBox.Show("Are you sure you wish to save changes " + name + "?", "Confirm Save", MessageBoxButton.YesNo, MessageBoxImage.Question);
 				if (result == MessageBoxResult.Yes)
 				{
+					// Snapshot parameters before save
+					var beforeSnapshot = SnapshotModelParams(model);
 					saveModel(name);
+					var afterSnapshot = SnapshotModelParams(getModel());
+
+					// Log parameter changes
+					if (beforeSnapshot != afterSnapshot)
+					{
+						AuditService.LogAction(
+							action: "MODEL_PARAMETER_CHANGE",
+							objectType: "Model",
+							objectId: name,
+							before: beforeSnapshot,
+							after: afterSnapshot
+						);
+					}
+
 					checkMLModel();
-					//requestPortfolio(model.Universe); // save model
 				}
 			}
 		}
@@ -10970,9 +11166,9 @@ namespace ATMML
 		{
 			var header = new Grid();
 			header.Background = new SolidColorBrush(Color.FromRgb(0x0d, 0x2b, 0x45));
-			header.Width = 120;
+			header.Width = 117;
 			header.Margin = new Thickness(0);
-			header.HorizontalAlignment = HorizontalAlignment.Left;
+			header.HorizontalAlignment = HorizontalAlignment.Center;
 			header.PreviewMouseDown += (s, e) => e.Handled = true;
 			var tb = new TextBlock();
 			tb.Text = text;
@@ -12965,6 +13161,7 @@ namespace ATMML
 
 		private void loadModel()
 		{
+			LoadOrdersSentFlag();
 			var model = getModel();
 			if (model != null)
 			{
@@ -12991,6 +13188,7 @@ namespace ATMML
 
 		private string _graphDataType = "CUMULATIVE RETURN";
 		private string _graphSector = "ALL SECTORS";
+		private string _activeTileView = "Sector";
 
 		private void OnUseMTExitChecked(object sender, RoutedEventArgs e)
 		{

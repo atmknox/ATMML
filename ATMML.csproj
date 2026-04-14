@@ -111,6 +111,7 @@
 	<PackageReference Include="OPTANO.Modeling" Version="3.26.1.671" />
     <PackageReference Include="Protobuf.Text" Version="0.4.0" />
     <PackageReference Include="pythonnet" Version="3.0.5" />
+    <PackageReference Include="QuestPDF" Version="2026.2.4" />
     <PackageReference Include="SampleDependency" Version="1.0.0" />
     <PackageReference Include="SharpZipLib" Version="1.4.0" />
     <PackageReference Include="Skater.exe" Version="7.5.0" />
@@ -119,6 +120,7 @@
     <PackageReference Include="System.ComponentModel.Composition" Version="8.0.0" />
     <PackageReference Include="System.ComponentModel.Composition" Version="8.0.0" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.9.1" />
     <PackageReference Include="System.DirectoryServices" Version="9.0.7" />
     <PackageReference Include="System.Drawing.Common" Version="10.0.0-preview.3.25173.2" />
     <PackageReference Include="System.Reflection.Metadata" Version="8.0.1" />
