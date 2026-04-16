@@ -400,43 +400,22 @@
                            Margin="0,22,0,0" Fill="#FF124B72" Stroke="#FF124B72" StrokeThickness="1" />
 
 
-
                 <StackPanel x:Name="TISetup" Grid.Row="0" Grid.ColumnSpan="20" Margin="140,6,0,0" 
                             HorizontalAlignment="Left" Orientation="Horizontal" Visibility="Visible">
-                    <!--<Label Margin="2,0,10,1" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-       Background="Transparent" Content="Portfolio :"  FontFamily="Helvetica Neue" FontSize="12"
-       FontWeight="Normal" Foreground="#FFFF8C00"/>-->
-                    <Label Margin="2,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-                           Background="Transparent" Content="PORTFOLIO SETUP"  FontFamily="Helvetica Neue" FontSize="12"
-                           FontWeight="Normal" Foreground="#00ccff"/>
-                    <!--<Label Margin="10,0,0,4" Padding="0,0,0,0"
-HorizontalAlignment="Left" VerticalAlignment="Center" Background="Transparent" Content="RUN PORTFOLIO"
-FontFamily="Helvetica Neue" FontSize="12" FontWeight="Normal" Foreground="White"
-MouseDown="RunMLModel_Mousedown" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" />-->
-                    <!--<Label Margin="10,0,10,1" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-Background="Transparent" Content="Monitor :"  FontFamily="Helvetica Neue" FontSize="12"
-FontWeight="Normal" Foreground="#FFFF8C00"/>-->
-                    <Label Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                    <Label x:Name="PortSetup1"  Margin="2,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" 
+                           Background="Transparent" Content="PORTFOLIO SETUP"  FontFamily="Helvetica Neue" FontSize="12" 
+                           FontWeight="Normal" Foreground="#00ccff"
+                           Visibility="{Binding CanAccessPortfolioSetup, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                    <Label x:Name="OrderMgm1"  Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
                            Background="Transparent" Content="ORDER MANAGEMENT"  Cursor="Hand" FontFamily="Helvetica Neue"
                            FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="RebalanceView_MouseDown"
-                           MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" />
-                    <Label Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Visible"
+                           MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
+                           Visibility="{Binding CanAccessOrderManagement, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
+                    <Label x:Name="PortPerf1"  Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
                            Background="Transparent" Content="PORTFOLIO PERFORMANCE"  Cursor="Hand" FontFamily="Helvetica Neue"
                            FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="Performance_MouseDown"
-                           MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"/>
-                    <!--<Label Margin="10,0,10,1" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-Background="Transparent" Content="Research :"  FontFamily="Helvetica Neue" FontSize="12"
-FontWeight="Normal" Foreground="#FFFF8C00"/>-->
-
-                    <!--<Label Margin="10,0,10,1" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-                           Background="Transparent" Content="PORTFOLIO RESEARCH"  Cursor="Hand" FontFamily="Helvetica Neue"
-                           FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="RebalanceView_MouseDown"
-                           MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" />-->
-                    <!--<Label Margin="10,0,10,1" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Visible" 
-                           Background="Transparent" Content="RESEARCH PERFORMANCE"  Cursor="Hand" FontFamily="Helvetica Neue"
-                           FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="Performance_MouseDown"
-                           MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"/>-->
-
+                           MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
+                           Visibility="{Binding CanAccessPortfolioPerformance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
                 </StackPanel>
 
                 <StackPanel Name="TIOpenPL" Grid.Row="0" Grid.ColumnSpan="11" Margin="140,0,0,0"
@@ -2799,24 +2778,25 @@ FontWeight="Normal" Foreground="#FFFF8C00"/>-->
                     </StackPanel>
 
 
-                    <StackPanel x:Name="TIPositions22" Grid.Row="0" Grid.ColumnSpan="11" Margin="0,0,0,0"
+                    <StackPanel x:Name="TIPositions22" Grid.Row="0" Grid.ColumnSpan="11" Margin="0,0,0,0" Visibility="Visible"
                             HorizontalAlignment="Left" Orientation="Horizontal" >
-                        <Label Grid.Column="0" Margin="2,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Center"
-                           VerticalAlignment="Center" Background="Transparent" Content="PORTFOLIO SETUP"  Cursor="Hand"
+                        <Label x:Name="PortSetup2" Grid.Column="0" Margin="2,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Center"
+                           VerticalAlignment="Center" Background="Transparent" Content="PORTFOLIO SETUP"  Cursor="Hand" Visibility="Visible"
                            FontFamily="Helvetica Neue" FontSize="12" FontWeight="Normal" Foreground="White"
                            MouseDown="FundamentalML_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave" />
 
-                        <Label Margin="10,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                        <Label x:Name="OrderMgm2" Margin="10,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Visible"
                            Background="Transparent" Content="ORDER MANAGEMENT"  FontFamily="Helvetica Neue" FontSize="12"
                            FontWeight="Normal" Foreground="#00ccff" />
-                        <Label Margin="10,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Visible"
+                        <Label x:Name="PortPerf2" Margin="10,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Visible"
                            Background="Transparent" Content="PORTFOLIO PERFORMANCE"  Cursor="Hand" FontFamily="Helvetica Neue"
                            FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="Performance_MouseDown"
                            MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" />
                     </StackPanel>
 
                     <Label x:Name="RunPortfolio" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="7" Margin="0,0,22,0"  FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Top" Content="RUN SELECTED LIVE PORTFOLIO" Foreground="White"
-                           MouseEnter="SendOrders_MouseEnter" MouseLeave="SendOrders_MouseLeave" MouseDown="RunPortfolio_MouseDown" Cursor="Hand" />
+                           MouseEnter="SendOrders_MouseEnter" MouseLeave="SendOrders_MouseLeave" MouseDown="RunPortfolio_MouseDown" Cursor="Hand"
+                           Visibility="{Binding CanRunPortfolio, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
 
                     <StackPanel Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="7" HorizontalAlignment="Center"
                                 Orientation="Horizontal">
@@ -3191,7 +3171,8 @@ FontWeight="Normal" Foreground="#FFFF8C00"/>-->
 
                     <Label x:Name="SendOrders" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="6" Margin="0,5,27,0" Padding="0,6,0,0" HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent"
        Content="SEND ORDERS TO FLEXONE" FontFamily="Helvetica Neue" FontSize="10" Foreground="White"
-       MouseEnter="SendOrders_MouseEnter" MouseLeave="SendOrders_MouseLeave" MouseDown="SendOrders_MouseDown" Cursor="Hand" />
+       MouseEnter="SendOrders_MouseEnter" MouseLeave="SendOrders_MouseLeave" MouseDown="SendOrders_MouseDown" Cursor="Hand"
+       Visibility="{Binding CanSendOrdersToFlexOne, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
 
                     <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="8,12,0,0"
                                 HorizontalAlignment="Left" Orientation="Horizontal">
@@ -3786,7 +3767,7 @@ FontWeight="Normal" Foreground="#FFFF8C00"/>-->
                 <Rectangle Grid.Row="2" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="3"
                            Margin="0,23,0,0" Fill="Transparent" Stroke="#FF124B72" StrokeThickness="1" />
 
-                <Grid  Grid.Row="0" Grid.ColumnSpan="11" Margin="0,0,0,0"
+                <Grid x:Name="PerformanceBlue" Grid.Row="0" Grid.ColumnSpan="11" Margin="0,0,0,0"
                       HorizontalAlignment="Left" Visibility="Visible">
 
                     <Grid.RowDefinitions>
@@ -3803,35 +3784,17 @@ FontWeight="Normal" Foreground="#FFFF8C00"/>-->
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Row="0" Grid.ColumnSpan="4" Orientation="Horizontal">
-                        <!--<Label Margin="2,-50,10,1" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-Background="Transparent" Content="Portfolio :"  FontFamily="Helvetica Neue" FontSize="12"
-FontWeight="Normal" Foreground="#FFFF8C00"/>-->
-
-                        <Label Margin="2,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"
-                               Background="Transparent" Content="PORTFOLIO SETUP"  Cursor="Hand" FontFamily="Helvetica Neue"
+                        <Label x:Name="PortSetup3" Margin="2,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Background="Transparent" Content="PORTFOLIO SETUP"  Cursor="Hand" FontFamily="Helvetica Neue" Visibility="Visible"
                                FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="FundamentalML_MouseDown" 
                                MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"   />
-                        <!--<Label Margin="10,-50,10,1" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-Background="Transparent" Content="Monitor :"  FontFamily="Helvetica Neue" FontSize="12"
-FontWeight="Normal" Foreground="#FFFF8C00"/>-->
-                        <Label Margin="10,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-Background="Transparent" Content="ORDER MANAGEMENT"  Cursor="Hand" FontFamily="Helvetica Neue"
-FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="RebalanceView_MouseDown"
-MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"  />
-                        <Label Margin="10,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-Background="Transparent" Content="PORTFOLIO PERFORMANCE"  FontFamily="Helvetica Neue" FontSize="12" 
-FontWeight="Normal" Foreground="#00ccff"  />
-                        <!--<Label Margin="10,-50,10,1" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-Background="Transparent" Content="Research :"  FontFamily="Helvetica Neue" FontSize="12"
-FontWeight="Normal" Foreground="#FFFF8C00"/>-->
-                        <!--<Label Margin="10,-50,10,1" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-                               Background="Transparent" Content="PORTFOLIO RESEARCH"  Cursor="Hand" FontFamily="Helvetica Neue"
-                               FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="RebalanceView_MouseDown"
-                               MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"  />-->
-                        <!--<Label Margin="10,-50,10,1" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-                               Background="Transparent" Content="RESEARCH PERFORMANCE"  FontFamily="Helvetica Neue" FontSize="12" 
-                               FontWeight="Normal" Foreground="#00ccff"  />-->
-
+                        <Label x:Name="OrderMgm3" Margin="10,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Background="Transparent" Content="ORDER MANAGEMENT"  Cursor="Hand" FontFamily="Helvetica Neue"
+                                FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="RebalanceView_MouseDown" Visibility="Visible"
+                                MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"  />
+                        <Label x:Name="PortPerf3" Margin="10,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Background="Transparent" Content="PORTFOLIO PERFORMANCE"  FontFamily="Helvetica Neue" FontSize="12" Visibility="Visible"
+                                FontWeight="Normal" Foreground="#00ccff"  />
                     </StackPanel>
 
                 </Grid>

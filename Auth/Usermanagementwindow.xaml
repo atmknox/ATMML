@@ -26,6 +26,79 @@
             <Setter Property="FontSize"     Value="12"/>
         </Style>
 
+        <!-- Dark dropdown for ComboBox -->
+        <Style x:Key="DarkComboBox" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+            <Setter Property="Background"   Value="#1F2937"/>
+            <Setter Property="Foreground"   Value="#F9FAFB"/>
+            <Setter Property="BorderBrush"  Value="#374151"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Height"       Value="30"/>
+            <Setter Property="Padding"      Value="8,0"/>
+            <Setter Property="FontSize"     Value="12"/>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="Background" Value="#1F2937"/>
+                        <Setter Property="Foreground" Value="#F9FAFB"/>
+                        <Setter Property="Padding"    Value="8,4"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter Property="Background" Value="#374151"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#2563EB"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Background="{TemplateBinding Background}"
+                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                          BorderThickness="{TemplateBinding BorderThickness}"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}">
+                                            <DockPanel>
+                                                <Path DockPanel.Dock="Right" Fill="#F9FAFB"
+                                                      Data="M 0 0 L 4 4 L 8 0 Z"
+                                                      Width="8" Height="4" Margin="6,0"
+                                                      VerticalAlignment="Center"/>
+                                                <ContentPresenter/>
+                                            </DockPanel>
+                                        </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter Margin="{TemplateBinding Padding}"
+                                              VerticalAlignment="Center"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              IsHitTestVisible="False"/>
+                            <Popup IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   Placement="Bottom" AllowsTransparency="True">
+                                <Border Background="#1F2937"
+                                        BorderBrush="#374151" BorderThickness="1"
+                                        MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <ScrollViewer>
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="ActionBtn" TargetType="Button">
             <Setter Property="Background"   Value="#374151"/>
             <Setter Property="Foreground"   Value="#F9FAFB"/>
@@ -87,7 +160,30 @@
             <Border Grid.Row="0" Background="#111827" CornerRadius="8,8,0,0"
                     MouseLeftButtonDown="DragBar_MouseDown">
                 <DockPanel Margin="16,0" >
-                    <TextBlock Text="CMR User Management" Foreground="White" 
+                    <Viewbox
+                           Grid.Row="0" Grid.RowSpan="5" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,1,0,2">
+                        <Canvas
+                               Name="aa2" Margin="0,0,1,250" HorizontalAlignment="Center" Visibility="Visible">
+
+                            <Path
+                                   Canvas.Left="1.672" Canvas.Top="23.995" Width="228.609" Height="181.997" Data="F1 M 141.729,37.408 L 127.825,37.408 L 127.911,37.574 C 123.026,46.390 118.896,52.471 115.504,55.799 C 112.105,59.131 108.382,60.794 104.315,60.794 C 99.631,60.794 95.866,58.535 93.022,53.995 C 90.354,49.750 88.934,44.216 88.769,37.408 L 73.708,37.408 C 73.707,37.606 73.699,37.799 73.699,37.998 C 73.699,47.627 76.313,55.342 81.548,61.127 C 86.782,66.919 93.753,69.813 102.455,69.813 C 109.192,69.813 114.820,68.140 119.337,64.781 C 123.858,61.434 128.313,55.612 132.715,47.321 L 140.783,63.844 L 149.384,51.854 C 149.384,51.854 144.149,41.977 141.729,37.408 L 141.729,37.408 M 142.750,2.100 C 141.027,9.372 138.496,16.899 135.153,24.655 C 130.516,15.184 126.232,8.805 122.315,5.517 C 118.393,2.229 113.133,0.576 106.541,0.576 C 96.643,0.576 88.690,4.002 82.697,10.848 C 76.743,17.645 73.749,26.605 73.703,37.741 L 88.780,37.741 C 88.764,37.185 88.753,36.622 88.753,36.047 C 88.753,28.368 90.274,22.052 93.308,17.101 C 96.346,12.137 100.227,9.660 104.961,9.660 C 108.312,9.660 111.309,11.092 113.961,13.957 C 116.613,16.821 120.091,22.443 124.393,30.806 L 127.911,37.574 C 127.880,37.631 127.850,37.686 127.817,37.741 L 141.905,37.741 C 141.077,36.178 140.525,35.137 140.526,35.137 C 148.269,22.373 153.409,11.369 155.942,2.100 L 142.750,2.100 L 142.750,2.100 Z"
+                                   Fill="#FF2395CE" RenderTransformOrigin="0.503,0.455" Stretch="Fill">
+                                <Path.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform />
+                                        <SkewTransform AngleY="-0.057" />
+                                        <RotateTransform />
+                                        <TranslateTransform Y="-2.9" />
+                                    </TransformGroup>
+                                </Path.RenderTransform>
+                            </Path>
+
+                            <Path
+                                   Canvas.Left="190" Canvas.Top="169" Width="50" Height="33" Data="F1 M 152.368,56.080 L 142.873,69.656 L 161.778,69.656 L 152.368,56.080 L 152.368,56.080 Z"
+                                   Fill="#FFBC0031" RenderTransformOrigin="0.487,0.678" Stretch="Fill" />
+                        </Canvas>
+                    </Viewbox>
+                    <TextBlock Text="CMR User Management" Foreground="White" Margin="35,0,0,0"
                                FontSize="11" VerticalAlignment="Center"/>
                     <Button x:Name="BtnClose" DockPanel.Dock="Right"
                             Content="✕" Foreground="#ffffff" FontWeight="ExtraBold"
@@ -186,7 +282,7 @@
 
                             <TextBlock Text="ROLE" Foreground="White" Style="{StaticResource FieldLabel}"/>
                             <ComboBox x:Name="CbRole"
-                                      Style="{StaticResource InputBox}"
+                                      Style="{StaticResource DarkComboBox}"
                                       Margin="0,0,0,12"/>
 
                             <!-- Active toggle (edit only) -->
@@ -203,7 +299,7 @@
                                          Margin="0,0,0,4"/>
                             <TextBlock x:Name="LblPasswordHint"
                                        Text="Leave blank to keep existing password"
-                                       Foreground="#6B7280" FontSize="10"
+                                       Foreground="#ffffff" FontSize="10"
                                        Margin="0,0,0,12"/>
 
                             <!-- Status message -->

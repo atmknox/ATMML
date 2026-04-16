@@ -113,6 +113,7 @@ namespace ATMML
 
 		int _update = 0;
 		private DateTime _lastGridRefreshTime = DateTime.MinValue;
+		private DateTime _lastPerfCursorTime = default(DateTime); // last cursor time user explicitly set on perf chart
 		private double _liveMtMBalance = 0.0; // cached live MtM balance, updated by drawPortfolioGrid
 		private Dictionary<string, double> _rtPrices = new Dictionary<string, double>(); // PRICE_LAST_RT per ticker
 		private HashSet<string> _pendingRtTickers = new HashSet<string>(); // tickers waiting for Symbol event before RT subscribe
@@ -623,6 +624,8 @@ namespace ATMML
 
 		private void _mainReturnGraphEvent(object sender, GraphEventArgs e)
 		{
+			if (e.CursorTime != default(DateTime))
+				_lastPerfCursorTime = e.CursorTime;
 			updateStatistics();
 			_monthlyReturnGraph.CursorTime = e.CursorTime;
 		}
@@ -1963,8 +1966,9 @@ namespace ATMML
 
 					//PortfolioBeta.Content = FormattableString.Invariant($"{beta:0.00}");
 
-					// Use live balance from refreshLiveBalance if available, otherwise base NAV
-					if (_liveMtMBalance > 0 && time2.Date == DateTime.Today)
+					// Use live balance only when cursor is on today
+					bool isLiveNow = _showHoldingsTime == default(DateTime) || _showHoldingsTime.Date >= DateTime.Today;
+					if (_liveMtMBalance > 0 && time2.Date == DateTime.Today && isLiveNow)
 						portfolioBalance = _liveMtMBalance;
 
 					var grossInvestment = (longAmount + shortAmount) / portfolioBalance;
@@ -3282,7 +3286,10 @@ namespace ATMML
 
 					if (_stopModel)
 					{
-						showPortfolioSetup();
+						if (ATMML.Auth.AuthContext.Current.IsAdmin)
+							showPortfolioSetup();
+						else
+							showRebalanceGrid();
 					}
 					else
 					{
@@ -3292,9 +3299,10 @@ namespace ATMML
 					TotalReturnChartBorder.Visibility = Visibility.Visible;
 					ProgressCalculations2.Visibility = Visibility.Collapsed;
 
-					// Live mode: show signal window status popup
+					// Live mode: show signal window status popup on rebalance Friday only
 					var _liveModel = getModel();
-					if (_liveModel != null && _liveModel.IsLiveMode)
+					if (_liveModel != null && _liveModel.IsLiveMode
+						&& DateTime.Today.DayOfWeek == DayOfWeek.Friday)
 					{
 						var _now = DateTime.Now.TimeOfDay;
 						string _title, _msg;
@@ -3749,29 +3757,22 @@ namespace ATMML
 				.OrderByDescending(t => t).ToList();
 			if (settledTimes.Count == 0) return;
 
-			var time2 = settledTimes[0];  // most recent settled date
-			var time1 = settledTimes.Count > 1 ? settledTimes[1] : default(DateTime);  // prior settled date
+			var time2 = settledTimes[0];  // most recent settled rebalance (e.g. Apr 3)
+			var time1 = settledTimes.Count > 1 ? settledTimes[1] : default(DateTime);  // prior settled (e.g. Mar 27)
 
-			// Base NAV = settled portfolio value at time1 (the prior rebalance date)
+			// Base NAV = settled value at time2 (most recent rebalance)
+			// PnL = current price vs time2 close -- measures this week only
 			var portfolioTimes2 = loadList<DateTime>(model.Name + " PortfolioTimes");
 			var portfolioValues = loadList<double>(model.Name + " PortfolioValues");
 			var baseBalance = 0.0;
-			if (portfolioValues.Count > 0 && time1 != default(DateTime))
+			if (portfolioValues.Count > 0)
 			{
-				var baseIdx = portfolioTimes2.FindIndex(x => x.Date == time1.Date);
-				if (baseIdx == -1) baseIdx = portfolioTimes2.FindLastIndex(x => x.Date <= time1.Date);
+				var baseIdx = portfolioTimes2.FindIndex(x => x.Date == time2.Date);
+				if (baseIdx == -1) baseIdx = portfolioTimes2.FindLastIndex(x => x.Date <= time2.Date);
 				if (baseIdx >= 0 && baseIdx < portfolioValues.Count)
 				{
 					baseBalance = model.InitialPortfolioBalance * (1 + portfolioValues[baseIdx] / 100);
 				}
-			}
-			else if (portfolioValues.Count > 0 && time1 == default(DateTime))
-			{
-				// First rebalance — use time2's own value as base (no prior Friday to compare)
-				var baseIdx = portfolioTimes2.FindIndex(x => x.Date == time2.Date);
-				if (baseIdx == -1) baseIdx = 0;
-				if (baseIdx < portfolioValues.Count)
-					baseBalance = model.InitialPortfolioBalance * (1 + portfolioValues[baseIdx] / 100);
 			}
 			if (baseBalance <= 0) return;
 
@@ -3830,14 +3831,15 @@ namespace ATMML
 				double livePx = getCurrentPrice(lt);
 				if (double.IsNaN(livePx) || livePx <= 0) continue;
 
+				// Reference price = time2 close (most recent rebalance, e.g. Apr 3)
 				var fridayKey = liveTrade.Closes.Keys
-					.Where(k => k.Date == time1.Date)
+					.Where(k => k.Date == time2.Date)
 					.OrderByDescending(k => k).FirstOrDefault();
 				double fridayPx = fridayKey != default(DateTime) ? liveTrade.Closes[fridayKey] : double.NaN;
 				if (double.IsNaN(fridayPx))
 				{
 					var fridayBars = _barCache.GetBars(lt, _ic?.GetLowestInterval() ?? "Weekly", 0, 500);
-					var fridayBar = fridayBars?.LastOrDefault(b => b.Time.Date == time1.Date);
+					var fridayBar = fridayBars?.LastOrDefault(b => b.Time.Date == time2.Date);
 					fridayPx = (fridayBar != null && fridayBar.Close > 0) ? fridayBar.Close : double.NaN;
 				}
 				if (double.IsNaN(fridayPx) || fridayPx <= 0) continue;
@@ -3861,8 +3863,8 @@ namespace ATMML
 			{
 				_liveMtMBalance = liveMtM;
 				_mainView.SetInfo("LiveNav_" + (getModel()?.Name ?? ""), liveMtM.ToString("R"));
-				// Only push to Balance labels when user is viewing the most recent date
-				if (_showHoldingsTime == default(DateTime) || _showHoldingsTime.Date > time2.Date)
+				// Only push to Balance labels when viewing today (not a historical date)
+				if (_showHoldingsTime == default(DateTime) || _showHoldingsTime.Date >= DateTime.Today)
 				{
 					Balance.Content = "$ " + liveMtM.ToString("#,##0");
 					Balance2.Content = "$ " + liveMtM.ToString("#,##0");
@@ -4205,11 +4207,14 @@ namespace ATMML
 			//setTradeMangementSettings();
 		}
 
+		private bool _settingRadioButtons = false;
 		private void setModelRadioButtons()
 		{
+			_settingRadioButtons = true;
 			FactorModelSetup.IsChecked = _useUserFactorModel;
 			FactorModelList.IsChecked = _useUserFactorModel;
 			RebalanceFactorModelList.IsChecked = _useUserFactorModel;
+			_settingRadioButtons = false;
 		}
 
 		void Timer_tick(object sender, EventArgs e)
@@ -4240,10 +4245,20 @@ namespace ATMML
 						_barCache.RequestBars(t, "Weekly", true);
 					}
 				}
-				// drawPortfolioGrid populates _lastKnownPrices, then refreshLiveBalance uses them
-				drawPortfolioGrid();
-				refreshLiveBalance();
-				drawReturnChart();
+				// Determine which cursor time is active based on which grid is visible
+				var activeCursor = (PerformanceGrid.Visibility == Visibility.Visible)
+					? _lastPerfCursorTime
+					: _showHoldingsTime;
+				// Only redraw grid/balance when viewing live date -- don't disturb historical cursor
+				bool viewingLive = activeCursor == default(DateTime)
+					|| activeCursor.Date >= DateTime.Today;
+				if (viewingLive)
+				{
+					drawPortfolioGrid();
+					refreshLiveBalance();
+					drawReturnChart();
+				}
+				// When on historical date: skip all live updates entirely
 			}
 
 			if (_addFlash)
@@ -4568,16 +4583,20 @@ namespace ATMML
 
 			var portfolioTimes = new List<DateTime>(_portfolioTimes);
 
-			// For live portfolios: override last graphData entry with live MtM return
+			// For live portfolios intra-week: append today's live MtM as a new point
+			// Do NOT override the last settled rebalance point -- keep it accurate
 			var liveChartModel = getModel();
 			if (liveChartModel != null && liveChartModel.IsLiveMode
 				&& _liveMtMBalance > 0 && liveChartModel.InitialPortfolioBalance > 0
 				&& graphData != null && graphData.Count > 0
-				&& portfolioTimes.Count > 0)
+				&& portfolioTimes.Count > 0
+				&& portfolioTimes.Last().Date < DateTime.Today) // only if today is after last settled date
 			{
 				var liveReturn = (_liveMtMBalance / liveChartModel.InitialPortfolioBalance - 1.0) * 100.0;
 				graphData = new List<double>(graphData);
-				graphData[graphData.Count - 1] = liveReturn;
+				graphData.Add(liveReturn);
+				portfolioTimes = new List<DateTime>(portfolioTimes);
+				portfolioTimes.Add(DateTime.Today);
 			}
 
 			List<double> secondPortfolioValues = null;
@@ -4869,10 +4888,17 @@ namespace ATMML
 		{
 			Model model = getModel();
 
-			// In live mode, refresh the balance using current prices before
-			// updateTradeStats reads _liveMtMBalance to set the Balance label.
-			if (model != null && model.IsLiveMode)
+			// Use _lastPerfCursorTime (stable, user-driven) not CursorTime which resets during redraws
+			var perfCursorTime = PerformanceGrid.Visibility == Visibility.Visible
+				? _lastPerfCursorTime
+				: _showHoldingsTime;
+			bool perfViewingLive = perfCursorTime == default(DateTime)
+				|| perfCursorTime.Date >= DateTime.Today;
+			if (model != null && model.IsLiveMode && perfViewingLive)
 				refreshLiveBalance();
+			// When on historical date: zero _liveMtMBalance so it can't corrupt balance display
+			if (!perfViewingLive)
+				_liveMtMBalance = 0;
 
 			var cursorTime = (RebalanceGrid.Visibility == Visibility.Visible) ? _showHoldingsTime : _mainReturnGraph.CursorTime;
 			if (cursorTime == default(DateTime) && _portfolioTimes.Count > 0)
@@ -5409,7 +5435,8 @@ namespace ATMML
 
 		private void showPortfolioSetup()
 		{
-			TISetup.Visibility = Visibility.Visible;
+			if (ATMML.Auth.AuthContext.Current.IsAdmin)
+				TISetup.Visibility = Visibility.Visible;
 			PortfolioInput2.Visibility = MainView.EnableNetworks ? Visibility.Visible : Visibility.Collapsed;
 			PortfolioInput3.Visibility = MainView.EnableNetworks ? Visibility.Visible : Visibility.Collapsed;
 			PortfolioInput4.Visibility = MainView.EnableNetworks ? Visibility.Visible : Visibility.Collapsed;
@@ -5458,12 +5485,15 @@ namespace ATMML
 			// UserFactorModelGrid must be visible - ProgressCalculations2 is a child of it.
 			ui_to_userFactorModel(_selectedUserFactorModel);
 			hideNavigation();
-			TISetup.Visibility = Visibility.Visible;
+			// Always collapse TISetup first to prevent flash for non-Admin roles
+			TISetup.Visibility = Visibility.Collapsed;
 			TIOpenPL.Visibility = Visibility.Collapsed;
 			TIAllocations.Visibility = Visibility.Collapsed;
 			RebalanceGrid.Visibility = Visibility.Collapsed;
 			RebalanceChartGrid.Visibility = Visibility.Collapsed;
 			RebalanceSideNav.Visibility = Visibility.Collapsed;
+			PerformanceGrid.Visibility = Visibility.Collapsed;
+			PerformanceSideNav.Visibility = Visibility.Collapsed;
 			UserFactorModelGrid.Visibility = Visibility.Visible;
 			setModelRadioButtons();
 			_run = true;
@@ -7045,7 +7075,8 @@ namespace ATMML
 
 			hideNavigation();
 
-			TISetup.Visibility = Visibility.Visible;
+			if (ATMML.Auth.AuthContext.Current.IsAdmin)
+				TISetup.Visibility = Visibility.Visible;
 			//TIStats.Visibility = Visibility.Collapsed;
 			//TIPositions.Visibility = Visibility.Collapsed;
 			TIOpenPL.Visibility = Visibility.Collapsed;
@@ -9133,6 +9164,76 @@ namespace ATMML
 		{
 			HighlightActiveLabel(LabelSectors);
 			LoadTiles(sectorPercents);
+			ApplyEntitlementMargins();
+		}
+
+		private void ApplyEntitlementMargins()
+		{
+			var role = ATMML.Auth.AuthContext.Current.IsAuthenticated
+				? ATMML.Auth.AuthContext.Current.User?.Role ?? ATMML.Auth.UserRole.Viewer
+				: ATMML.Auth.UserRole.Viewer;
+
+			var isAdmin      = role == ATMML.Auth.UserRole.Admin;
+			var isPM         = role == ATMML.Auth.UserRole.PortfolioManager;
+			var isTrader     = role == ATMML.Auth.UserRole.Trader;
+			var isCompliance = role == ATMML.Auth.UserRole.Compliance;
+			var isViewer     = role == ATMML.Auth.UserRole.Viewer;
+
+			var V = Visibility.Visible;
+			var C = Visibility.Collapsed;
+			var defaultMargin = new System.Windows.Thickness(10, -50, 10, 4);
+			var tightMargin   = new System.Windows.Thickness(2, -50, 10, 4);
+
+			if (isViewer)
+			{
+				if (TISetup        != null) TISetup.Visibility        = C;
+				if (TIPositions22 != null) TIPositions22.Visibility   = C;
+				if (PerformanceGrid    != null) PerformanceGrid.Visibility    = C;
+				if (PerformanceSideNav != null) PerformanceSideNav.Visibility = C;
+				return;
+			}
+
+			if (isCompliance)
+			{
+				if (TISetup       != null) TISetup.Visibility      = C;
+				if (TIPositions22 != null) TIPositions22.Visibility = C;
+				if (PerformanceGrid != null) PerformanceGrid.Visibility = V;
+				if (PerformanceSideNav != null) PerformanceSideNav.Visibility = C;
+				if (PortSetup3 != null) PortSetup3.Visibility = C;
+				if (OrderMgm3  != null) OrderMgm3.Visibility  = C;
+				if (PortPerf3  != null) { PortPerf3.Visibility = V; PortPerf3.Margin = tightMargin; }
+				return;
+			}
+
+			if (isPM || isTrader)
+			{
+				if (TISetup != null) TISetup.Visibility = C;
+				// Show the Order Management grids so TIPositions22 is visible
+				if (RebalanceChartGrid != null) RebalanceChartGrid.Visibility = V;
+				if (RebalanceGrid      != null) RebalanceGrid.Visibility      = V;
+				if (TIPositions22 != null) TIPositions22.Visibility = V;
+				if (PerformanceGrid != null) PerformanceGrid.Visibility = C;
+				if (PortSetup2 != null) PortSetup2.Visibility = C;
+				if (OrderMgm2  != null) { OrderMgm2.Visibility = V; OrderMgm2.Margin = tightMargin; }
+				if (PortPerf2  != null) PortPerf2.Visibility = V;
+				if (PortSetup3 != null) PortSetup3.Visibility = C;
+				if (OrderMgm3  != null) { OrderMgm3.Visibility = V; OrderMgm3.Margin = tightMargin; }
+				if (PortPerf3  != null) PortPerf3.Visibility = V;
+				return;
+			}
+
+			if (isAdmin)
+			{
+				if (PortSetup1 != null) PortSetup1.Visibility = V;
+				if (OrderMgm1  != null) { OrderMgm1.Visibility = V; OrderMgm1.Margin = tightMargin; }
+				if (PortPerf1  != null) PortPerf1.Visibility = V;
+				if (PortSetup2 != null) PortSetup2.Visibility = V;
+				if (OrderMgm2  != null) { OrderMgm2.Visibility = V; OrderMgm2.Margin = defaultMargin; }
+				if (PortPerf2  != null) PortPerf2.Visibility = V;
+				if (PortSetup3 != null) PortSetup3.Visibility = V;
+				if (OrderMgm3  != null) { OrderMgm3.Visibility = V; OrderMgm3.Margin = defaultMargin; }
+				if (PortPerf3  != null) PortPerf3.Visibility = V;
+			}
 		}
 
 		private void LoadGrid(Dictionary<string, string> data) => LoadTiles(data);
@@ -11186,7 +11287,10 @@ namespace ATMML
 			var selectedModel = _selectedUserFactorModel;
 			var allNames = new List<string>(_userFactorModels.Keys);
 			var liveNames = allNames.Where(n => _userFactorModels[n].IsLiveMode).OrderBy(n => n).ToList();
-			var testNames = allNames.Where(n => !_userFactorModels[n].IsLiveMode).OrderBy(n => n).ToList();
+			// Only Admin and Compliance can see TEST portfolios
+			var testNamesAll = allNames.Where(n => !_userFactorModels[n].IsLiveMode).OrderBy(n => n).ToList();
+			var testNames = ATMML.Auth.AuthContext.Current.CanAccessTestPortfolios
+				? testNamesAll : new List<string>();
 			//Example.Visibility = (allNames.FindIndex(x => x == "EXAMPLE") == -1) ? Visibility.Visible : Visibility.Hidden;
 			updateModelList(selectedModel, liveNames, testNames, UserFactorModelPanel1, false);
 			updateModelList(selectedModel, liveNames, testNames, UserFactorModelPanel2, true);
@@ -12417,11 +12521,16 @@ namespace ATMML
 			var logout = new MenuItem { Header = "Logout" };
 			logout.Click += (_, _) =>
 			{
-				ATMML.Auth.AuthContext.Current.Logout();
-				var login = new ATMML.Auth.LoginWindow();
-				bool? result = login.ShowDialog();
-				if (result != true)
+				var confirm = MessageBox.Show(
+					"Are you sure you want to exit?",
+					"Exit ATMML",
+					MessageBoxButton.YesNo,
+					MessageBoxImage.Question);
+				if (confirm == MessageBoxResult.Yes)
+				{
+					ATMML.Auth.AuthContext.Current.Logout();
 					Application.Current.Shutdown();
+				}
 			};
 			menu.Items.Add(logout);
 
@@ -13066,10 +13175,14 @@ namespace ATMML
 		}
 		private void UserFactorModelSetup_Click(object sender, RoutedEventArgs e)
 		{
+			if (_settingRadioButtons) return;
 			_useUserFactorModel = true;
 
 			UserFactorModelGrid.Visibility = Visibility.Visible;
-
+			if (ATMML.Auth.AuthContext.Current.IsAdmin)
+				TISetup.Visibility = Visibility.Visible;
+			else
+				TISetup.Visibility = Visibility.Collapsed;
 
 			PerformanceGrid.Visibility = Visibility.Collapsed;
 			PerformanceSideNav.Visibility = Visibility.Collapsed;
@@ -13088,6 +13201,7 @@ namespace ATMML
 
 		private void UserFactorModelMemberList_Click(object sender, RoutedEventArgs e)
 		{
+			if (_settingRadioButtons) return;
 			_useUserFactorModel = true;
 
 			UserFactorModelPanel2.Visibility = Visibility.Visible;

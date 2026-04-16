@@ -3,16 +3,22 @@
 namespace ATMML.Auth
 {
 	// ─────────────────────────────────────────────────────────────────────────
-	//  UserRole  —  ordinal defines access ceiling (Viewer=0 .. Admin=3)
-	//  XAML visibility helpers in AuthContext compare via >= so that
-	//  PortfolioManager automatically satisfies IsAnalyst checks, etc.
+	//  UserRole  —  ordinal defines access ceiling (Viewer=0 .. Admin=4)
+	//  AuthContext compares via >= so higher roles satisfy lower role checks.
+	//
+	//  Viewer           = 0   Passive observers — surveillance, charts, P&L
+	//  Compliance       = 1   Compliance/risk — reports, audit log
+	//  Trader           = 2   Executes trades, follows fills, reports problems
+	//  PortfolioManager = 3   PM — full portfolio access, run optimizer
+	//  Admin            = 4   Full access including setup and user management
 	// ─────────────────────────────────────────────────────────────────────────
 	public enum UserRole
 	{
-		Viewer = 0,   // read-only: positions, P&L, charts
-		Analyst = 1,   // + backtests, signals, risk reports
-		PortfolioManager = 2,   // + approve trades, modify portfolios
-		Admin = 3    // + user management, all setup controls
+		Viewer = 0,
+		Compliance = 1,
+		Trader = 2,
+		PortfolioManager = 3,
+		Admin = 4
 	}
 
 	public class AppUser

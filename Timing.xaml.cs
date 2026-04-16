@@ -1088,20 +1088,27 @@ namespace ATMML
 				_barCache.RequestBars(t, "Weekly", true, 5);
 			}
 
-			// Compute portfolioBalance at time2 using the correct index into portfolioValues
+			// Compute portfolioBalance at time2.
+			// For live portfolios: portfolioValues entries are zero (lockedNav is empty).
+			// Use LiveNav_ if available, otherwise fall back to InitialPortfolioBalance.
+			// The sector/concentration % denominator must be NAV, not gross book.
 			var portfolioBalance = 0.0;
 			if (model != null && portfolioValues.Count > 0)
 			{
 				var idx = portfolioTimes.FindIndex(x => x.Date == time2.Date);
 				if (idx == -1) idx = portfolioTimes.FindLastIndex(x => x.Date <= time2.Date);
 				if (idx == -1 || idx >= portfolioValues.Count) idx = portfolioValues.Count - 1;
-				portfolioBalance = model.InitialPortfolioBalance * (1 + portfolioValues[idx] / 100);
+				var fromDisk = model.InitialPortfolioBalance * (1 + portfolioValues[idx] / 100);
+				if (fromDisk > 0) portfolioBalance = fromDisk;
 			}
-			// Override with live MtM only when viewing the current live date (not historical)
+			// LiveNav_ override: Portfolio Builder computes this from real-time prices each tick
 			var liveNavStr = _mainView.GetInfo("LiveNav_" + (_portfolioModelName ?? getPortfolioName()));
 			bool isLiveDate = time2 == default(DateTime) || time2.Date >= DateTime.Today.AddDays(-7);
 			if (isLiveDate && !string.IsNullOrEmpty(liveNavStr) && double.TryParse(liveNavStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double liveNavEarly) && liveNavEarly > 0)
 				portfolioBalance = liveNavEarly;
+			// Final fallback: use InitialPortfolioBalance so denominators are never near-zero
+			if (portfolioBalance <= 0 && model != null)
+				portfolioBalance = model.InitialPortfolioBalance;
 
 			var totalInvestment = 0.0;
 			Dictionary<string, double> returns = new Dictionary<string, double>();
@@ -1562,8 +1569,8 @@ namespace ATMML
 				// Update eq stress circles with actual percentage values
 				// Format eq stress as signed decimal (e.g. "Eq Stress 5%  -2.8")
 				_alertController?.ForceRefresh();
-				updateCategoryCircles();
 				updateExtendedAlertCircles();
+				updateCategoryCircles();
 			}
 			catch (Exception ex)
 			{
@@ -1581,7 +1588,7 @@ namespace ATMML
 
 		// Tracks which sector tab is active so refresh doesn't revert to Sectors
 		private string _activeTileView = "Sector";
-		private const double _limitTilePercent = 0.12;  // 12% — Greenland constraint for sector/industry/sub-industry
+		private const double _limitTilePercent = 0.12;  // 12% — Hedge fund constraint for sector/industry/sub-industry
 
 		/// <summary>
 		/// Colors the new alert buttons that AlertController doesn't know about,
@@ -1688,6 +1695,13 @@ namespace ATMML
 			{
 				if (!allButtons.TryGetValue(btnName, out var btn)) continue;
 				var color = isGreen ? Brushes.Lime : Brushes.Red;
+				btn.Foreground = color;
+				// For Utilization, update the named value TextBlock to show actual %
+				if (btnName == "BtnUtilization")
+				{
+					var valLbl = FindVisualChildren<TextBlock>(this).FirstOrDefault(tb => tb.Name == "LblUtilizationValue");
+					if (valLbl != null) { valLbl.Text = actualText; valLbl.Foreground = color; }
+				}
 
 				// Primary path: TextBlock at column 1 of button's parent Grid.
 				// Works for alerts whose XAML row has an inline threshold TextBlock.
@@ -1868,6 +1882,7 @@ namespace ATMML
 		private void LabelSectors_MouseDown(object sender, MouseButtonEventArgs e)
 		{
 			_activeTileView = "Sector";
+			_activeTileView = "Sector";
 			_activeLabel = "Sector";
 			HighlightActiveLabel(LabelSectors);
 			LoadTiles(sectorPercents);
@@ -1876,6 +1891,7 @@ namespace ATMML
 		private void LabelIndustry_MouseDown(object sender, MouseButtonEventArgs e)
 		{
 			_activeTileView = "Industry";
+			_activeTileView = "Industry";
 			_activeLabel = "Industry";
 			HighlightActiveLabel(LabelIndustry);
 			LoadTiles(industryPercents);
@@ -1883,6 +1899,7 @@ namespace ATMML
 
 		private void LabelSubIndustry_MouseDown(object sender, MouseButtonEventArgs e)
 		{
+			_activeTileView = "SubIndustry";
 			_activeTileView = "SubIndustry";
 			_activeLabel = "SubIndustry";
 			HighlightActiveLabel(LabelSubIndustry);
@@ -3329,6 +3346,23 @@ namespace ATMML
 
 			nav.setNavigationLevel1(_selectedNav1, NavCol2, NavCol2_MouseDown, go_Click);
 
+			// Filter TEST portfolios from ML PORTFOLIOS list for roles without test access
+			if (_selectedNav1 == "ML PORTFOLIOS >" && !ATMML.Auth.AuthContext.Current.CanAccessTestPortfolios)
+			{
+				// Get all model names and remove any that are test (non-live) portfolios
+				var allModels = new List<string>();
+				for (int i = NavCol2.Children.Count - 1; i >= 0; i--)
+				{
+					var child = NavCol2.Children[i] as FrameworkElement;
+					if (child == null) continue;
+					var name = (child as System.Windows.Controls.Label)?.Content?.ToString()
+						?? (child as System.Windows.Controls.TextBlock)?.Text ?? "";
+					var model = MainView.GetModel(name);
+					if (model != null && !model.IsLiveMode)
+						NavCol2.Children.RemoveAt(i);
+				}
+			}
+
 			if (_selectedNav1 == "ALPHA PORTFOLIOS >")
 			{
 				var fields = _clientPortfolioName.Split(',');
@@ -4004,8 +4038,8 @@ namespace ATMML
 			{
 				_bloombergConnected = bbgNow;
 				_alertController?.ForceRefresh();
-				updateCategoryCircles();
 				updateExtendedAlertCircles();
+				updateCategoryCircles();
 			}
 
 			if ((DateTime.Now - _calculateTime).TotalMinutes >= 5)
@@ -8388,8 +8422,8 @@ namespace ATMML
 			// Category header buttons live inside ControlTemplate namescopes so we find them
 			// via visual tree walk rather than FindName.
 			collapseAllAlertCategories();
-			updateCategoryCircles();
 			updateExtendedAlertCircles();
+			updateCategoryCircles();
 		}
 
 		bool _portfolioDependent = false;
@@ -8619,11 +8653,16 @@ namespace ATMML
 			var logout = new System.Windows.Controls.MenuItem { Header = "Logout" };
 			logout.Click += (_, _) =>
 			{
-				ATMML.Auth.AuthContext.Current.Logout();
-				var login = new ATMML.Auth.LoginWindow();
-				bool? result = login.ShowDialog();
-				if (result != true)
-					System.Windows.Application.Current.Shutdown();
+				var confirm = MessageBox.Show(
+					"Are you sure you want to exit?",
+					"Exit ATMML",
+					MessageBoxButton.YesNo,
+					MessageBoxImage.Question);
+				if (confirm == MessageBoxResult.Yes)
+				{
+					ATMML.Auth.AuthContext.Current.Logout();
+					Application.Current.Shutdown();
+				}
 			};
 			menu.Items.Add(logout);
 

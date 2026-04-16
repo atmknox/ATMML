@@ -2415,7 +2415,7 @@ namespace HedgeFundReporting
 		/// Generates a weekly position snapshot from ATMML trades.
 		/// For each rebalance date, outputs one row per open position with:
 		/// shares held, price, market value, cost basis, unrealized P&L, and trade reason.
-		/// This enables Greenland to independently reconstruct the NAV.
+		/// This enables hedge fund to independently reconstruct the NAV.
 		/// </summary>
 		private List<PositionSnapshotRow> GeneratePositionSnapshots(List<ATMML.Trade> atmmlTrades)
 		{
@@ -2563,7 +2563,7 @@ namespace HedgeFundReporting
 
 		/// <summary>
 		/// Weekly position snapshot for each rebalance date.
-		/// Enables Greenland to mark-to-market independently and reconcile NAV.
+		/// Enables hedge fund to mark-to-market independently and reconcile NAV.
 		/// </summary>
 		public List<PositionSnapshotRow> PositionSnapshotRows { get; set; } = new List<PositionSnapshotRow>();
 

@@ -3341,11 +3341,16 @@ namespace ATMML
 			var logout = new System.Windows.Controls.MenuItem { Header = "Logout" };
 			logout.Click += (_, _) =>
 			{
-				ATMML.Auth.AuthContext.Current.Logout();
-				var login = new ATMML.Auth.LoginWindow();
-				bool? result = login.ShowDialog();
-				if (result != true)
-					System.Windows.Application.Current.Shutdown();
+				var confirm = MessageBox.Show(
+					"Are you sure you want to exit?",
+					"Exit ATMML",
+					MessageBoxButton.YesNo,
+					MessageBoxImage.Question);
+				if (confirm == MessageBoxResult.Yes)
+				{
+					ATMML.Auth.AuthContext.Current.Logout();
+					Application.Current.Shutdown();
+				}
 			};
 			menu.Items.Add(logout);
 

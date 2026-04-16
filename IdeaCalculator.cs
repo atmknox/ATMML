@@ -7777,7 +7777,7 @@ namespace ATMML
 			if (_progressState == ProgressState.CollectingData)
 			{
 				var timeSpan = DateTime.UtcNow - _barReceivedTime;
-				if (timeSpan.TotalSeconds > 10) // give up on getting all of the requested bars
+				if (timeSpan.TotalSeconds > 45) // give up on getting all of the requested bars
 				{
 					_progressCompletedNumber = _progressTotalNumber;
 					_waitForBars = false;

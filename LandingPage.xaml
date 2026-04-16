@@ -478,7 +478,7 @@
                 <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="12"
                             Orientation="Horizontal"
                             HorizontalAlignment="Right" VerticalAlignment="Center"
-                            Margin="0,0,10,0">
+                            Margin="0,12,10,0">
                     <TextBlock Text="{Binding DisplayName, Source={x:Static auth:AuthContext.Current}}"
                                Foreground="#00ccff" FontSize="10" FontFamily="Helvetica Neue"
                                VerticalAlignment="Center" Margin="0,0,8,0"/>
@@ -1177,7 +1177,7 @@ Fill="red" Stroke="DarkRed" StrokeThickness="2" />-->
 
 
                         <Grid Grid.Row="0" Grid.Column="5" Margin="0,0,10,0" Background="Transparent"
-                              Visibility="Visible">
+                              Visibility="{Binding CanAccessPortfolioManagement, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
@@ -1210,7 +1210,8 @@ Fill="red" Stroke="DarkRed" StrokeThickness="2" />-->
 
 
 
-                        <Grid Grid.Row="0" Grid.Column="4" Margin="10,0,10,0" Background="Transparent"  Visibility="Visible">
+                        <Grid Grid.Row="0" Grid.Column="4" Margin="10,0,10,0" Background="Transparent"
+                              Visibility="{Binding CanAccessSurveillance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
@@ -1241,7 +1242,8 @@ Fill="red" Stroke="DarkRed" StrokeThickness="2" />-->
 
                         </Grid>
 
-                        <Grid Grid.Row="0" Grid.Column="4" Margin="10,0,0,0" HorizontalAlignment="Center" Background="Transparent" Visibility="Visible">
+                        <Grid Grid.Row="0" Grid.Column="4" Margin="10,0,0,0" HorizontalAlignment="Center" Background="Transparent"
+                              Visibility="{Binding CanAccessResearch, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
