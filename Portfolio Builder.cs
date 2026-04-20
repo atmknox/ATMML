@@ -115,7 +115,7 @@ namespace ATMML
 		private DateTime _lastGridRefreshTime = DateTime.MinValue;
 		private DateTime _lastPerfCursorTime = default(DateTime); // last cursor time user explicitly set on perf chart
 		private double _liveMtMBalance = 0.0; // cached live MtM balance, updated by drawPortfolioGrid
-		private Dictionary<string, double> _rtPrices = new Dictionary<string, double>(); // PRICE_LAST_RT per ticker
+		private Dictionary<string, (double price, DateTime ts)> _rtPrices = new Dictionary<string, (double, DateTime)>(); // PRICE_LAST_RT per ticker — timestamped for 3-min TTL
 		private HashSet<string> _pendingRtTickers = new HashSet<string>(); // tickers waiting for Symbol event before RT subscribe
 		private Dictionary<string, double> _lastKnownPrices = new Dictionary<string, double>(); // latest prices from drawPortfolioGrid
 		DispatcherTimer _portfolioTimer = new DispatcherTimer();
@@ -142,6 +142,7 @@ namespace ATMML
 
 		FundamentalGraph _mainReturnGraph;
 		FundamentalGraph _monthlyReturnGraph;
+		System.Windows.Controls.ToolTip _histTooltip; // floating tooltip over histogram overlay
 
 		private Dictionary<string, string> sectorPercents;
 		private Dictionary<string, string> industryPercents;
@@ -196,8 +197,45 @@ namespace ATMML
 			_mainReturnGraph = new FundamentalGraph(PositionsChart);
 			_monthlyReturnGraph = new FundamentalGraph(TotalReturnGraph);
 			_monthlyReturnGraph.ShowTimeScale = false;
-
-			_monthlyReturnGraph.GraphEvent += _monthlyReturnGraphEvent;
+			// Histogram cursor fix — overlay approach:
+			// FundamentalGraph registers its cursor-draw handlers with handledEventsToo=true,
+			// so setting e.Handled = true on PreviewMouseMove does not stop it.
+			// Solution: place a transparent Canvas overlay ON TOP of TotalReturnGraph inside
+			// TotalReturnChartBorder.  The overlay captures all mouse input first.
+			// FundamentalGraph's handlers on TotalReturnGraph beneath it never fire.
+			{
+				var histGrid = new Grid();
+				TotalReturnChartBorder.Child = null;          // detach Canvas from Border
+				histGrid.Children.Add(TotalReturnGraph);     // Canvas at bottom (visual)
+				var histOverlay = new System.Windows.Controls.Canvas
+				{
+					Background = System.Windows.Media.Brushes.Transparent,
+					IsHitTestVisible = true
+				};
+				// Floating tooltip — restores the legacy mouseover behavior.
+				_histTooltip = new System.Windows.Controls.ToolTip
+				{
+					Placement       = System.Windows.Controls.Primitives.PlacementMode.Relative,
+					HasDropShadow   = true,
+					Background      = System.Windows.Media.Brushes.Black,
+					Foreground      = System.Windows.Media.Brushes.White,
+					BorderBrush     = new System.Windows.Media.SolidColorBrush(
+						System.Windows.Media.Color.FromRgb(0x00, 0xcc, 0xff)),
+					BorderThickness = new System.Windows.Thickness(1),
+					Padding         = new System.Windows.Thickness(6, 3, 6, 3),
+					FontSize        = 11
+				};
+				histOverlay.ToolTip = _histTooltip;
+				System.Windows.Controls.ToolTipService.SetInitialShowDelay(histOverlay, 0);
+				System.Windows.Controls.ToolTipService.SetBetweenShowDelay(histOverlay, 0);
+				System.Windows.Controls.ToolTipService.SetShowDuration(histOverlay, 60000);
+				histOverlay.MouseMove  += Histogram_PreviewMouseMove;
+				histOverlay.MouseLeave += Histogram_MouseLeave;
+				histGrid.Children.Add(histOverlay);          // overlay on top — absorbs mouse
+				TotalReturnChartBorder.Child = histGrid;
+			}
+			// GraphEvent not subscribed — hover is handled manually above.
+			// _monthlyReturnGraph.GraphEvent += _monthlyReturnGraphEvent;
 			_mainReturnGraph.GraphEvent += _mainReturnGraphEvent;
 
 
@@ -627,12 +665,64 @@ namespace ATMML
 			if (e.CursorTime != default(DateTime))
 				_lastPerfCursorTime = e.CursorTime;
 			updateStatistics();
-			_monthlyReturnGraph.CursorTime = e.CursorTime;
+			// Don't sync cursor to histogram -- no vertical cursor line on bottom chart
 		}
 
 		private void _monthlyReturnGraphEvent(object sender, GraphEventArgs e)
 		{
-			_mainReturnGraph.CursorTime = e.CursorTime;
+			// Intentionally empty — hover is handled by Histogram_PreviewMouseMove.
+		}
+
+		/// <summary>
+		/// Fires before FundamentalGraph sees the mouse-move event, so the internal
+		/// cursor line is never drawn.  Computes the hovered month from x position and
+		/// updates the monthly-return label directly.
+		/// </summary>
+		private void Histogram_PreviewMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+		{
+			// sender = transparent overlay Canvas on top of TotalReturnGraph.
+			// Populate the floating _histTooltip with monthly return of the hovered bar.
+			var el = sender as System.Windows.FrameworkElement;
+			if (el == null || _histTooltip == null) return;
+
+			var w = el.ActualWidth;
+			if (w <= 0 || _portfolioMonthTimes == null || _portfolioMonthTimes.Count == 0)
+			{
+				_histTooltip.IsOpen = false;
+				return;
+			}
+
+			var pos = e.GetPosition(el);
+			var idx = (int)(pos.X / w * _portfolioMonthTimes.Count);
+			idx = Math.Max(0, Math.Min(idx, _portfolioMonthTimes.Count - 1));
+
+			var model    = getModel();
+			var useHedge = model != null && isTradingModel(model.Name) && _useHedgeCurve;
+			var monthVals = useHedge ? _portfolioHedgeMonthValues : _portfolioMonthValues;
+
+			if (monthVals != null && idx < monthVals.Count && !double.IsNaN(monthVals[idx]))
+			{
+				var val = monthVals[idx];
+				var t   = (idx < _portfolioMonthTimes.Count) ? _portfolioMonthTimes[idx] : default(DateTime);
+				var label = (t == default(DateTime))
+					? val.ToString("##0.00") + "%"
+					: t.ToString("yyyy-MM") + ": " + val.ToString("##0.00") + "%";
+				_histTooltip.Content          = label;
+				_histTooltip.HorizontalOffset = pos.X + 12;
+				_histTooltip.VerticalOffset   = pos.Y + 12;
+				_histTooltip.IsOpen           = true;
+			}
+			else
+			{
+				_histTooltip.IsOpen = false;
+			}
+		}
+
+		private void Histogram_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+		{
+			// Hide the floating tooltip when mouse leaves the histogram.
+			if (_histTooltip != null)
+				_histTooltip.IsOpen = false;
 		}
 
 		private double getHoldings(DateTime time, int side, int column, bool all = false)
@@ -695,9 +785,10 @@ namespace ATMML
 					? _portfolioTimes.Where(t => t != default(DateTime) && t.Date <= DateTime.Today && t.DayOfWeek == DayOfWeek.Friday)
 						.OrderByDescending(t => t).FirstOrDefault()
 					: default(DateTime);
-				var isViewingLiveDate = model.IsLiveMode
-					&& mostRecentSettledFriday != default(DateTime)
-					&& time.Date > mostRecentSettledFriday.Date;  // strictly AFTER last settled Friday
+				// IsViewingLive() handles intra-week: last Friday cursor IS the live view.
+				// The old >= DateTime.Today check always returned false Mon-Thu,
+				// causing updateTradeStats to overwrite Balance with the static historical NAV.
+				var isViewingLiveDate = model.IsLiveMode && IsViewingLive(time);
 				var portfolioBalance = (isViewingLiveDate && _liveMtMBalance > 0) ? _liveMtMBalance : getPortfolioBalance(balDisplayTime);
 				Balance.Content = "$ " + portfolioBalance.ToString("#,##0");
 				Balance2.Content = "$ " + portfolioBalance.ToString("#,##0");
@@ -1079,6 +1170,28 @@ namespace ATMML
 			return portfolioBeta;
 		}
 
+		/// <summary>
+		/// Returns true when the cursor should be treated as "viewing live" data.
+		/// Fixes the intra-week blind spot: Mon–Thu the cursor sits at last Friday's date
+		/// which is &lt; today, causing every >= DateTime.Today gate to evaluate false and
+		/// freezing balance + Cur Px for the entire week between rebalances.
+		/// </summary>
+		private bool IsViewingLive(DateTime cursor)
+		{
+			if (cursor == default(DateTime)) return true;
+			if (cursor.Date >= DateTime.Today) return true;
+			var model = getModel();
+			if (model?.IsLiveMode == true && _portfolioTimes?.Count > 0)
+			{
+				var latestTime = _portfolioTimes
+					.Where(t => t != default(DateTime))
+					.OrderByDescending(t => t).FirstOrDefault();
+				if (latestTime != default(DateTime) && cursor.Date >= latestTime.Date)
+					return true;
+			}
+			return false;
+		}
+
 		private void drawPortfolioGrid()
 		{
 			Model model = getModel();
@@ -1274,10 +1387,18 @@ namespace ATMML
 						int industryNumber;
 						int subIndustryNumber;
 						var symbol = model.Symbols.Find(x => x.Ticker == ticker);
-						if (symbol != null)
+						// Skip exited positions — they are included in `portfolio` for display
+						// purposes (showing exit rows) but are no longer held and must not
+						// contribute to sector/industry/sub-industry exposure totals.
+						// Direction ±3 = Exit, so Math.Abs(Direction) == 3 identifies them.
+						bool isExitedForSector = Math.Abs((int)trade.Direction) == 3;
+						if (symbol != null && !isExitedForSector)
 						{
 							int.TryParse(symbol.Sector, out sectorNumber);
 							name = _portfolio1.GetSectorLabel(sectorNumber);
+							// NET per sector: shares[ticker] is stored as absolute value,
+							// so the (side > 0 ? 1 : -1) multiplier provides the sign.
+							// Longs contribute positive, shorts negative -> NET exposure.
 							var amount = (side > 0 ? 1 : -1) * price[ticker] * shares[ticker];
 							if (!double.IsNaN(amount))
 							{
@@ -1292,11 +1413,13 @@ namespace ATMML
 								totalInvestment += amount;
 							}
 						}
-						if (symbol != null)
+						if (symbol != null && !isExitedForSector)  // reuse flag — same exited filter
 						{
 							int.TryParse(symbol.Industry, out industryNumber);
 							name = _portfolio1.GetIndustryLabel(industryNumber);
-							var amount = price[ticker] * shares[ticker];
+							// NET per industry: (side > 0 ? 1 : -1) gives the sign since
+							// shares[ticker] is stored as absolute value.
+							var amount = (side > 0 ? 1 : -1) * price[ticker] * shares[ticker];
 							if (!double.IsNaN(amount))
 							{
 
@@ -1310,11 +1433,13 @@ namespace ATMML
 								}
 							}
 						}
-						if (symbol != null)
+						if (symbol != null && !isExitedForSector)  // reuse flag — same exited filter
 						{
 							int.TryParse(symbol.SubIndustry, out subIndustryNumber);
 							name = _portfolio1.GetSubIndustryLabel(subIndustryNumber);
-							var amount = price[ticker] * shares[ticker];
+							// NET per sub-industry: (side > 0 ? 1 : -1) gives the sign since
+							// shares[ticker] is stored as absolute value.
+							var amount = (side > 0 ? 1 : -1) * price[ticker] * shares[ticker];
 							if (!double.IsNaN(amount))
 							{
 
@@ -1384,7 +1509,11 @@ namespace ATMML
 						// Try loading optimizer-saved sector fractions (exact values from PHASE 1b/1c).
 						// These are saved by IdeaCalculator after each rebalance and are guaranteed
 						// to match the constraint-enforced allocation, regardless of current prices.
-						var savedFracsData = MainView.LoadUserData(@"portfolios\sectorFracs\" + model.Name + @"\" + tradesTime2.ToString("yyyy-MM-dd"));
+						// Always compute sector/industry/sub-industry percents as NET at rebalance prices.
+						// (Previously sector was loaded from an optimizer snapshot file when available,
+						// which introduced inconsistency when the file was missing and diverged from net.)
+						// Math.Abs is applied for display so a negative net (net-short) shows as a magnitude.
+						var savedFracsData = (string)null; // path removed; always use net-investment calc
 						if (!string.IsNullOrEmpty(savedFracsData))
 						{
 							// Map 2-digit GICS sector code to sector label for display
@@ -1434,6 +1563,8 @@ namespace ATMML
 					var combinedBetaText = $"R:{(double.IsNaN(rebalanceBeta) ? "--" : rebalanceBeta.ToString("0.00"))}  L:{(double.IsNaN(portfolioBeta) ? "--" : portfolioBeta.ToString("0.00"))}";
 					BetaValue.Content = combinedBetaText;
 					BetaValue2.Content = combinedBetaText;
+
+					// Update GROSS / NET cells to the left of the tiles based on active view.
 
 					if (_activeTileView == "Industry") LoadTiles(industryPercents);
 					else if (_activeTileView == "SubIndustry") LoadTiles(subIndustryPercents);
@@ -3609,13 +3740,13 @@ namespace ATMML
 					{
 						if (kvp.Value is double rtPx && rtPx > 0)
 						{
-							lock (_rtPrices) { _rtPrices[e.Ticker] = rtPx; }
+							lock (_rtPrices) { _rtPrices[e.Ticker] = (rtPx, DateTime.Now); }
 							_update = 500; // trigger grid redraw
 						}
 						else if (double.TryParse(value, System.Globalization.NumberStyles.Any,
 							System.Globalization.CultureInfo.InvariantCulture, out double parsed) && parsed > 0)
 						{
-							lock (_rtPrices) { _rtPrices[e.Ticker] = parsed; }
+							lock (_rtPrices) { _rtPrices[e.Ticker] = (parsed, DateTime.Now); }
 							_update = 500;
 						}
 						else
@@ -3729,7 +3860,7 @@ namespace ATMML
 							System.Globalization.CultureInfo.InvariantCulture, out double parsed) && parsed > 0) px = parsed;
 						if (!double.IsNaN(px))
 						{
-							lock (_rtPrices) { _rtPrices[e.Ticker] = px; }
+							lock (_rtPrices) { _rtPrices[e.Ticker] = (px, DateTime.Now); }
 							_update = 500;
 						}
 					}
@@ -3750,6 +3881,35 @@ namespace ATMML
 			if (model == null || !model.IsLiveMode) return;
 			if (_portfolioTimes == null || _portfolioTimes.Count == 0) return;
 
+			// Bloomberg disconnected: do NOT compute live PnL from stale bar-cache closes.
+			// Instead, read the last settled Friday's NAV directly from portfolioValues on disk
+			// (written by IC's weekly run) and display that. No save file needed.
+			if (!BarServer.ConnectedToBloomberg())
+			{
+				var disconnectTimes  = _portfolioTimes
+					.Where(t => t != default(DateTime) && t.Date <= DateTime.Today)
+					.OrderByDescending(t => t).ToList();
+				if (disconnectTimes.Count == 0) return;
+				var disconnectTime2 = disconnectTimes[0];
+				var pTimes  = loadList<DateTime>(model.Name + " PortfolioTimes");
+				var pValues = loadList<double>(model.Name + " PortfolioValues");
+				if (pValues.Count == 0) return;
+				var idx = pTimes.FindIndex(x => x.Date == disconnectTime2.Date);
+				if (idx == -1) idx = pTimes.FindLastIndex(x => x.Date <= disconnectTime2.Date);
+				if (idx < 0 || idx >= pValues.Count) return;
+				var settledNav = model.InitialPortfolioBalance * (1 + pValues[idx] / 100);
+				if (settledNav <= 0) return;
+				_liveMtMBalance = settledNav;
+				_mainView.SetInfo("LiveNav_" + model.Name, settledNav.ToString("R"));
+				if (IsViewingLive(_showHoldingsTime))
+				{
+					Balance.Content  = "$ " + settledNav.ToString("#,##0");
+					Balance2.Content = "$ " + settledNav.ToString("#,##0");
+					Balance3.Content = settledNav.ToString("##,##0");
+				}
+				return;
+			}
+
 			// Always compute live MtM from the most recent SETTLED Friday —
 			// ignore _showHoldingsTime so historical navigation doesn't corrupt LiveNav
 			var settledTimes = _portfolioTimes
@@ -3757,11 +3917,11 @@ namespace ATMML
 				.OrderByDescending(t => t).ToList();
 			if (settledTimes.Count == 0) return;
 
-			var time2 = settledTimes[0];  // most recent settled rebalance (e.g. Apr 3)
-			var time1 = settledTimes.Count > 1 ? settledTimes[1] : default(DateTime);  // prior settled (e.g. Mar 27)
+			var time2 = settledTimes[0];  // most recent settled rebalance (e.g. Apr 17)
+			var time1 = settledTimes.Count > 1 ? settledTimes[1] : default(DateTime);  // prior settled (e.g. Apr 10)
 
-			// Base NAV = settled value at time2 (most recent rebalance)
-			// PnL = current price vs time2 close -- measures this week only
+			// Base NAV = most recent settled value with valid (>0) portfolio value
+			// Fall back to prior week if time2's value is zero (run failed or pre-market)
 			var portfolioTimes2 = loadList<DateTime>(model.Name + " PortfolioTimes");
 			var portfolioValues = loadList<double>(model.Name + " PortfolioValues");
 			var baseBalance = 0.0;
@@ -3770,11 +3930,24 @@ namespace ATMML
 				var baseIdx = portfolioTimes2.FindIndex(x => x.Date == time2.Date);
 				if (baseIdx == -1) baseIdx = portfolioTimes2.FindLastIndex(x => x.Date <= time2.Date);
 				if (baseIdx >= 0 && baseIdx < portfolioValues.Count)
-				{
 					baseBalance = model.InitialPortfolioBalance * (1 + portfolioValues[baseIdx] / 100);
+				// If time2 has no valid value (pre-market run failed), fall back to prior week
+				if (baseBalance <= 0 && time1 != default(DateTime))
+				{
+					var priorIdx = portfolioTimes2.FindIndex(x => x.Date == time1.Date);
+					if (priorIdx == -1) priorIdx = portfolioTimes2.FindLastIndex(x => x.Date <= time1.Date);
+					if (priorIdx >= 0 && priorIdx < portfolioValues.Count)
+						baseBalance = model.InitialPortfolioBalance * (1 + portfolioValues[priorIdx] / 100);
+					time2 = time1;  // compute PnL relative to prior week
 				}
 			}
 			if (baseBalance <= 0) return;
+
+			// IMPORTANT: baseBalance comes from portfolioValues on disk (authoritative IC output).
+			// Do NOT override with LiveClosingNav — that creates a feedback loop where a bad
+			// save poisons the next cycle: bad save becomes baseBalance, which makes next
+			// liveMtM also bad, which saves again, cascading downward. The only trusted source
+			// for baseBalance is portfolioValues written by IdeaCalculator at rebalance.
 
 			// If no prior date to compute PnL from, just show settled balance
 			if (time1 == default(DateTime))
@@ -3791,31 +3964,27 @@ namespace ATMML
 				return;
 			}
 
-			// On rebalance day, new positions were just entered at today's prices.
-			// Before 4 PM the settled NAV is suppressed -- show prior settled balance.
-			// After 4 PM show today's settled balance.
+			// On rebalance Friday: pivot to the prior week (time1) as the base so live PnL
+			// is computed as: April 10 NAV + Σ(today's price − April 10 price) × shares.
+			// Do NOT use portfolioValues[today] — that value is written by the model run and
+			// may be stale if the run used old data (failed collection).  The bar cache has
+			// actual market prices all day including after close, so live PnL always reflects
+			// real trading, not a pre-baked model assumption.
 			if (time2.Date == DateTime.Today)
 			{
-				var todayIdx = portfolioTimes2.FindIndex(x => x.Date == time2.Date);
-				var priorIdx = portfolioTimes2.FindLastIndex(x => x.Date < time2.Date);
-				var useIdx = (todayIdx >= 0 && todayIdx < portfolioValues.Count
-					&& portfolioValues[todayIdx] != 0) ? todayIdx : priorIdx;
-				if (useIdx >= 0 && useIdx < portfolioValues.Count)
+				time2 = time1;
+				time1 = settledTimes.Count > 2 ? settledTimes[2] : default(DateTime);
+				// Recompute baseBalance from the prior Friday (now time2 = April 10)
+				baseBalance = 0.0;
+				if (portfolioValues.Count > 0)
 				{
-					var settledBalance = model.InitialPortfolioBalance * (1 + portfolioValues[useIdx] / 100);
-					if (settledBalance > 0)
-					{
-						_liveMtMBalance = settledBalance;
-						_mainView.SetInfo("LiveNav_" + (getModel()?.Name ?? ""), settledBalance.ToString("R"));
-						if (_showHoldingsTime == default(DateTime) || _showHoldingsTime.Date >= time2.Date)
-						{
-							Balance.Content = "$ " + settledBalance.ToString("#,##0");
-							Balance2.Content = "$ " + settledBalance.ToString("#,##0");
-							Balance3.Content = settledBalance.ToString("##,##0");
-						}
-					}
+					var priorBaseIdx = portfolioTimes2.FindIndex(x => x.Date == time2.Date);
+					if (priorBaseIdx == -1) priorBaseIdx = portfolioTimes2.FindLastIndex(x => x.Date <= time2.Date);
+					if (priorBaseIdx >= 0 && priorBaseIdx < portfolioValues.Count)
+						baseBalance = model.InitialPortfolioBalance * (1 + portfolioValues[priorBaseIdx] / 100);
 				}
-				return;
+				if (baseBalance <= 0) return;
+				// Fall through to live PnL section below.
 			}
 
 			var tradesTime2 = time2;
@@ -3863,8 +4032,11 @@ namespace ATMML
 			{
 				_liveMtMBalance = liveMtM;
 				_mainView.SetInfo("LiveNav_" + (getModel()?.Name ?? ""), liveMtM.ToString("R"));
+				// LiveClosingNav save removed — caused feedback loop where a bad save
+				// becomes next cycle's baseBalance, cascading the portfolio toward zero.
+				// baseBalance now always comes from portfolioValues (IC authoritative).
 				// Only push to Balance labels when viewing today (not a historical date)
-				if (_showHoldingsTime == default(DateTime) || _showHoldingsTime.Date >= DateTime.Today)
+				if (IsViewingLive(_showHoldingsTime))
 				{
 					Balance.Content = "$ " + liveMtM.ToString("#,##0");
 					Balance2.Content = "$ " + liveMtM.ToString("#,##0");
@@ -4208,6 +4380,7 @@ namespace ATMML
 		}
 
 		private bool _settingRadioButtons = false;
+		private bool _suppressTISetup = false; // when true, any attempt to show TISetup is blocked
 		private void setModelRadioButtons()
 		{
 			_settingRadioButtons = true;
@@ -4236,7 +4409,7 @@ namespace ATMML
 			{
 				_lastGridRefreshTime = DateTime.Now;
 				var m = getModel();
-				if (m != null && m.IsLiveMode)
+				if (m != null && m.IsLiveMode && BarServer.ConnectedToBloomberg())
 				{
 					var liveTrades = _portfolio1.GetTrades(m.Name);
 					foreach (var t in liveTrades.Select(x => x.Ticker).Distinct())
@@ -4249,13 +4422,19 @@ namespace ATMML
 				var activeCursor = (PerformanceGrid.Visibility == Visibility.Visible)
 					? _lastPerfCursorTime
 					: _showHoldingsTime;
-				// Only redraw grid/balance when viewing live date -- don't disturb historical cursor
-				bool viewingLive = activeCursor == default(DateTime)
-					|| activeCursor.Date >= DateTime.Today;
+				// Only redraw grid/balance when viewing live date -- don't disturb historical cursor.
+				// IsViewingLive() handles intra-week: last Friday cursor IS the live view.
+				bool viewingLive = IsViewingLive(activeCursor);
 				if (viewingLive)
 				{
-					drawPortfolioGrid();
-					refreshLiveBalance();
+					// Only recalculate live prices when Bloomberg is connected.
+					// Without this guard, the timer uses stale bar-cache closes from a
+					// previous session as "current" prices, producing wrong PnL and balance.
+					if (BarServer.ConnectedToBloomberg())
+					{
+						drawPortfolioGrid();
+						refreshLiveBalance();
+					}
 					drawReturnChart();
 				}
 				// When on historical date: skip all live updates entirely
@@ -4554,6 +4733,8 @@ namespace ATMML
 				//    secondPortfolioValues = series2.Data;
 				//}
 				drawChart(_monthlyReturnGraph, FundamentalChartCurveType.Histogram, portfolioTimes, null, useHedgeCurve ? _portfolioHedgeMonthValues : graphData, null, null, secondPortfolioValues, _portfolioRegimes);
+				// Clear the histogram's internal cursor so no vertical cursor line is drawn.
+				try { _monthlyReturnGraph.CursorTime = default(DateTime); } catch { }
 
 				//drawPortfolioGrid();
 				updateStatistics();
@@ -4584,13 +4765,23 @@ namespace ATMML
 			var portfolioTimes = new List<DateTime>(_portfolioTimes);
 
 			// For live portfolios intra-week: append today's live MtM as a new point
-			// Do NOT override the last settled rebalance point -- keep it accurate
+			// Only append if:
+			//   1. Today is strictly after the last SETTLED date (no future projected dates in the way)
+			//   2. No date >= today already exists in portfolioTimes (avoids out-of-order append)
 			var liveChartModel = getModel();
+			var lastSettledDate = portfolioTimes.Where(t => t.Date <= DateTime.Today).OrderByDescending(t => t).FirstOrDefault();
+			var hasFutureDate = portfolioTimes.Any(t => t.Date > DateTime.Today);
+			var alreadyHasToday = portfolioTimes.Any(t => t.Date == DateTime.Today);
 			if (liveChartModel != null && liveChartModel.IsLiveMode
+				&& BarServer.ConnectedToBloomberg()   // no today-point when disconnected
 				&& _liveMtMBalance > 0 && liveChartModel.InitialPortfolioBalance > 0
 				&& graphData != null && graphData.Count > 0
 				&& portfolioTimes.Count > 0
-				&& portfolioTimes.Last().Date < DateTime.Today) // only if today is after last settled date
+				&& !hasFutureDate       // no projected rebalance date extends beyond today
+				&& !alreadyHasToday     // today not already a settled rebalance date
+				&& lastSettledDate != default(DateTime)
+				&& lastSettledDate.Date < DateTime.Today
+				&& (DateTime.Today - lastSettledDate.Date).TotalDays <= 7)
 			{
 				var liveReturn = (_liveMtMBalance / liveChartModel.InitialPortfolioBalance - 1.0) * 100.0;
 				graphData = new List<double>(graphData);
@@ -4892,8 +5083,11 @@ namespace ATMML
 			var perfCursorTime = PerformanceGrid.Visibility == Visibility.Visible
 				? _lastPerfCursorTime
 				: _showHoldingsTime;
-			bool perfViewingLive = perfCursorTime == default(DateTime)
-				|| perfCursorTime.Date >= DateTime.Today;
+			// IsViewingLive() handles intra-week: Mon–Thu the cursor is at last Friday
+			// which is < today but IS the live view. Without this fix, perfViewingLive=false
+			// causes _liveMtMBalance to be zeroed and refreshLiveBalance to never run.
+			bool perfViewingLive = IsViewingLive(perfCursorTime);
+
 			if (model != null && model.IsLiveMode && perfViewingLive)
 				refreshLiveBalance();
 			// When on historical date: zero _liveMtMBalance so it can't corrupt balance display
@@ -5435,8 +5629,13 @@ namespace ATMML
 
 		private void showPortfolioSetup()
 		{
-			if (ATMML.Auth.AuthContext.Current.IsAdmin)
-				TISetup.Visibility = Visibility.Visible;
+			// Non-Admin roles never see Portfolio Setup -- redirect to rebalance grid
+			if (!ATMML.Auth.AuthContext.Current.IsAdmin)
+			{
+				showRebalanceGrid();
+				return;
+			}
+			if (!_suppressTISetup) TISetup.Visibility = Visibility.Visible;
 			PortfolioInput2.Visibility = MainView.EnableNetworks ? Visibility.Visible : Visibility.Collapsed;
 			PortfolioInput3.Visibility = MainView.EnableNetworks ? Visibility.Visible : Visibility.Collapsed;
 			PortfolioInput4.Visibility = MainView.EnableNetworks ? Visibility.Visible : Visibility.Collapsed;
@@ -5481,11 +5680,9 @@ namespace ATMML
 
 		private void RunPortfolio_MouseDown(object sender, MouseButtonEventArgs e)
 		{
-			// Run the currently selected model and show ProgressCalculations2.
-			// UserFactorModelGrid must be visible - ProgressCalculations2 is a child of it.
+			var isAdmin = ATMML.Auth.AuthContext.Current.IsAdmin;
 			ui_to_userFactorModel(_selectedUserFactorModel);
 			hideNavigation();
-			// Always collapse TISetup first to prevent flash for non-Admin roles
 			TISetup.Visibility = Visibility.Collapsed;
 			TIOpenPL.Visibility = Visibility.Collapsed;
 			TIAllocations.Visibility = Visibility.Collapsed;
@@ -5495,7 +5692,18 @@ namespace ATMML
 			PerformanceGrid.Visibility = Visibility.Collapsed;
 			PerformanceSideNav.Visibility = Visibility.Collapsed;
 			UserFactorModelGrid.Visibility = Visibility.Visible;
+			// Re-collapse TISetup for non-Admin at every dispatcher priority to catch WPF resets
+			if (!isAdmin)
+			{
+				TISetup.Visibility = Visibility.Collapsed;
+				Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Send,    new Action(() => TISetup.Visibility = Visibility.Collapsed));
+				Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,  new Action(() => TISetup.Visibility = Visibility.Collapsed));
+				Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Render,  new Action(() => TISetup.Visibility = Visibility.Collapsed));
+				Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded,  new Action(() => TISetup.Visibility = Visibility.Collapsed));
+				Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() => TISetup.Visibility = Visibility.Collapsed));
+			}
 			setModelRadioButtons();
+			_progressState = ProgressState.CollectingData;
 			_run = true;
 		}
 
@@ -7075,7 +7283,7 @@ namespace ATMML
 
 			hideNavigation();
 
-			if (ATMML.Auth.AuthContext.Current.IsAdmin)
+			if (ATMML.Auth.AuthContext.Current.IsAdmin && !_suppressTISetup)
 				TISetup.Visibility = Visibility.Visible;
 			//TIStats.Visibility = Visibility.Collapsed;
 			//TIPositions.Visibility = Visibility.Collapsed;
@@ -8514,11 +8722,14 @@ namespace ATMML
 
 		private double getCurrentPrice(string symbol)
 		{
-			// RT tick price from PRICE_LAST_RT subscription
+			// RT tick price from PRICE_LAST_RT subscription — 3-minute TTL prevents a lapsed
+			// subscription from masking fresher bar-cache closes indefinitely.
 			lock (_rtPrices)
 			{
-				if (_rtPrices.TryGetValue(symbol, out double rtTick) && rtTick > 0)
-					return rtTick;
+				if (_rtPrices.TryGetValue(symbol, out var rtEntry)
+					&& rtEntry.price > 0
+					&& (DateTime.Now - rtEntry.ts).TotalMinutes < 3)
+					return rtEntry.price;
 			}
 
 			// Last price computed by drawPortfolioGrid — same as what Cur Px column shows
@@ -9182,7 +9393,7 @@ namespace ATMML
 			var V = Visibility.Visible;
 			var C = Visibility.Collapsed;
 			var defaultMargin = new System.Windows.Thickness(10, -50, 10, 4);
-			var tightMargin   = new System.Windows.Thickness(2, -50, 10, 4);
+			var tightMargin   = new System.Windows.Thickness(10, 0, 10, 4);
 
 			if (isViewer)
 			{
@@ -9224,6 +9435,7 @@ namespace ATMML
 
 			if (isAdmin)
 			{
+				if (TISetup    != null) TISetup.Visibility    = V;
 				if (PortSetup1 != null) PortSetup1.Visibility = V;
 				if (OrderMgm1  != null) { OrderMgm1.Visibility = V; OrderMgm1.Margin = tightMargin; }
 				if (PortPerf1  != null) PortPerf1.Visibility = V;
@@ -13179,7 +13391,7 @@ namespace ATMML
 			_useUserFactorModel = true;
 
 			UserFactorModelGrid.Visibility = Visibility.Visible;
-			if (ATMML.Auth.AuthContext.Current.IsAdmin)
+			if (ATMML.Auth.AuthContext.Current.IsAdmin && !_suppressTISetup)
 				TISetup.Visibility = Visibility.Visible;
 			else
 				TISetup.Visibility = Visibility.Collapsed;

@@ -2133,19 +2133,17 @@ namespace ATMML
 			Session session = new Session(sessionOptions, new Bloomberglp.Blpapi.EventHandler(processEvent));
 			if (session.Start())
 			{
-				bool ok = session.OpenService("//blp/refdata");
-				if (ok)
-				{
-					if (_updateTimeSpan.TotalSeconds == 0)
-					{
-						ok = ok && session.OpenService("//blp/mktdata");
-						ok = ok && session.OpenService("//blp/mktbar");
-					}
-				}
-
-				if (ok)
+				// refdata works 24/7 for historical bars -- required
+				// mktdata/mktbar are market-hours only -- optional, don't kill session if unavailable
+				bool refDataOk = session.OpenService("//blp/refdata");
+				if (refDataOk)
 				{
 					_bloombergConnectionOk = true;
+					if (_updateTimeSpan.TotalSeconds == 0)
+					{
+						try { session.OpenService("//blp/mktdata"); } catch { }
+						try { session.OpenService("//blp/mktbar"); } catch { }
+					}
 				}
 				else
 				{

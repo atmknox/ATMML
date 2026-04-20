@@ -159,12 +159,6 @@ namespace ATMML
 		private double _alertNetExposure = 0;  // (longAmt - shortAmt) / NAV, signed
 		private double _alertMaxPositionWeight = 0;  // largest single |position| / NAV
 		private double _alertNetBeta = 0;  // weighted net beta
-		private double _alertMaxSectorGross = 0;  // largest sector gross / NAV
-		private double _alertMaxSectorNet = 0;  // largest |sector net| / NAV
-		private double _alertMaxIndustryGross = 0;  // largest industry gross / NAV
-		private double _alertMaxIndustryNet = 0;  // largest |industry net| / NAV
-		private double _alertMaxSubIndGross = 0;  // largest sub-industry gross / NAV
-		private double _alertMaxSubIndNet = 0;  // largest |sub-industry net| / NAV
 
 		// ── Alert thresholds — match to your optimizer constraint values ──────────
 		private const double _limitMaxPosition = 0.10;  // 10%  single name cap abs
@@ -179,12 +173,6 @@ namespace ATMML
 													   // UCAP: gross capital utilization (grossInvestment/NAV) — green when >= 50% (UT threshold)
 		private double _alertUtilization = 0;
 		private const double _limitUtilization = 0.50;  // UT = 50% minimum threshold
-		private const double _limitSectorGross = 2.00;  // 200% max gross sector exposure
-		private const double _limitSectorNet = 0.12;  // 12%  max net sector exposure
-		private const double _limitIndustryGross = 1.50;  // 150% max gross industry exposure
-		private const double _limitIndustryNet = 0.12;  // 12%  max net industry exposure
-		private const double _limitSubIndGross = 1.00;  // 100% max gross sub-industry exposure
-		private const double _limitSubIndNet = 0.12;  // 12%  max net sub-industry exposure
 		private const double _limitPredictedVol = 0.12;  // 12%  max predicted annualised vol
 
 		private double _alertPredictedVol = 0;  // trailing annualised vol (decimal, e.g. 0.12 = 12%)
@@ -222,9 +210,11 @@ namespace ATMML
 		private double _alertADV20 = 0;   // gross weight of positions where pos_size > 20% ADV
 		private double _alertADV50 = 0;   // gross weight of positions where pos_size > 50% ADV
 		private double _alertADV100 = 0;  // gross weight of positions where pos_size > 100% ADV
+		private double _alertLiqVaR95 = 0;  // liquidity-adjusted VaR95: daily VaR × √(weighted avg liquidation days)
 		private const double _limitADV20 = 0.30;   // max 30% of portfolio in >20% ADV positions
 		private const double _limitADV50 = 0.10;   // max 10% of portfolio in >50% ADV positions
 		private const double _limitADV100 = 0.00;  // 0% tolerance for >100% ADV positions
+		private const double _limitLiqVaR95 = 0.02;  // 2.0% — LVaR at 95% confidence, ~4-day liquidation at 20% participation
 
 		// ── Exposure: market cap tier gross/net ───────────────────────────────────
 		// Large cap > $5B, Mid cap $1B-$5B, Small cap $500M-$1B
@@ -315,12 +305,6 @@ namespace ATMML
 			_alertController.CheckMaxPosition = () => _alertMaxPositionWeight < _limitMaxPosition;
 			_alertController.CheckGrossBook = () => _alertGrossBook <= _limitGrossBook;
 			_alertController.CheckNetExposure = () => Math.Abs(_alertNetExposure) <= _limitNetExposure;
-			_alertController.CheckSectorGross = () => _alertMaxSectorGross <= _limitSectorGross;
-			_alertController.CheckSectorNet = () => _alertMaxSectorNet <= _limitSectorNet;
-			_alertController.CheckIndustryGross = () => _alertMaxIndustryGross <= _limitIndustryGross;
-			_alertController.CheckIndustryNet = () => _alertMaxIndustryNet <= _limitIndustryNet;
-			_alertController.CheckSubIndGross = () => _alertMaxSubIndGross <= _limitSubIndGross;
-			_alertController.CheckSubIndNet = () => _alertMaxSubIndNet <= _limitSubIndNet;
 			_alertController.CheckIntradayDD = () => _alertIntradayDD >= -_limitIntradayDD;  // negative = drawdown
 			_alertController.CheckMaxPredVol = () => _alertPredictedVol <= _limitPredictedVol;
 			_alertController.CheckMVaR95 = () => _alertMVaR95Pct <= _limitMVaR95Pct;
@@ -458,6 +442,39 @@ namespace ATMML
 				if (count > 11) _clientPortfolioType = (Portfolio.PortfolioType)(int.Parse(fields[11]));
 				if (count > 12) _twoCharts = (fields[12].Length == 0) ? true : bool.Parse(fields[12]);
 				if (count > 13) _modelName = fields[13];
+
+				// RBAC: if the saved state references a TEST portfolio/model and the user
+				// is not an Administrator, clear it so the chart and alerts don't auto-load
+				// TEST data on startup. This handles role downgrades — a user who was
+				// previously Admin (and saved state pointing at a TEST model) should not
+				// continue seeing TEST data after their role changes.
+				if (!ATMML.Auth.AuthContext.Current.IsAdmin)
+				{
+					if (_nav1 == "ML PORTFOLIOS >" && !string.IsNullOrEmpty(_nav2))
+					{
+						var navModel = MainView.GetModel(_nav2);
+						if (navModel == null || !navModel.IsLiveMode)
+						{
+							_nav1 = "";
+							_nav2 = "";
+							_nav3 = "";
+							_nav4 = "";
+							_nav5 = "";
+						}
+					}
+					if (!string.IsNullOrEmpty(_clientPortfolioName))
+					{
+						var cpModel = MainView.GetModel(_clientPortfolioName);
+						if (cpModel != null && !cpModel.IsLiveMode)
+							_clientPortfolioName = "";
+					}
+					if (!string.IsNullOrEmpty(_modelName))
+					{
+						var mnModel = MainView.GetModel(_modelName);
+						if (mnModel != null && !mnModel.IsLiveMode)
+							_modelName = "";
+					}
+				}
 
 				if (_interval1 == "") _interval1 = "Weekly";
 				if (_interval == "") _interval = "Daily";
@@ -1379,6 +1396,8 @@ namespace ATMML
 
 				double longBetaVolDollars = 0;  // Σ(long:  beta × vol × market_value)
 				double shortBetaVolDollars = 0;  // Σ(short: beta × vol × market_value)
+				double longBetaDollars = 0;     // Σ(long:  beta × market_value) — for equity stress
+				double shortBetaDollars = 0;    // Σ(short: beta × market_value) — for equity stress
 				double totalVolDollars = 0;  // Σ(all:   vol × market_value) — normalizer
 				double longVolDollars = 0;  // Σ(long:  vol × market_value) for vol neutrality
 				double shortVolDollars = 0;  // Σ(short: vol × market_value) for vol neutrality
@@ -1391,6 +1410,8 @@ namespace ATMML
 
 				// Liquidity accumulators (position size as % of 20-day ADV)
 				double adv20DollarSum = 0, adv50DollarSum = 0, adv100DollarSum = 0;
+				double liqDaysDollarWeighted = 0; // Σ(days_to_liquidate_i × posDollar_i) for dollar-weighted avg
+				double liqDollarTotal = 0;        // Σ(posDollar_i) — denominator for dollar weighting
 
 				// Market cap tier accumulators ($ values, signed by direction)
 				double largeLong = 0, largeShort = 0;
@@ -1424,6 +1445,11 @@ namespace ATMML
 								if (advPct > 0.20) adv20DollarSum += posDollar;
 								if (advPct > 0.50) adv50DollarSum += posDollar;
 								if (advPct > 1.00) adv100DollarSum += posDollar;
+								// Liquidation days at 20% participation: days = advPct / 0.20.
+								// Cap at 20 to prevent a single outlier from dominating the weighted avg.
+								double liqDays = Math.Min(20.0, advPct / 0.20);
+								liqDaysDollarWeighted += liqDays * posDollar;
+								liqDollarTotal += posDollar;
 							}
 						}
 
@@ -1460,8 +1486,9 @@ namespace ATMML
 								double betaVolDol = betaForAlert[t] * volatility[t] * posMarketVal;
 								totalVolDollars += volatility[t] * posMarketVal;
 								// dir declared above
-								if (dir > 0) { longBetaVolDollars += betaVolDol; longVolDollars += volatility[t] * posMarketVal; }
-								else if (dir < 0) { shortBetaVolDollars += betaVolDol; shortVolDollars += volatility[t] * posMarketVal; }
+								double betaDol = betaForAlert[t] * posMarketVal;
+								if (dir > 0) { longBetaVolDollars += betaVolDol; longVolDollars += volatility[t] * posMarketVal; longBetaDollars += betaDol; }
+								else if (dir < 0) { shortBetaVolDollars += betaVolDol; shortVolDollars += volatility[t] * posMarketVal; shortBetaDollars += betaDol; }
 							}
 						}
 					}
@@ -1503,28 +1530,7 @@ namespace ATMML
 				// posVaR95 = 1.645 * vol(decimal) * weight(decimal) — already % of NAV in decimal form
 				_alertMVaR95Pct = maxPosVaR95;  // limit is 15% = 0.15
 
-				if (portfolioBalance > 0)
-				{
-					_alertMaxSectorGross = sectorInvestments
-						.Where(p => !string.IsNullOrEmpty(p.Key) && !double.IsNaN(p.Value))
-						.DefaultIfEmpty(new KeyValuePair<string, double>("", 0)).Max(p => Math.Abs(p.Value)) / portfolioBalance;
-					_alertMaxSectorNet = sectorNetAmounts
-						.Where(p => !string.IsNullOrEmpty(p.Key))
-						.DefaultIfEmpty(new KeyValuePair<string, double>("", 0)).Max(p => Math.Abs(p.Value)) / portfolioBalance;
-					_alertMaxIndustryGross = industryInvestments
-						.Where(p => !string.IsNullOrEmpty(p.Key) && !double.IsNaN(p.Value))
-						.DefaultIfEmpty(new KeyValuePair<string, double>("", 0)).Max(p => Math.Abs(p.Value)) / portfolioBalance;
-					_alertMaxIndustryNet = industryNetAmounts
-						.Where(p => !string.IsNullOrEmpty(p.Key))
-						.DefaultIfEmpty(new KeyValuePair<string, double>("", 0)).Max(p => Math.Abs(p.Value)) / portfolioBalance;
-					_alertMaxSubIndGross = subIndustryInvestments
-						.Where(p => !string.IsNullOrEmpty(p.Key) && !double.IsNaN(p.Value))
-						.DefaultIfEmpty(new KeyValuePair<string, double>("", 0)).Max(p => Math.Abs(p.Value)) / portfolioBalance;
-					// SubIndNet: same as gross per bucket — "no single sub-industry > 12% of portfolio"
-					_alertMaxSubIndNet = subIndustryInvestments
-						.Where(p => !string.IsNullOrEmpty(p.Key) && !double.IsNaN(p.Value))
-						.DefaultIfEmpty(new KeyValuePair<string, double>("", 0)).Max(p => Math.Abs(p.Value)) / portfolioBalance;
-				}
+
 
 				// Predicted vol (annualised %, already computed above) and daily VaR95
 				// PortfolioVOL shows this value as a percentage — store as decimal for alert comparison.
@@ -1538,6 +1544,15 @@ namespace ATMML
 					// CVaR95 (Expected Shortfall): normal dist approximation = vol * phi(1.645) / 0.05 / sqrt(252)
 					_alertCVaR95 = _alertPredictedVol * 0.10314 / (0.05 * Math.Sqrt(252.0));
 
+					// Liquidity-adjusted VaR: VaR95 scaled by √(weighted avg liquidation days).
+					// Textbook formula: LVaR = VaR × √T where T is the liquidation horizon.
+					// Weighted avg days uses $-weighting so large positions dominate.
+					// Positions without ADV data get days=1 floor via the dollar-weighting (they
+					// contribute to the denominator but not to days, which is conservative-low).
+					double avgLiqDays = liqDollarTotal > 0 ? liqDaysDollarWeighted / liqDollarTotal : 0;
+					avgLiqDays = Math.Max(1.0, avgLiqDays);  // can't liquidate faster than 1 day
+					_alertLiqVaR95 = _alertPortfolioVaR95 * Math.Sqrt(avgLiqDays);
+
 					// Idiosyncratic risk: split total vol into systematic and idio components.
 					// For a dollar-neutral long/short strategy, systematic exposure is better
 					// proxied by net dollar exposure than net beta, because the strategy targets
@@ -1547,15 +1562,16 @@ namespace ATMML
 					var idioVol = Math.Sqrt(Math.Max(0, _alertPredictedVol * _alertPredictedVol - systematicVol * systematicVol));
 					_alertIdioRiskPct = _alertPredictedVol > 0 ? idioVol / _alertPredictedVol : 0;
 
-					// Equity stress: for a vol-neutral strategy, sensitivity to market moves is
-					// measured by the vol-dollar imbalance (not beta).
-					// stress = |longVolDollars - shortVolDollars| / totalVolDollars × shock
-					// When perfectly vol-neutral: longVolDollars ≈ shortVolDollars → stress ≈ 0
-					if (portfolioBalance > 0 && totalVolDollars > 0)
+					// Equity stress: expected portfolio PnL as % of NAV if the market moves ±5% / ±10%.
+					// Formula: net_beta_dollars × shock / NAV
+					// where net_beta_dollars = |Σ(beta × posValue for longs) − Σ(beta × posValue for shorts)|
+					// If beta-neutral across the book, net_beta_dollars ≈ 0 → stress ≈ 0.
+					// Vol-neutral ≠ beta-neutral, so this is measured independently of vol imbalance.
+					if (portfolioBalance > 0)
 					{
-						double netVolDollars = Math.Abs(longVolDollars - shortVolDollars);
-						_alertEqStress5 = netVolDollars * 0.05 / totalVolDollars;
-						_alertEqStress10 = netVolDollars * 0.10 / totalVolDollars;
+						double netBetaDollars = Math.Abs(longBetaDollars - shortBetaDollars);
+						_alertEqStress5 = netBetaDollars * 0.05 / portfolioBalance;
+						_alertEqStress10 = netBetaDollars * 0.10 / portfolioBalance;
 					}
 					else
 					{
@@ -1588,6 +1604,7 @@ namespace ATMML
 
 		// Tracks which sector tab is active so refresh doesn't revert to Sectors
 		private string _activeTileView = "Sector";
+
 		private const double _limitTilePercent = 0.12;  // 12% — Hedge fund constraint for sector/industry/sub-industry
 
 		/// <summary>
@@ -1611,6 +1628,7 @@ namespace ATMML
 				{ "BtnADV20",  _alertADV20  <= _limitADV20 },
 				{ "BtnADV50",  _alertADV50  <= _limitADV50 },
 				{ "BtnADV100", _alertADV100 <= _limitADV100 },
+				{ "BtnLiqVaR95", _alertLiqVaR95 <= _limitLiqVaR95 },
 				// Market cap tiers
 				{ "BtnLargeCapGross", _alertLargeCapGross <= _limitLargeCapGross },
 				{ "BtnLargeCapNet",   _alertLargeCapNet   <= _limitLargeCapNet },
@@ -1658,29 +1676,23 @@ namespace ATMML
 				("BtnNetExposure",  "10",  Math.Abs(_alertNetExposure) <= _limitNetExposure,                $"{_alertNetExposure * 100:F1}"),
 				// Max single-name position weight — red when any position reaches or exceeds 10%
 				("BtnMaxPosition",  "10",  _alertMaxPositionWeight   < _limitMaxPosition,                   $"{_alertMaxPositionWeight * 100:F1}"),
-				// Concentration: sector / industry / sub-industry
-				("BtnSectorGross",   "200", _alertMaxSectorGross     <= _limitSectorGross,    $"{_alertMaxSectorGross * 100:F1}"),
-				("BtnSectorNet",     "12",  _alertMaxSectorNet       <= _limitSectorNet,      $"{_alertMaxSectorNet * 100:F1}"),
-				("BtnIndustryGross", "150", _alertMaxIndustryGross   <= _limitIndustryGross,  $"{_alertMaxIndustryGross * 100:F1}"),
-				("BtnIndustryNet",   "12",  _alertMaxIndustryNet     <= _limitIndustryNet,    $"{_alertMaxIndustryNet * 100:F1}"),
-				("BtnSubIndGross",   "100", _alertMaxSubIndGross     <= _limitSubIndGross,    $"{_alertMaxSubIndGross * 100:F1}"),
-				("BtnSubIndNet",     "12",  _alertMaxSubIndNet       <= _limitSubIndNet,      $"{_alertMaxSubIndNet * 100:F1}"),
 				// Concentration: top-N weight sums
 				("BtnTop5Long",   "40",  _alertTop5LongSum   <= _limitTop5LongSum,   $"{_alertTop5LongSum * 100:F1}"),
 				("BtnTop5Short",  "35",  _alertTop5ShortSum  <= _limitTop5ShortSum,  $"{_alertTop5ShortSum * 100:F1}"),
 				("BtnTop10Long",  "75",  _alertTop10LongSum  <= _limitTop10LongSum,  $"{_alertTop10LongSum * 100:F1}"),
 				("BtnTop10Short", "65",  _alertTop10ShortSum <= _limitTop10ShortSum, $"{_alertTop10ShortSum * 100:F1}"),
 				// Liquidity: color the static threshold text lime/red — actual % shown as text
-				("BtnADV20",  "30", _alertADV20  <= _limitADV20,  "30"),
-				("BtnADV50",  "10", _alertADV50  <= _limitADV50,  "10"),
-				("BtnADV100", "0",  _alertADV100 <= _limitADV100, "0"),
+				("BtnADV20",  "30", _alertADV20  <= _limitADV20,  ""),
+				("BtnADV50",  "10", _alertADV50  <= _limitADV50,  ""),
+				("BtnADV100", "0",  _alertADV100 <= _limitADV100, ""),
+				("BtnLiqVaR95", "2", _alertLiqVaR95 <= _limitLiqVaR95, $"{_alertLiqVaR95 * 100:F2}"),
 				// Market cap tiers: gross and |net| as % of NAV
-				("BtnLargeCapGross", "175", _alertLargeCapGross <= _limitLargeCapGross, $"{_alertLargeCapGross * 100:F1}"),
-				("BtnLargeCapNet",   "15",  _alertLargeCapNet   <= _limitLargeCapNet,   $"{_alertLargeCapNet   * 100:F1}"),
-				("BtnMidCapGross",   "100", _alertMidCapGross   <= _limitMidCapGross,   $"{_alertMidCapGross   * 100:F1}"),
-				("BtnMidCapNet",     "15",  _alertMidCapNet     <= _limitMidCapNet,     $"{_alertMidCapNet     * 100:F1}"),
-				("BtnSmallCapGross", "25",  _alertSmallCapGross <= _limitSmallCapGross, $"{_alertSmallCapGross * 100:F1}"),
-				("BtnSmallCapNet",   "2.5", _alertSmallCapNet   <= _limitSmallCapNet,   $"{_alertSmallCapNet   * 100:F1}"),
+				("BtnLargeCapGross", "175", _alertLargeCapGross <= _limitLargeCapGross, ""),
+				("BtnLargeCapNet",   "15",  _alertLargeCapNet   <= _limitLargeCapNet,   ""),
+				("BtnMidCapGross",   "100", _alertMidCapGross   <= _limitMidCapGross,   ""),
+				("BtnMidCapNet",     "15",  _alertMidCapNet     <= _limitMidCapNet,     ""),
+				("BtnSmallCapGross", "25",  _alertSmallCapGross <= _limitSmallCapGross, ""),
+				("BtnSmallCapNet",   "2.5", _alertSmallCapNet   <= _limitSmallCapNet,   ""),
 				// Statistical Risk
 				("BtnMaxVaR95",   "1",    _alertPortfolioVaR95 <= _limitMaxVaR95,     $"{_alertPortfolioVaR95 * 100:F2}"),
 				("BtnCVaR95",     "1.5",  _alertCVaR95         <= _limitCVaR95,       $"{_alertCVaR95 * 100:F2}"),
@@ -1719,10 +1731,12 @@ namespace ATMML
 				}
 
 				// Fallback path: write directly to the registered Lbl* TextBox.
-				// Used for ADV, market cap, concentration and any alert whose parent
-				// Grid does not contain a column-1 TextBlock.
+				// Used for alerts whose parent Grid does not contain a column-1 TextBlock.
+				// Skip entirely when actualText is empty — those alerts (ADV, MktCap)
+				// use the silver pre-baked "Lbl ≤N" label and should not be overwritten.
 				// NOTE: FindName() cannot see into Expander content namescopes, so
 				// we use a visual tree walk (same technique as allButtons) instead.
+				if (string.IsNullOrEmpty(actualText)) continue;
 				var lblName = btnName.Replace("Btn", "Lbl");
 				var lbl = FindVisualChildren<TextBox>(this).FirstOrDefault(tb => tb.Name == lblName);
 				if (lbl != null)
@@ -1751,12 +1765,9 @@ namespace ATMML
 				{ "BtnCatPortfolioConst",  new[] { "BtnMktNeutral", "BtnVolNeutral" } },
 				{ "BtnCatExposure",        new[] { "BtnIntradayDD", "BtnUtilization", "BtnGrossBook",
 												   "BtnNetExposure", "BtnMaxPosition" } },
-				{ "BtnCatConcentration",   new[] { "BtnSectorGross", "BtnSectorNet",
-												   "BtnIndustryGross", "BtnIndustryNet",
-												   "BtnSubIndGross", "BtnSubIndNet",
-												   "BtnTop5Long", "BtnTop5Short",
+				{ "BtnCatConcentration",   new[] { "BtnTop5Long", "BtnTop5Short",
 												   "BtnTop10Long", "BtnTop10Short" } },
-				{ "BtnCatLiquidity",       new[] { "BtnADV20", "BtnADV50", "BtnADV100" } },
+				{ "BtnCatLiquidity",       new[] { "BtnADV20", "BtnADV50", "BtnADV100", "BtnLiqVaR95" } },
 				{ "BtnCatMktCap",          new[] { "BtnLargeCapGross", "BtnLargeCapNet",
 												   "BtnMidCapGross", "BtnMidCapNet",
 												   "BtnSmallCapGross", "BtnSmallCapNet" } },
@@ -3096,6 +3107,8 @@ namespace ATMML
 				nav.setNavigation(NavCol1, NavCol1_MouseDown, items.ToArray());
 
 				nav.setNavigationLevel1(_nav1, NavCol2, NavCol2_MouseDown, go_Click);
+				// Apply RBAC filter when restoring ML PORTFOLIOS view — hides TEST models from non-admin.
+				filterMLPortfoliosForRole(_nav1);
 				nav.setNavigationLevel2(_nav2, NavCol3, NavCol3_MouseDown, go_Click);
 				nav.setNavigationLevel3(_nav2, _nav3, NavCol4, NavCol4_MouseDown);
 				nav.setNavigationLevel4(_selectedNav2, _selectedNav3, _nav4, NavCol5, NavCol5_MouseDown);
@@ -3323,6 +3336,32 @@ namespace ATMML
 			ViewHelp.Visibility = Visibility.Visible;
 		}
 
+		/// <summary>
+		/// Removes TEST portfolio entries from NavCol2 when the user is not an Administrator
+		/// and the current nav1 selection is "ML PORTFOLIOS >". Uses default-deny semantics:
+		/// only entries that can be positively resolved to a LIVE model are kept visible.
+		/// Safe to call unconditionally — it no-ops for other categories or for admins.
+		/// </summary>
+		private void filterMLPortfoliosForRole(string nav1)
+		{
+			if (nav1 != "ML PORTFOLIOS >") return;
+			if (ATMML.Auth.AuthContext.Current.IsAdmin) return;
+
+			for (int i = NavCol2.Children.Count - 1; i >= 0; i--)
+			{
+				var child = NavCol2.Children[i] as FrameworkElement;
+				if (child == null) continue;
+				var name = (child as System.Windows.Controls.Label)?.Content?.ToString()
+					?? (child as System.Windows.Controls.TextBlock)?.Text ?? "";
+				// Default deny: hide the entry unless it can be positively identified as LIVE.
+				// If the model cannot be resolved (lookup returns null), hide it rather than
+				// assume it is safe to show — safer default for an institutional RBAC gate.
+				var model = MainView.GetModel(name);
+				if (model == null || !model.IsLiveMode)
+					NavCol2.Children.RemoveAt(i);
+			}
+		}
+
 		private void NavCol1_MouseDown(object sender, MouseButtonEventArgs e)
 		{
 			NavCol2.Children.Clear();
@@ -3346,22 +3385,8 @@ namespace ATMML
 
 			nav.setNavigationLevel1(_selectedNav1, NavCol2, NavCol2_MouseDown, go_Click);
 
-			// Filter TEST portfolios from ML PORTFOLIOS list for roles without test access
-			if (_selectedNav1 == "ML PORTFOLIOS >" && !ATMML.Auth.AuthContext.Current.CanAccessTestPortfolios)
-			{
-				// Get all model names and remove any that are test (non-live) portfolios
-				var allModels = new List<string>();
-				for (int i = NavCol2.Children.Count - 1; i >= 0; i--)
-				{
-					var child = NavCol2.Children[i] as FrameworkElement;
-					if (child == null) continue;
-					var name = (child as System.Windows.Controls.Label)?.Content?.ToString()
-						?? (child as System.Windows.Controls.TextBlock)?.Text ?? "";
-					var model = MainView.GetModel(name);
-					if (model != null && !model.IsLiveMode)
-						NavCol2.Children.RemoveAt(i);
-				}
-			}
+			// ML PORTFOLIOS nav: only Admin sees TEST portfolios. All other roles see LIVE only.
+			filterMLPortfoliosForRole(_selectedNav1);
 
 			if (_selectedNav1 == "ALPHA PORTFOLIOS >")
 			{
@@ -8377,12 +8402,6 @@ namespace ATMML
 				_alertController.Register("MaxPosition", FindName("BtnMaxPosition") as Button, FindName("LblMaxPosition") as TextBox);
 				_alertController.Register("GrossBook", FindName("BtnGrossBook") as Button, FindName("LblGrossBook") as TextBox);
 				_alertController.Register("NetExposure", FindName("BtnNetExposure") as Button, FindName("LblNetExposure") as TextBox);
-				_alertController.Register("SectorGross", FindName("BtnSectorGross") as Button, FindName("LblSectorGross") as TextBox);
-				_alertController.Register("SectorNet", FindName("BtnSectorNet") as Button, FindName("LblSectorNet") as TextBox);
-				_alertController.Register("IndustryGross", FindName("BtnIndustryGross") as Button, FindName("LblIndustryGross") as TextBox);
-				_alertController.Register("IndustryNet", FindName("BtnIndustryNet") as Button, FindName("LblIndustryNet") as TextBox);
-				_alertController.Register("SubIndGross", FindName("BtnSubIndGross") as Button, FindName("LblSubIndGross") as TextBox);
-				_alertController.Register("SubIndNet", FindName("BtnSubIndNet") as Button, FindName("LblSubIndNet") as TextBox);
 				_alertController.Register("MaxPredVol", FindName("BtnMaxPredVol") as Button, FindName("LblMaxPredVol") as TextBox);
 				_alertController.Register("MVaR95", FindName("BtnMVaR95") as Button, FindName("LblMVaR95") as TextBox);
 				_alertController.Register("MaxVaR95", FindName("BtnMaxVaR95") as Button, FindName("LblMaxVaR95") as TextBox);

@@ -83,7 +83,7 @@
                         Margin="0,12,10,0">
 
                 <TextBlock Text="{Binding DisplayName, Source={x:Static auth:AuthContext.Current}}"
-                           Foreground="#00ccff" FontSize="10" FontFamily="Helvetica Neue"
+                           Foreground="#00ccff" FontSize="12" FontFamily="Helvetica Neue"
                            VerticalAlignment="Center" Margin="0,0,8,0"/>
 
                 <Button x:Name="BtnSettings"
@@ -1378,228 +1378,6 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblSectorGross" Grid.Column="0" Text="SECT Gross &#8804;200"
-                                            FontSize="9" Foreground="Silver" Background="Transparent"
-                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
-                                            VerticalAlignment="Center" Margin="3,0,0,0"
-                                            MouseDown="AlertLabel_MouseDown" Tag="SectorGross"/>
-                                            <TextBlock Grid.Column="1" Text="200"
-                                            FontSize="9" Foreground="Silver"
-                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
-                                            <Button x:Name="BtnSectorGross" Grid.Column="2"
-                                               Content="●" FontSize="12" Foreground="Lime"
-                                               Background="Transparent" BorderThickness="0"
-                                               HorizontalAlignment="Right" VerticalAlignment="Center"
-                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
-                                                <Button.Style>
-                                                    <Style TargetType="Button">
-                                                        <Setter Property="Background" Value="Transparent"/>
-                                                        <Setter Property="Template">
-                                                            <Setter.Value>
-                                                                <ControlTemplate TargetType="Button">
-                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                    </Border>
-                                                                </ControlTemplate>
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                    </Style>
-                                                </Button.Style>
-                                            </Button>
-                                        </Grid>
-                                    </Border>
-                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="15"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblSectorNet" Grid.Column="0" Text="SECT Net &#8804;12"
-                                            FontSize="9" Foreground="Silver" Background="Transparent"
-                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
-                                            VerticalAlignment="Center" Margin="3,0,0,0"
-                                            MouseDown="AlertLabel_MouseDown" Tag="SectorNet"/>
-                                            <TextBlock Grid.Column="1" Text="12"
-                                            FontSize="9" Foreground="Silver"
-                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
-                                            <Button x:Name="BtnSectorNet" Grid.Column="2"
-                                               Content="●" FontSize="12" Foreground="Lime"
-                                               Background="Transparent" BorderThickness="0"
-                                               HorizontalAlignment="Right" VerticalAlignment="Center"
-                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
-                                                <Button.Style>
-                                                    <Style TargetType="Button">
-                                                        <Setter Property="Background" Value="Transparent"/>
-                                                        <Setter Property="Template">
-                                                            <Setter.Value>
-                                                                <ControlTemplate TargetType="Button">
-                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                    </Border>
-                                                                </ControlTemplate>
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                    </Style>
-                                                </Button.Style>
-                                            </Button>
-                                        </Grid>
-                                    </Border>
-                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="15"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblIndustryGross" Grid.Column="0" Text="IND Gross &#8804;150"
-                                            FontSize="9" Foreground="Silver" Background="Transparent"
-                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
-                                            VerticalAlignment="Center" Margin="3,0,0,0"
-                                            MouseDown="AlertLabel_MouseDown" Tag="IndustryGross"/>
-                                            <TextBlock Grid.Column="1" Text="150"
-                                            FontSize="9" Foreground="Silver"
-                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
-                                            <Button x:Name="BtnIndustryGross" Grid.Column="2"
-                                               Content="●" FontSize="12" Foreground="Lime"
-                                               Background="Transparent" BorderThickness="0"
-                                               HorizontalAlignment="Right" VerticalAlignment="Center"
-                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
-                                                <Button.Style>
-                                                    <Style TargetType="Button">
-                                                        <Setter Property="Background" Value="Transparent"/>
-                                                        <Setter Property="Template">
-                                                            <Setter.Value>
-                                                                <ControlTemplate TargetType="Button">
-                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                    </Border>
-                                                                </ControlTemplate>
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                    </Style>
-                                                </Button.Style>
-                                            </Button>
-                                        </Grid>
-                                    </Border>
-                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="15"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblIndustryNet" Grid.Column="0" Text="IND Net &#8804;12"
-                                            FontSize="9" Foreground="Silver" Background="Transparent"
-                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
-                                            VerticalAlignment="Center" Margin="3,0,0,0"
-                                            MouseDown="AlertLabel_MouseDown" Tag="IndustryNet"/>
-                                            <TextBlock Grid.Column="1" Text="12"
-                                            FontSize="9" Foreground="Silver"
-                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
-                                            <Button x:Name="BtnIndustryNet" Grid.Column="2"
-                                               Content="●" FontSize="12" Foreground="Lime"
-                                               Background="Transparent" BorderThickness="0"
-                                               HorizontalAlignment="Right" VerticalAlignment="Center"
-                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
-                                                <Button.Style>
-                                                    <Style TargetType="Button">
-                                                        <Setter Property="Background" Value="Transparent"/>
-                                                        <Setter Property="Template">
-                                                            <Setter.Value>
-                                                                <ControlTemplate TargetType="Button">
-                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                    </Border>
-                                                                </ControlTemplate>
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                    </Style>
-                                                </Button.Style>
-                                            </Button>
-                                        </Grid>
-                                    </Border>
-                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="15"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblSubIndGross" Grid.Column="0" Text="Sub-IND Gross &#8804;100"
-                                            FontSize="9" Foreground="Silver" Background="Transparent"
-                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
-                                            VerticalAlignment="Center" Margin="3,0,0,0"
-                                            MouseDown="AlertLabel_MouseDown" Tag="SubIndGross"/>
-                                            <TextBlock Grid.Column="1" Text="100"
-                                            FontSize="9" Foreground="Silver"
-                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
-                                            <Button x:Name="BtnSubIndGross" Grid.Column="2"
-                                               Content="●" FontSize="12" Foreground="Lime"
-                                               Background="Transparent" BorderThickness="0"
-                                               HorizontalAlignment="Right" VerticalAlignment="Center"
-                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
-                                                <Button.Style>
-                                                    <Style TargetType="Button">
-                                                        <Setter Property="Background" Value="Transparent"/>
-                                                        <Setter Property="Template">
-                                                            <Setter.Value>
-                                                                <ControlTemplate TargetType="Button">
-                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                    </Border>
-                                                                </ControlTemplate>
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                    </Style>
-                                                </Button.Style>
-                                            </Button>
-                                        </Grid>
-                                    </Border>
-                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="15"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblSubIndNet" Grid.Column="0" Text="Sub-IND Net &#8804;12"
-                                            FontSize="9" Foreground="Silver" Background="Transparent"
-                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
-                                            VerticalAlignment="Center" Margin="3,0,0,0"
-                                            MouseDown="AlertLabel_MouseDown" Tag="SubIndNet"/>
-                                            <TextBlock Grid.Column="1" Text="12"
-                                            FontSize="9" Foreground="Silver"
-                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
-                                            <Button x:Name="BtnSubIndNet" Grid.Column="2"
-                                               Content="●" FontSize="12" Foreground="Lime"
-                                               Background="Transparent" BorderThickness="0"
-                                               HorizontalAlignment="Right" VerticalAlignment="Center"
-                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
-                                                <Button.Style>
-                                                    <Style TargetType="Button">
-                                                        <Setter Property="Background" Value="Transparent"/>
-                                                        <Setter Property="Template">
-                                                            <Setter.Value>
-                                                                <ControlTemplate TargetType="Button">
-                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                    </Border>
-                                                                </ControlTemplate>
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                    </Style>
-                                                </Button.Style>
-                                            </Button>
-                                        </Grid>
-                                    </Border>
-                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="15"/>
-                                            </Grid.ColumnDefinitions>
                                             <TextBox x:Name="LblTop5Long" Grid.Column="0" Text="Top 5 Long &#8804;40"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
@@ -1824,9 +1602,6 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="ADV20"/>
-                                            <TextBlock Grid.Column="1" Text="30"
-                                            FontSize="9" Foreground="Silver"
-                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnADV20" Grid.Column="2"
                                                Content="●" FontSize="12" Foreground="Lime"
                                                Background="Transparent" BorderThickness="0"
@@ -1861,9 +1636,6 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="ADV50"/>
-                                            <TextBlock Grid.Column="1" Text="10"
-                                            FontSize="9" Foreground="Silver"
-                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnADV50" Grid.Column="2"
                                                Content="●" FontSize="12" Foreground="Lime"
                                                Background="Transparent" BorderThickness="0"
@@ -1898,10 +1670,44 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="ADV100"/>
-                                            <TextBlock Grid.Column="1" Text="0"
+                                            <Button x:Name="BtnADV100" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+<Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblLiqVaR95" Grid.Column="0" Text="Liquidation Risk &#8804;2"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="LiqVaR95"/>
+                                            <TextBlock Grid.Column="1" Text="0.00"
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
-                                            <Button x:Name="BtnADV100" Grid.Column="2"
+                                            <Button x:Name="BtnLiqVaR95" Grid.Column="2"
                                                Content="●" FontSize="12" Foreground="Lime"
                                                Background="Transparent" BorderThickness="0"
                                                HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -2006,9 +1812,6 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="LargeCapGross"/>
-                                            <TextBlock Grid.Column="1" Text="175"
-                                            FontSize="9" Foreground="Silver"
-                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnLargeCapGross" Grid.Column="2"
                                                Content="●" FontSize="12" Foreground="Lime"
                                                Background="Transparent" BorderThickness="0"
@@ -2043,9 +1846,6 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="LargeCapNet"/>
-                                            <TextBlock Grid.Column="1" Text="15"
-                                            FontSize="9" Foreground="Silver"
-                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnLargeCapNet" Grid.Column="2"
                                                Content="●" FontSize="12" Foreground="Lime"
                                                Background="Transparent" BorderThickness="0"
@@ -2080,9 +1880,6 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="MidCapGross"/>
-                                            <TextBlock Grid.Column="1" Text="100"
-                                            FontSize="9" Foreground="Silver"
-                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnMidCapGross" Grid.Column="2"
                                                Content="●" FontSize="12" Foreground="Lime"
                                                Background="Transparent" BorderThickness="0"
@@ -2117,9 +1914,6 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="MidCapNet"/>
-                                            <TextBlock Grid.Column="1" Text="15"
-                                            FontSize="9" Foreground="Silver"
-                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnMidCapNet" Grid.Column="2"
                                                Content="●" FontSize="12" Foreground="Lime"
                                                Background="Transparent" BorderThickness="0"
@@ -2154,9 +1948,6 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="SmallCapGross"/>
-                                            <TextBlock Grid.Column="1" Text="25"
-                                            FontSize="9" Foreground="Silver"
-                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnSmallCapGross" Grid.Column="2"
                                                Content="●" FontSize="12" Foreground="Lime"
                                                Background="Transparent" BorderThickness="0"
@@ -2191,9 +1982,6 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="SmallCapNet"/>
-                                            <TextBlock Grid.Column="1" Text="2.5"
-                                            FontSize="9" Foreground="Silver"
-                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnSmallCapNet" Grid.Column="2"
                                                Content="●" FontSize="12" Foreground="Lime"
                                                Background="Transparent" BorderThickness="0"

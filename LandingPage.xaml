@@ -480,7 +480,7 @@
                             HorizontalAlignment="Right" VerticalAlignment="Center"
                             Margin="0,12,10,0">
                     <TextBlock Text="{Binding DisplayName, Source={x:Static auth:AuthContext.Current}}"
-                               Foreground="#00ccff" FontSize="10" FontFamily="Helvetica Neue"
+                               Foreground="#00ccff" FontSize="12" FontFamily="Helvetica Neue"
                                VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <Button x:Name="BtnSettings"
                             Width="22" Height="22"
