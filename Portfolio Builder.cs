@@ -10308,14 +10308,27 @@ namespace ATMML
 				_userFactorModels[name] = model;
 			});
 
-			if (!_userFactorModels.ContainsKey(_selectedUserFactorModel))
+			// Non-admin users must not land on a TEST model, even if their saved _selectedUserFactorModel
+			// points at one (can happen if role was downgraded, or model was flipped from LIVE to TEST).
+			bool selectedIsVisible = _userFactorModels.ContainsKey(_selectedUserFactorModel)
+				&& (ATMML.Auth.AuthContext.Current.IsAdmin
+					|| _userFactorModels[_selectedUserFactorModel].IsLiveMode);
+			if (!selectedIsVisible)
 			{
-				changeUserFactorModel((_userFactorModels.Count > 0) ? _userFactorModels.Keys.ToList()[0] : "");
+				var visibleNames = ATMML.Auth.AuthContext.Current.IsAdmin
+					? _userFactorModels.Keys.OrderBy(n => n).ToList()
+					: _userFactorModels.Keys.Where(n => _userFactorModels[n].IsLiveMode).OrderBy(n => n).ToList();
+				changeUserFactorModel(visibleNames.Count > 0 ? visibleNames[0] : "");
 			}
 
 			updateUserFactorModelList();
 			//userFactorModel_to_ui(_selectedUserFactorModel);
 			_update = 800;
+
+			// Refresh the _meta index on every app start so other views
+			// (Timing, Charts, Alerts, ScanDialog) can resolve LIVE/TEST via ModelAccessGate.
+			saveModelMeta();
+			ATMML.ModelAccessGate.InvalidateCache();
 
 			_initializing = false;
 		}
@@ -10343,6 +10356,7 @@ namespace ATMML
 			foreach (var kvp in _userFactorModels)
 				sb.AppendLine(kvp.Key + "\t" + (kvp.Value.IsLiveMode ? "1" : "0"));
 			try { MainView.SaveUserData(@"models\Models\_meta", sb.ToString()); } catch { }
+			ATMML.ModelAccessGate.InvalidateCache();
 		}
 
 		/// <summary>Reads the lightweight meta index. Returns name->isLive dictionary.</summary>
@@ -11499,9 +11513,9 @@ namespace ATMML
 			var selectedModel = _selectedUserFactorModel;
 			var allNames = new List<string>(_userFactorModels.Keys);
 			var liveNames = allNames.Where(n => _userFactorModels[n].IsLiveMode).OrderBy(n => n).ToList();
-			// Only Admin and Compliance can see TEST portfolios
+			// Only Admin can see TEST portfolios — all other roles see LIVE only.
 			var testNamesAll = allNames.Where(n => !_userFactorModels[n].IsLiveMode).OrderBy(n => n).ToList();
-			var testNames = ATMML.Auth.AuthContext.Current.CanAccessTestPortfolios
+			var testNames = ATMML.Auth.AuthContext.Current.IsAdmin
 				? testNamesAll : new List<string>();
 			//Example.Visibility = (allNames.FindIndex(x => x == "EXAMPLE") == -1) ? Visibility.Visible : Visibility.Hidden;
 			updateModelList(selectedModel, liveNames, testNames, UserFactorModelPanel1, false);
@@ -11751,9 +11765,12 @@ namespace ATMML
 					deleteModel(name);
 					deleteModelData(name);
 
-					List<string> list1 = _userFactorModels.Keys.ToList();
+					// After delete, pick the next visible model — LIVE only for non-admin users.
+					List<string> list1 = ATMML.Auth.AuthContext.Current.IsAdmin
+						? _userFactorModels.Keys.ToList()
+						: _userFactorModels.Keys.Where(n => _userFactorModels[n].IsLiveMode).ToList();
 					list1.Sort();
-					name = list1[0];
+					name = list1.Count > 0 ? list1[0] : "";
 					int index = list1.IndexOf(_selectedUserFactorModel);
 					if (index >= 0)
 					{
@@ -13475,6 +13492,23 @@ namespace ATMML
 
 		private void changeUserFactorModel(string name)
 		{
+			// RBAC gate: non-admin users cannot switch to a TEST model. If a TEST
+			// name is requested (e.g. from saved state, URL, or nav click that bypassed
+			// a stale filter), substitute the first available LIVE model. This is the
+			// single chokepoint that gates charts, alerts, and every downstream view.
+			if (!ATMML.Auth.AuthContext.Current.IsAdmin
+				&& !string.IsNullOrEmpty(name)
+				&& _userFactorModels != null
+				&& _userFactorModels.ContainsKey(name)
+				&& !_userFactorModels[name].IsLiveMode)
+			{
+				var firstLive = _userFactorModels.Keys
+					.Where(n => _userFactorModels[n].IsLiveMode)
+					.OrderBy(n => n)
+					.FirstOrDefault();
+				name = firstLive ?? "";
+			}
+
 			if (name != _selectedUserFactorModel)
 			{
 				_initializing = true;

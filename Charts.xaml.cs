@@ -2163,6 +2163,17 @@ namespace ATMML
 
         private void update(string nav1, string nav2, string nav3, string nav4, string nav5, string nav6)
         {
+
+            // RBAC gate: block loading TEST ML portfolios for non-admin users.
+            // Single chokepoint covering chart/alert update paths from every caller.
+            if (nav1 == "ML PORTFOLIOS >"
+                && !ATMML.Auth.AuthContext.Current.IsAdmin
+                && !string.IsNullOrEmpty(nav2)
+                && !ModelAccessGate.IsLive(nav2))
+            {
+                return;  // silently refuse TEST ML portfolio load
+            }
+
             if (_setOverlayPortfolio)
             {
                 _overlayPortfolioName = getPortfolioName(nav2, nav3, nav4, nav5, nav6, _clientPortfolioName);
@@ -3286,6 +3297,7 @@ namespace ATMML
 
                 nav.setNavigation(NavCol1, RegionMenu_MouseDown, items.ToArray());
                 nav.setNavigationLevel1(_nav1, NavCol2, NavCol2_MouseDown, go_Click);
+                filterMLPortfoliosForRole(_nav1);
                 nav.setNavigationLevel2(_nav2, NavCol3, NavCol3_MouseDown, go_Click);
                 nav.setNavigationLevel3(_nav2, _nav3, NavCol4, NavCol4_MouseDown);
                 nav.setNavigationLevel4(_selectedNav2, _selectedNav3, _nav4, NavCol5, NavCol5_MouseDown);
@@ -3412,6 +3424,7 @@ namespace ATMML
                 }
 
                 nav.setNavigationLevel1(_nav1, NavCol2, NavCol2_MouseDown, go_Click);
+                filterMLPortfoliosForRole(_nav1);
                 nav.setNavigationLevel2(_nav2, NavCol3, NavCol3_MouseDown, go_Click);
                 nav.setNavigationLevel3(_nav2, _nav3, NavCol4, NavCol4_MouseDown);
                 nav.setNavigationLevel4(_selectedNav2, _selectedNav3, _nav4, NavCol5, NavCol5_MouseDown);
@@ -3788,6 +3801,7 @@ namespace ATMML
             highlightButton(NavCol1, _selectedNav1);
 
             nav.setNavigationLevel1(nav1, NavCol2, NavCol2_MouseDown, go_Click);
+            filterMLPortfoliosForRole(nav1);
 
             if (_selectedNav1 == "ALPHA PORTFOLIOS >")
             {
@@ -3801,6 +3815,33 @@ namespace ATMML
             }
 
             startSymbolColoring();
+        }
+
+        /// <summary>
+        /// RBAC: removes TEST portfolios from the ML PORTFOLIOS nav list for non-admin users.
+        /// Only entries that positively resolve to a non-LIVE model are removed.
+        /// LIVE entries and unresolvable entries stay visible.
+        /// </summary>
+        private void filterMLPortfoliosForRole(string nav1)
+        {
+            System.Diagnostics.Debug.WriteLine("[RBAC_BUILD_CHECK] Charts.filterMLPortfoliosForRole invoked");
+            if (nav1 != "ML PORTFOLIOS >") return;
+            if (ATMML.Auth.AuthContext.Current.IsAdmin) return;
+
+            for (int i = NavCol2.Children.Count - 1; i >= 0; i--)
+            {
+                var child = NavCol2.Children[i] as FrameworkElement;
+                if (child == null) continue;
+                string name = (child as SymbolLabel)?.Symbol
+                    ?? (child as System.Windows.Controls.Label)?.Content?.ToString()
+                    ?? (child as System.Windows.Controls.TextBlock)?.Text
+                    ?? (child as System.Windows.Controls.ContentControl)?.Content?.ToString()
+                    ?? "";
+                if (string.IsNullOrWhiteSpace(name)) continue;
+                // Use _meta-backed lookup — MainView.GetModel returns null for ML portfolios.
+                if (!ModelAccessGate.IsLive(name))
+                    NavCol2.Children.RemoveAt(i);
+            }
         }
 
         private void NavCol2_MouseDown(object sender, MouseButtonEventArgs e)
@@ -6166,6 +6207,7 @@ namespace ATMML
 
                 nav.setNavigation(NavCol1, NavCol1_MouseDown, items.ToArray());
                 nav.setNavigationLevel1(_yieldNav1, NavCol2, NavCol2_MouseDown, null);
+                filterMLPortfoliosForRole(_yieldNav1);
                 nav.setNavigationLevel2(_yieldNav2, NavCol3, NavCol3_MouseDown, go_Click);
 
                 highlightButton(NavCol1, _yieldNav1);
@@ -6200,6 +6242,7 @@ namespace ATMML
             highlightButton(NavCol1, _selectedNav1);
 
             nav.setNavigationLevel1(_selectedNav1, NavCol2, NavCol2_MouseDown, go_Click);
+            filterMLPortfoliosForRole(_selectedNav1);
         }
 
         private void Label_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)

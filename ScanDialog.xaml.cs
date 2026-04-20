@@ -708,7 +708,11 @@ namespace ATMML
 
         private List<string> getFactorModelNames()
         {
+            System.Diagnostics.Debug.WriteLine("[RBAC_BUILD_CHECK] ScanDialog.getFactorModelNames invoked");
             var output = MainView.getFactorModelNames();
+            // RBAC: non-admin users see LIVE models only in the ML PORTFOLIOS scan picker.
+            if (!ATMML.Auth.AuthContext.Current.IsAdmin)
+                output = output.Where(n => ModelAccessGate.IsLive(n)).ToList();
             output.Sort();
             return output;
         }

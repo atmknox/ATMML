@@ -450,30 +450,19 @@ namespace ATMML
 				// continue seeing TEST data after their role changes.
 				if (!ATMML.Auth.AuthContext.Current.IsAdmin)
 				{
-					if (_nav1 == "ML PORTFOLIOS >" && !string.IsNullOrEmpty(_nav2))
+					if (_nav1 == "ML PORTFOLIOS >" && !string.IsNullOrEmpty(_nav2)
+						&& !ModelAccessGate.IsLive(_nav2))
 					{
-						var navModel = MainView.GetModel(_nav2);
-						if (navModel == null || !navModel.IsLiveMode)
-						{
-							_nav1 = "";
-							_nav2 = "";
-							_nav3 = "";
-							_nav4 = "";
-							_nav5 = "";
-						}
+						_nav1 = "";
+						_nav2 = "";
+						_nav3 = "";
+						_nav4 = "";
+						_nav5 = "";
 					}
-					if (!string.IsNullOrEmpty(_clientPortfolioName))
-					{
-						var cpModel = MainView.GetModel(_clientPortfolioName);
-						if (cpModel != null && !cpModel.IsLiveMode)
-							_clientPortfolioName = "";
-					}
-					if (!string.IsNullOrEmpty(_modelName))
-					{
-						var mnModel = MainView.GetModel(_modelName);
-						if (mnModel != null && !mnModel.IsLiveMode)
-							_modelName = "";
-					}
+					if (!string.IsNullOrEmpty(_clientPortfolioName) && !ModelAccessGate.IsLive(_clientPortfolioName))
+						_clientPortfolioName = "";
+					if (!string.IsNullOrEmpty(_modelName) && !ModelAccessGate.IsLive(_modelName))
+						_modelName = "";
 				}
 
 				if (_interval1 == "") _interval1 = "Weekly";
@@ -2338,6 +2327,16 @@ namespace ATMML
 
 		private void update(string nav1, string nav2, string nav3, string nav4, string nav5, string nav6)
 		{
+			// RBAC gate: block loading TEST ML portfolios for non-admin users.
+			// This catches every path into the chart/alert/view update — NavCol2 clicks,
+			// state restoration, Portfolio_MouseDown, compare/overlay triggers, etc.
+			if (nav1 == "ML PORTFOLIOS >"
+				&& !ATMML.Auth.AuthContext.Current.IsAdmin
+				&& !string.IsNullOrEmpty(nav2)
+				&& !ModelAccessGate.IsLive(nav2))
+			{
+				return;  // silently refuse — nav filter should have prevented this anyway
+			}
 
 			if (_setComparePortfolio)
 			{
@@ -3031,6 +3030,9 @@ namespace ATMML
 				NavCol1.Visibility = Visibility.Visible;
 
 				var modelNames = MainView.getModelNames();
+				// RBAC: non-admin users see LIVE models only in the ML model picker.
+				if (!ATMML.Auth.AuthContext.Current.IsAdmin)
+					modelNames = modelNames.Where(n => ModelAccessGate.IsLive(n)).ToList();
 				modelNames.Insert(0, "NO PREDICTION");
 
 				nav.setNavigation(NavCol1, Model_MouseDown, modelNames.ToArray());
@@ -3338,28 +3340,45 @@ namespace ATMML
 
 		/// <summary>
 		/// Removes TEST portfolio entries from NavCol2 when the user is not an Administrator
-		/// and the current nav1 selection is "ML PORTFOLIOS >". Uses default-deny semantics:
-		/// only entries that can be positively resolved to a LIVE model are kept visible.
+		/// and the current nav1 selection is "ML PORTFOLIOS >". Removes ONLY entries that
+		/// positively resolve to a non-LIVE model. Entries whose names cannot be extracted
+		/// or whose models cannot be resolved are left in place — they were legitimately
+		/// added by nav.setNavigationLevel1 so they belong there.
 		/// Safe to call unconditionally — it no-ops for other categories or for admins.
 		/// </summary>
 		private void filterMLPortfoliosForRole(string nav1)
 		{
-			if (nav1 != "ML PORTFOLIOS >") return;
-			if (ATMML.Auth.AuthContext.Current.IsAdmin) return;
+			System.Diagnostics.Debug.WriteLine("[RBAC_BUILD_CHECK] Timing.filterMLPortfoliosForRole invoked");
+			System.Diagnostics.Debug.WriteLine(
+				$"[RBAC] START nav1='{nav1}' IsAdmin={ATMML.Auth.AuthContext.Current.IsAdmin} " +
+				$"NavCol2.Count={NavCol2.Children.Count}");
+			if (nav1 != "ML PORTFOLIOS >") { System.Diagnostics.Debug.WriteLine("[RBAC]   skip: nav1 mismatch"); return; }
+			if (ATMML.Auth.AuthContext.Current.IsAdmin) { System.Diagnostics.Debug.WriteLine("[RBAC]   skip: user is admin"); return; }
 
 			for (int i = NavCol2.Children.Count - 1; i >= 0; i--)
 			{
 				var child = NavCol2.Children[i] as FrameworkElement;
-				if (child == null) continue;
-				var name = (child as System.Windows.Controls.Label)?.Content?.ToString()
-					?? (child as System.Windows.Controls.TextBlock)?.Text ?? "";
-				// Default deny: hide the entry unless it can be positively identified as LIVE.
-				// If the model cannot be resolved (lookup returns null), hide it rather than
-				// assume it is safe to show — safer default for an institutional RBAC gate.
-				var model = MainView.GetModel(name);
-				if (model == null || !model.IsLiveMode)
-					NavCol2.Children.RemoveAt(i);
+				if (child == null) { System.Diagnostics.Debug.WriteLine($"[RBAC]   idx={i} null FrameworkElement"); continue; }
+
+				string symStr = (child as SymbolLabel)?.Symbol;
+				string labelStr = (child as System.Windows.Controls.Label)?.Content?.ToString();
+				string tbStr = (child as System.Windows.Controls.TextBlock)?.Text;
+				string ccStr = (child as System.Windows.Controls.ContentControl)?.Content?.ToString();
+				string name = symStr ?? labelStr ?? tbStr ?? ccStr ?? "";
+
+				// Use ModelAccessGate.IsLive (reads models\Models\_meta) instead of
+				// MainView.GetModel — the latter returns null for ML portfolios.
+				bool isLive = !string.IsNullOrWhiteSpace(name) && ModelAccessGate.IsLive(name);
+				bool willRemove = !string.IsNullOrWhiteSpace(name) && !isLive;
+
+				System.Diagnostics.Debug.WriteLine(
+					$"[RBAC]   idx={i} type={child.GetType().Name} sym='{symStr}' " +
+					$"label='{labelStr}' tb='{tbStr}' cc='{ccStr}' -> name='{name}' " +
+					$"isLive={isLive} willRemove={willRemove}");
+
+				if (willRemove) NavCol2.Children.RemoveAt(i);
 			}
+			System.Diagnostics.Debug.WriteLine($"[RBAC] END NavCol2.Count={NavCol2.Children.Count}");
 		}
 
 		private void NavCol1_MouseDown(object sender, MouseButtonEventArgs e)

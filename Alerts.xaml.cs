@@ -1298,6 +1298,7 @@ namespace ATMML
 
 		private void ML_MouseDown(object sender, MouseButtonEventArgs e)
 		{
+			System.Diagnostics.Debug.WriteLine("[RBAC_BUILD_CHECK] Alerts.ML_MouseDown invoked");
 			if (NavScroller1.Visibility == Visibility.Collapsed)
 			{
 				//    hideView();
@@ -1307,6 +1308,9 @@ namespace ATMML
 				NavScroller1.Visibility = Visibility.Visible;
 
 				var modelNames = MainView.getModelNames();
+				// RBAC: non-admin users see LIVE models only in the ML model picker.
+				if (!ATMML.Auth.AuthContext.Current.IsAdmin)
+					modelNames = modelNames.Where(n => ModelAccessGate.IsLive(n)).ToList();
 				modelNames.Insert(0, "NO PREDICTION");
 
 
