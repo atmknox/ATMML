@@ -703,14 +703,14 @@ namespace BetaNeutralRiskEngine
 				{
 					if (kvp.Value > _cfg.MaxSectorFraction)
 					{
-						Debug.WriteLine($"[Engine] SECTOR VIOLATION {side}: '{kvp.Key}' = {kvp.Value:P2} > {_cfg.MaxSectorFraction:P0}");
+						//Debug.WriteLine($"[Engine] SECTOR VIOLATION {side}: '{kvp.Key}' = {kvp.Value:P2} > {_cfg.MaxSectorFraction:P0}");
 						AuditService.LogConstraintBreach(null,
 							$"SECTOR VIOLATION {side}: '{kvp.Key}' = {kvp.Value:P2} > {_cfg.MaxSectorFraction:P0}",
 							"High");
 					}
 					else if (kvp.Value > _cfg.MaxSectorFraction * 0.9)
 					{
-						Debug.WriteLine($"[Engine] SECTOR NEAR LIMIT {side}: '{kvp.Key}' = {kvp.Value:P2}");
+						//Debug.WriteLine($"[Engine] SECTOR NEAR LIMIT {side}: '{kvp.Key}' = {kvp.Value:P2}");
 						AuditService.LogConstraintBreach(null,
 							$"SECTOR NEAR LIMIT {side}: '{kvp.Key}' = {kvp.Value:P2}",
 							"Warning");
@@ -732,7 +732,7 @@ namespace BetaNeutralRiskEngine
 				{
 					if (kvp.Value > _cfg.MaxIndustryFraction)
 					{
-						Debug.WriteLine($"[Engine] INDUSTRY VIOLATION {side}: '{kvp.Key}' = {kvp.Value:P2} > {_cfg.MaxIndustryFraction:P0}");
+						//Debug.WriteLine($"[Engine] INDUSTRY VIOLATION {side}: '{kvp.Key}' = {kvp.Value:P2} > {_cfg.MaxIndustryFraction:P0}");
 						AuditService.LogConstraintBreach(null,
 							$"INDUSTRY VIOLATION {side}: '{kvp.Key}' = {kvp.Value:P2} > {_cfg.MaxIndustryFraction:P0}",
 							"High");
@@ -754,7 +754,7 @@ namespace BetaNeutralRiskEngine
 				{
 					if (kvp.Value > _cfg.MaxSubIndustryFraction)
 					{
-						Debug.WriteLine($"[Engine] SUB-INDUSTRY VIOLATION {side}: '{kvp.Key}' = {kvp.Value:P2} > {_cfg.MaxSubIndustryFraction:P0}");
+						//Debug.WriteLine($"[Engine] SUB-INDUSTRY VIOLATION {side}: '{kvp.Key}' = {kvp.Value:P2} > {_cfg.MaxSubIndustryFraction:P0}");
 						AuditService.LogConstraintBreach(null,
 							$"SUB-INDUSTRY VIOLATION {side}: '{kvp.Key}' = {kvp.Value:P2} > {_cfg.MaxSubIndustryFraction:P0}",
 							"High");
@@ -799,13 +799,13 @@ namespace BetaNeutralRiskEngine
 				{
 					vixScale = g.VixScale2;
 					factors.Add($"VIX_SEVERE({vixScale:P0})");
-					Debug.WriteLine($"[RiskGov] VIX SEVERE: {g.VixLevel:F1} >= {g.VixThreshold2} → {vixScale:P0}");
+					//Debug.WriteLine($"[RiskGov] VIX SEVERE: {g.VixLevel:F1} >= {g.VixThreshold2} → {vixScale:P0}");
 				}
 				else if (g.VixLevel >= g.VixThreshold1)
 				{
 					vixScale = g.VixScale1;
 					factors.Add($"VIX_ELEVATED({vixScale:P0})");
-					Debug.WriteLine($"[RiskGov] VIX ELEVATED: {g.VixLevel:F1} >= {g.VixThreshold1} → {vixScale:P0}");
+					//Debug.WriteLine($"[RiskGov] VIX ELEVATED: {g.VixLevel:F1} >= {g.VixThreshold1} → {vixScale:P0}");
 				}
 			}
 
@@ -826,7 +826,7 @@ namespace BetaNeutralRiskEngine
 				if (Math.Abs(volScale - 1.0) > 0.01)
 					factors.Add($"VOL({volScale:P0})");
 
-				Debug.WriteLine($"[RiskGov] VolTarget: Trailing={g.TrailingVolatility:P1}, Target={g.TargetPortfolioVolatility:P1}, Raw={raw:F2}, PrevScale={g.PreviousVolatilityScale:F2}, FinalScale={volScale:P0}, Smoothing={(double.IsNaN(g.PreviousVolatilityScale) ? "SKIPPED" : "APPLIED")}");
+				//Debug.WriteLine($"[RiskGov] VolTarget: Trailing={g.TrailingVolatility:P1}, Target={g.TargetPortfolioVolatility:P1}, Raw={raw:F2}, PrevScale={g.PreviousVolatilityScale:F2}, FinalScale={volScale:P0}, Smoothing={(double.IsNaN(g.PreviousVolatilityScale) ? "SKIPPED" : "APPLIED")}");
 			}
 
 			// -----------------------------------------------------------
@@ -859,7 +859,7 @@ namespace BetaNeutralRiskEngine
 				g.CurrentNav > 0 && g.PeakNav > 0)
 			{
 				double dd = Math.Max(0, (g.PeakNav - g.CurrentNav) / g.PeakNav);
-				Debug.WriteLine($"[RiskGov] CB: DD={dd:P2}, State={g.CurrentCircuitBreakerState}, Periods={g.PeriodsInCurrentState}, Regime={g.RegimeSignal:F2}");
+				//Debug.WriteLine($"[RiskGov] CB: DD={dd:P2}, State={g.CurrentCircuitBreakerState}, Periods={g.PeriodsInCurrentState}, Regime={g.RegimeSignal:F2}");
 
 				// Check for immediate exit via strong bullish regime
 				if (g.EnableRegimeAwareRecovery &&
@@ -870,7 +870,7 @@ namespace BetaNeutralRiskEngine
 					!double.IsNaN(g.VixLevel) && g.VixLevel < g.RegimeExitMaxVix &&
 					!double.IsNaN(g.TrailingVolatility) && g.TrailingVolatility <= g.TargetPortfolioVolatility)
 				{
-					Debug.WriteLine($"[RiskGov] CB: REGIME IMMEDIATE EXIT");
+					//Debug.WriteLine($"[RiskGov] CB: REGIME IMMEDIATE EXIT");
 					newState = CircuitBreakerState.Normal;
 					newPeriods = 0;
 					cbScale = 1.0;
@@ -881,7 +881,7 @@ namespace BetaNeutralRiskEngine
 				else if (dd >= g.CircuitBreakerDrawdown)
 				{
 					if (g.CurrentCircuitBreakerState != CircuitBreakerState.Triggered)
-						Debug.WriteLine($"[RiskGov] CB: TRIGGERED");
+						//Debug.WriteLine($"[RiskGov] CB: TRIGGERED");
 
 					newState = CircuitBreakerState.Triggered;
 					newPeriods = 0;
@@ -916,7 +916,7 @@ namespace BetaNeutralRiskEngine
 			double finalScale = vixScale * volScale * cbScale * corrScale;
 			finalScale = Math.Max(finalScale, 0.05);
 
-			Debug.WriteLine($"[RiskGov] FINAL: {finalScale:P0} = VIX({vixScale:P0}) × Vol({volScale:P0}) × CB({cbScale:P0}) × Corr({corrScale:P0})");
+			//Debug.WriteLine($"[RiskGov] FINAL: {finalScale:P0} = VIX({vixScale:P0}) × Vol({volScale:P0}) × CB({cbScale:P0}) × Corr({corrScale:P0})");
 
 			if (regimeFlip != RegimeFlipDirection.None)
 				factors.Add($"REGIME_FLIP_{regimeFlip}");
@@ -1027,7 +1027,7 @@ namespace BetaNeutralRiskEngine
 				// Bullish → Bearish flip while in Normal: go to Recovery3 (preemptive defense)
 				if (flip == RegimeFlipDirection.BullishToBearish)
 				{
-					Debug.WriteLine($"[RiskGov] CB: REGIME FLIP DEFENSE Normal → Recovery3");
+					//Debug.WriteLine($"[RiskGov] CB: REGIME FLIP DEFENSE Normal → Recovery3");
 					factors.Add($"CB_RECOVERY3({g.ScaleRecovery3:P0})");
 					factors.Add("FLIP_DEFENSE");
 					return (CircuitBreakerState.Recovery3, 0, g.ScaleRecovery3, g.ThresholdToNormal, effectivePeriods, true);
@@ -1047,7 +1047,7 @@ namespace BetaNeutralRiskEngine
 				double nextScale = GetScaleForState(g, nextState);
 				var (nextThreshold, _) = GetThresholdsForState(g, nextState);
 
-				Debug.WriteLine($"[RiskGov] CB: REGIME FLIP ADVANCE {currentState} → {nextState}");
+				//Debug.WriteLine($"[RiskGov] CB: REGIME FLIP ADVANCE {currentState} → {nextState}");
 				factors.Add($"{GetStateLabel(nextState)}({nextScale:P0})");
 				factors.Add("FLIP_ADVANCE");
 				return (nextState, 0, nextScale, nextThreshold, effectivePeriods, true);
@@ -1060,7 +1060,7 @@ namespace BetaNeutralRiskEngine
 				double prevScale = GetScaleForState(g, prevState);
 				var (prevThreshold, _) = GetThresholdsForState(g, prevState);
 
-				Debug.WriteLine($"[RiskGov] CB: REGIME FLIP REGRESS {currentState} → {prevState}");
+				//Debug.WriteLine($"[RiskGov] CB: REGIME FLIP REGRESS {currentState} → {prevState}");
 				factors.Add($"{GetStateLabel(prevState)}({prevScale:P0})");
 				factors.Add("FLIP_REGRESS");
 				return (prevState, 0, prevScale, prevThreshold, effectivePeriods, true);
@@ -1084,7 +1084,7 @@ namespace BetaNeutralRiskEngine
 				{
 					double regScale = GetScaleForState(g, regressTo);
 					var (regThreshold, _) = GetThresholdsForState(g, regressTo);
-					Debug.WriteLine($"[RiskGov] CB: DD REGRESS {currentState} → {regressTo} (DD={dd:P2})");
+					//Debug.WriteLine($"[RiskGov] CB: DD REGRESS {currentState} → {regressTo} (DD={dd:P2})");
 					factors.Add($"{GetStateLabel(regressTo)}({regScale:P0})");
 					return (regressTo, 0, regScale, regThreshold, effectivePeriods, false);
 				}
@@ -1108,20 +1108,20 @@ namespace BetaNeutralRiskEngine
 						double nextScale = GetScaleForState(g, nextState);
 						var (nextThreshold, _) = GetThresholdsForState(g, nextState);
 						string reason = instantAdvance ? "BULLISH REGIME" : "PERIODS MET";
-						Debug.WriteLine($"[RiskGov] CB: {reason} ADVANCE {currentState} → {nextState}");
+						//Debug.WriteLine($"[RiskGov] CB: {reason} ADVANCE {currentState} → {nextState}");
 						factors.Add($"{GetStateLabel(nextState)}({nextScale:P0})");
 						return (nextState, 0, nextScale, nextThreshold, effectivePeriods, instantAdvance);
 					}
 				}
 
 				// Still progressing
-				Debug.WriteLine($"[RiskGov] CB: {currentState} progressing ({newPeriods}/{effectivePeriods})");
+				//Debug.WriteLine($"[RiskGov] CB: {currentState} progressing ({newPeriods}/{effectivePeriods})");
 				factors.Add($"{label}({scale:P0})");
 				return (currentState, newPeriods, scale, advanceThreshold, effectivePeriods - newPeriods, false);
 			}
 
 			// Holding - DD above advance threshold
-			Debug.WriteLine($"[RiskGov] CB: {currentState} holding (DD={dd:P2} > {advanceThreshold:P2})");
+			//Debug.WriteLine($"[RiskGov] CB: {currentState} holding (DD={dd:P2} > {advanceThreshold:P2})");
 			factors.Add($"{label}({scale:P0})");
 			return (currentState, 0, scale, advanceThreshold, effectivePeriods, false);
 		}
@@ -1321,8 +1321,8 @@ namespace BetaNeutralRiskEngine
 			for (int i = 0; i < longs.Count; i++) result[MakeKey(longs[i])] = lw[i];
 			for (int i = 0; i < shorts.Count; i++) result[MakeKey(shorts[i])] = -sw[i];
 
-			Debug.WriteLine($"[Engine] Final: L={SafeSum(lw):P1}, S={SafeSum(sw):P1}, Scale={rg.FinalScale:P0}");
-			Debug.WriteLine($"[Engine] Positions: {string.Join(", ", result.OrderByDescending(kv => Math.Abs(kv.Value)).Take(5).Select(kv => $"{kv.Key}={kv.Value:P2}"))}...");
+			//Debug.WriteLine($"[Engine] Final: L={SafeSum(lw):P1}, S={SafeSum(sw):P1}, Scale={rg.FinalScale:P0}");
+			//Debug.WriteLine($"[Engine] Positions: {string.Join(", ", result.OrderByDescending(kv => Math.Abs(kv.Value)).Take(5).Select(kv => $"{kv.Key}={kv.Value:P2}"))}...");
 
 			return (result, 0);
 		}

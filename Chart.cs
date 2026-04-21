@@ -7112,8 +7112,8 @@ namespace ATMML
 								var bar0 = _bars[index];
 								var high = bar0.High;
 								var low = bar0.Low;
-								_highLabel.Text = getValueText(high);
-								_lowLabel.Text = getValueText(low);
+								if (_highLabel != null) _highLabel.Text = getValueText(high);
+								if (_lowLabel  != null) _lowLabel.Text  = getValueText(low);
 
 								var close0 = bar0.Close;
 

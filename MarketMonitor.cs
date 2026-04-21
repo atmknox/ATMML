@@ -4787,7 +4787,8 @@ namespace ATMML
 			else if (name == "WORLD EQ INDICES")
 			{
 				_asset = "WORLD EQ INDICES";
-				setNavigationMenu(Level3, new string[] { "ATM ANALYSIS", " ", "CONDITION OF TREND", " ", "ATM ALIGNMENT" }, Level3_MouseDown);
+				setNavigationMenu(Level3, new string[] {"CONDITION OF TREND", " ", "ATM ALIGNMENT" }, Level3_MouseDown);
+				//setNavigationMenu(Level3, new string[] { "ATM ANALYSIS", " ", "CONDITION OF TREND", " ", "ATM ALIGNMENT" }, Level3_MouseDown);
 			}
 
 			else if (name == "FOREST PRODUCTS | LUMBER")

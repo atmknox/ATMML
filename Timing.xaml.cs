@@ -1107,7 +1107,7 @@ namespace ATMML
 				var fromDisk = model.InitialPortfolioBalance * (1 + portfolioValues[idx] / 100);
 				if (fromDisk > 0) portfolioBalance = fromDisk;
 			}
-			// LiveNav_ override: Portfolio Builder computes this from real-time prices each tick
+			// LiveNav_ override: Hedge Fund App computes this from real-time prices each tick
 			var liveNavStr = _mainView.GetInfo("LiveNav_" + (_portfolioModelName ?? getPortfolioName()));
 			bool isLiveDate = time2 == default(DateTime) || time2.Date >= DateTime.Today.AddDays(-7);
 			if (isLiveDate && !string.IsNullOrEmpty(liveNavStr) && double.TryParse(liveNavStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double liveNavEarly) && liveNavEarly > 0)
@@ -1304,7 +1304,7 @@ namespace ATMML
 				industryPercents = percents[1];
 				subIndustryPercents = percents[2];
 
-				// For live portfolios, use sector percents published by Portfolio Builder
+				// For live portfolios, use sector percents published by Hedge Fund App
 				// (calculated at rebalance prices) instead of recalculating with current
 				// market prices which causes apparent drift above the constraint limit.
 				var pbSectorStr = _mainView?.GetInfo("SectorPercents");
@@ -1801,7 +1801,7 @@ namespace ATMML
 			TilesList.ItemsSource = rows;
 		}
 
-		/// <summary>Deserializes pipe-delimited sector percents from Portfolio Builder into the dict.</summary>
+		/// <summary>Deserializes pipe-delimited sector percents from Hedge Fund App into the dict.</summary>
 		private void deserializePercents(string data, Dictionary<string, string> target)
 		{
 			if (string.IsNullOrEmpty(data) || target == null) return;
@@ -3348,17 +3348,19 @@ namespace ATMML
 		/// </summary>
 		private void filterMLPortfoliosForRole(string nav1)
 		{
-			System.Diagnostics.Debug.WriteLine("[RBAC_BUILD_CHECK] Timing.filterMLPortfoliosForRole invoked");
+			//System.Diagnostics.Debug.WriteLine("[RBAC_BUILD_CHECK] Timing.filterMLPortfoliosForRole invoked");
+			/*
 			System.Diagnostics.Debug.WriteLine(
 				$"[RBAC] START nav1='{nav1}' IsAdmin={ATMML.Auth.AuthContext.Current.IsAdmin} " +
 				$"NavCol2.Count={NavCol2.Children.Count}");
-			if (nav1 != "ML PORTFOLIOS >") { System.Diagnostics.Debug.WriteLine("[RBAC]   skip: nav1 mismatch"); return; }
-			if (ATMML.Auth.AuthContext.Current.IsAdmin) { System.Diagnostics.Debug.WriteLine("[RBAC]   skip: user is admin"); return; }
+			*/
+			if (nav1 != "ML PORTFOLIOS >") return;
+			if (ATMML.Auth.AuthContext.Current.IsAdmin) return;
 
 			for (int i = NavCol2.Children.Count - 1; i >= 0; i--)
 			{
 				var child = NavCol2.Children[i] as FrameworkElement;
-				if (child == null) { System.Diagnostics.Debug.WriteLine($"[RBAC]   idx={i} null FrameworkElement"); continue; }
+				if (child == null) continue;
 
 				string symStr = (child as SymbolLabel)?.Symbol;
 				string labelStr = (child as System.Windows.Controls.Label)?.Content?.ToString();
@@ -3371,14 +3373,16 @@ namespace ATMML
 				bool isLive = !string.IsNullOrWhiteSpace(name) && ModelAccessGate.IsLive(name);
 				bool willRemove = !string.IsNullOrWhiteSpace(name) && !isLive;
 
+				/*
 				System.Diagnostics.Debug.WriteLine(
 					$"[RBAC]   idx={i} type={child.GetType().Name} sym='{symStr}' " +
 					$"label='{labelStr}' tb='{tbStr}' cc='{ccStr}' -> name='{name}' " +
 					$"isLive={isLive} willRemove={willRemove}");
+				*/
 
 				if (willRemove) NavCol2.Children.RemoveAt(i);
 			}
-			System.Diagnostics.Debug.WriteLine($"[RBAC] END NavCol2.Count={NavCol2.Children.Count}");
+			//System.Diagnostics.Debug.WriteLine($"[RBAC] END NavCol2.Count={NavCol2.Children.Count}");
 		}
 
 		private void NavCol1_MouseDown(object sender, MouseButtonEventArgs e)
@@ -8359,7 +8363,7 @@ namespace ATMML
 			//CurrentTime.Visibility = Visibility.Collapsed;
 			Ago1Time.Visibility = Visibility.Collapsed;
 			Ago2Time.Visibility = Visibility.Collapsed;
-			AgoZero.Visibility = Visibility.Collapsed;
+			//AgoZero.Visibility = Visibility.Collapsed;
 			AgoOnePlus.Visibility = Visibility.Visible;
 
 			_updateSpreadsheet = 7; // ago change
@@ -8373,7 +8377,7 @@ namespace ATMML
 			//CurrentTime.Visibility = Visibility.Visible;
 			Ago1Time.Visibility = Visibility.Collapsed;
 			Ago2Time.Visibility = Visibility.Collapsed;
-			AgoZero.Visibility = Visibility.Visible;
+			//AgoZero.Visibility = Visibility.Visible;
 			AgoOnePlus.Visibility = Visibility.Collapsed;
 
 			_updateSpreadsheet = 8; // ago change

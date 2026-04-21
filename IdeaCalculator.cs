@@ -39,8 +39,6 @@ namespace ATMML
 		Portfolio _portfolio2 = null;
 		BarCache _barCache = null;
 		int _indexBarRequestCount = 0;
-		bool _indexBarsCompleted = false;
-		int _referenceDataProcessed = 0; // 0=pending, 1=processed — guards against double-call to requestIndexBars
 		List<string> _indexSymbols = new List<string>();
 		List<string> _referenceSymbols = new List<string>();
 		Dictionary<string, object> _referenceData = new Dictionary<string, object>();
@@ -172,8 +170,6 @@ namespace ATMML
 				_stop = false;
 				_barReceivedTime = DateTime.UtcNow;
 				_barCollectionTimedOut = false;
-				_indexBarsCompleted = false;
-				_referenceDataProcessed = 0;
 				_progressState = ProgressState.CollectingData;
 				sendProgressEvent();
 
@@ -286,19 +282,6 @@ namespace ATMML
 				MainView.DeleteUserData(_model.Name + " PortfolioMonthValues");
 			}
 
-			// Reset the bar cache before each run to force a fresh Bloomberg session.
-			// IC is a singleton — _barCache persists across runs. After a full day of
-			// inactivity the Bloomberg BLPAPI session goes stale and stops responding
-			// to bar requests, causing 0% collection and a 45-sec timeout.
-			_barCache.Clear();
-
-			// Fire symbol bar requests FIRST — they are the bulk of data collection
-			// and do not depend on reference data (REL_INDEX). Running them in parallel
-			// with the reference-data pipeline keeps Bloomberg's bar channel saturated
-			// while REL_INDEX responses trickle in, rather than leaving Bloomberg idle
-			// until index-bar collection completes.
-			requestSymbolBars();
-
 			var interval = GetLowestInterval();
 
 			requestReferenceData(); // get relative indexes of symbols in model
@@ -339,7 +322,7 @@ namespace ATMML
 				var cacheDate = _model.UseCurrentDate ? DateTime.Today : _model.DataRange.Time2.Date;
 				if (FundamentalCache.Exists(cacheDate))
 				{
-					Trace.WriteLine($"[FundamentalCache] Loading cached fundamentals for {cacheDate:yyyy-MM-dd}");
+					//Trace.WriteLine($"[FundamentalCache] Loading cached fundamentals for {cacheDate:yyyy-MM-dd}");
 					FundamentalCache.Load(cacheDate, _model.Symbols);
 				}
 				else
@@ -372,9 +355,14 @@ namespace ATMML
 
 				// start calculating...
 
+				// Force Collect to 100% before transitioning so UI shows completion
+				if (_progressTotalNumber > 0) _progressCompletedNumber = _progressTotalNumber;
+				sendProgressEvent();
+
 				_progressState = ProgressState.ProcessingData;
 				_progressCompletedNumber = 0;
 				_progressTotalNumber = 0;
+				sendProgressEvent();
 
 				List<PortfolioMember> portfolio = createPortfolio(interval, true);
 				List<PortfolioMember> hedgePortfolio = createPortfolio(interval, false);
@@ -479,6 +467,10 @@ namespace ATMML
 					_runCancelled = false;
 					return; // skip Finished/Complete — Portfolio_Builder gets no update signal
 				}
+
+				// Force previous state to 100% before transitioning to Finished
+				if (_progressTotalNumber > 0) _progressCompletedNumber = _progressTotalNumber;
+				sendProgressEvent();
 
 				_progressState = ProgressState.Finished;
 				_progressCompletedNumber = 0;
@@ -1634,6 +1626,10 @@ namespace ATMML
 
 			var maxVaR = 0.5;
 
+			// Force previous state to 100% before transitioning to Predicting
+			if (_progressTotalNumber > 0) _progressCompletedNumber = _progressTotalNumber;
+			sendProgressEvent();
+
 			_progressState = ProgressState.Predicting;
 			_progressCompletedNumber = 0;
 			_progressTotalNumber = count;
@@ -2556,7 +2552,7 @@ namespace ATMML
 									}
 
 									// ============================================================
-									// PHASE 1c: Save final sector fractions so Portfolio Builder
+									// PHASE 1c: Save final sector fractions so Hedge Fund App
 									// can display them directly (bypasses price mismatch).
 									// ============================================================
 									if (cfg.EnforceSectorLimits)
@@ -7171,6 +7167,10 @@ namespace ATMML
 				output.Add(member);
 			}
 
+			// Force previous state to 100% before transitioning to Training
+			if (_progressTotalNumber > 0) _progressCompletedNumber = _progressTotalNumber;
+			sendProgressEvent();
+
 			_progressState = ProgressState.Training;
 			_progressCompletedNumber = 0;
 			_progressTotalNumber = 0;
@@ -7371,28 +7371,6 @@ namespace ATMML
 				//Debug.WriteLine($"[IdeaCalculator] Finished requesting reference data");
 				//Debug.WriteLine($"[IdeaCalculator] Finished requesting reference data");
 				//Debug.WriteLine($"[IdeaCalculator] _referenceSymbols count: {_referenceSymbols.Count}");
-
-				// REL_INDEX timeout: Bloomberg sometimes drops 1-2 stragglers near Friday close,
-				// leaving _referenceSymbols non-empty forever and blocking _indexBarsCompleted.
-				// After 20 seconds, force-complete with whatever partial index data arrived.
-				System.Threading.Tasks.Task.Run(async () =>
-				{
-					await System.Threading.Tasks.Task.Delay(20000);
-					if (!_stop && _referenceSymbols.Count > 0)
-					{
-						System.Diagnostics.Debug.WriteLine($"[IdeaCalculator] REL_INDEX timeout: {_referenceSymbols.Count} symbols never responded. Assigning SPX Index fallback.");
-						// Assign SPX Index as the relative index for any tickers that never responded.
-						// This ensures they participate in index-bar collection rather than being silently
-						// dropped, which would leave _indexBarsCompleted = false and hang the run.
-						lock (_referenceData)
-						{
-							foreach (var straggler in _referenceSymbols)
-								_referenceData[straggler + ":REL_INDEX"] = "SPX Index";
-						}
-						_referenceSymbols.Clear();
-						triggerIndexBarsIfReady();
-					}
-				});
 			}
 		}
 
@@ -7520,7 +7498,30 @@ namespace ATMML
 
 				if (okToRequestIndexBars && !_stop)
 				{
-					triggerIndexBarsIfReady();
+					if (_referenceSymbols.Count == 0)
+					{
+						//Debug.WriteLine($"[IdeaCalculator] All reference data received! Building index list...");
+						_indexSymbols = new List<string>();
+						_indexSymbols.Add("VIX Index");
+						lock (_referenceData)
+						{
+							foreach (KeyValuePair<string, object> kvp in _referenceData)
+							{
+								string key = kvp.Key;
+								if (key.Contains("REL_INDEX"))
+								{
+									string indexSymbol = kvp.Value as string;
+									if (!_indexSymbols.Contains(indexSymbol) && indexSymbol != " Index")
+									{
+										_indexSymbols.Add(indexSymbol);
+									}
+								}
+							}
+						}
+						//Debug.WriteLine($"[IdeaCalculator] Index symbols: {string.Join(", ", _indexSymbols)}");
+						//Debug.WriteLine($"[IdeaCalculator] Calling requestIndexBars()");
+						requestIndexBars();
+					}
 				}
 			}
 		}
@@ -7548,37 +7549,6 @@ namespace ATMML
 			}
 		}
 
-		/// <summary>
-		/// Thread-safe single-fire gate for the reference-data → index-bar transition.
-		/// Called from two paths: (1) portfolio1Changed when the last REL_INDEX arrives,
-		/// (2) the 20-sec REL_INDEX timeout in requestReferenceData.
-		/// Interlocked ensures exactly one path calls requestIndexBars regardless of race.
-		/// </summary>
-		private void triggerIndexBarsIfReady()
-		{
-			// Interlocked: only the first caller (0 → 1) proceeds; the other sees 1 and exits.
-			if (System.Threading.Interlocked.CompareExchange(ref _referenceDataProcessed, 1, 0) != 0)
-				return;
-
-			// Build _indexSymbols from whatever REL_INDEX data arrived
-			_indexSymbols = new List<string>();
-			_indexSymbols.Add("VIX Index");
-			lock (_referenceData)
-			{
-				foreach (KeyValuePair<string, object> kvp in _referenceData)
-				{
-					string key = kvp.Key;
-					if (key.Contains("REL_INDEX"))
-					{
-						string indexSymbol = kvp.Value as string;
-						if (indexSymbol != null && !_indexSymbols.Contains(indexSymbol) && indexSymbol != " Index")
-							_indexSymbols.Add(indexSymbol);
-					}
-				}
-			}
-			requestIndexBars();
-		}
-
 		private void requestIndexBars()
 		{
 			//Debug.WriteLine($"[IdeaCalculator] === requestIndexBars ===");
@@ -7593,12 +7563,6 @@ namespace ATMML
 			_progressTotalNumber = (_indexSymbols.Count + _model.Symbols.Count) * indexIntervals.Count;
 			sendProgressEvent();
 
-			// Reset the bar-silence watchdog at this stage transition.
-			// The timerEvent 45-sec timeout measures "no bars received" — without this reset
-			// it would be measuring from Run() start, which includes reference-data latency
-			// and can exhaust the budget before the first bar request even goes out.
-			_barReceivedTime = DateTime.UtcNow;
-
 			if (_indexBarRequestCount > 0)
 			{
 				foreach (var interval in indexIntervals)
@@ -7612,7 +7576,7 @@ namespace ATMML
 					}
 				}
 
-				// Start timeout timer - if Bloomberg doesn't respond in 30 seconds, mark index phase done
+				// Start timeout timer - if Bloomberg doesn't respond in 5 seconds, use local data
 				System.Threading.Tasks.Task.Run(async () =>
 				{
 					await System.Threading.Tasks.Task.Delay(30000); // Wait 30 seconds
@@ -7620,39 +7584,16 @@ namespace ATMML
 					if (_indexBarRequestCount > 0 && !_stop)
 					{
 						//Debug.WriteLine($"[IdeaCalculator] TIMEOUT: Bloomberg didn't respond for {_indexBarRequestCount} index bars");
+						//Debug.WriteLine($"[IdeaCalculator] Forcing proceed to requestSymbolBars()");
 
 						_indexBarRequestCount = 0;
-						// Symbol bars already started at run() begin — no chain needed here.
-						// Just mark the index phase complete and let the symbol path decide whether
-						// to release _waitForBars based on joint completion.
-						markIndexBarsCompleted();
+						requestSymbolBars();
 					}
 				});
 			}
 			else
 			{
-				// No index symbols to collect — mark index phase complete immediately.
-				// Symbol bars are already in flight from run() start.
-				markIndexBarsCompleted();
-			}
-		}
-
-		/// <summary>
-		/// Marks the index-bar collection phase complete and releases _waitForBars
-		/// if symbol-bar collection is also complete. Called from three paths:
-		/// (1) the last index bar arriving in barChanged,
-		/// (2) the 30-sec index-bar timeout firing,
-		/// (3) requestIndexBars with no index symbols to collect.
-		/// </summary>
-		private void markIndexBarsCompleted()
-		{
-			_indexBarsCompleted = true;
-			lock (_barRequests)
-			{
-				if (_barRequests.Count == 0)
-				{
-					_waitForBars = false;
-				}
+				requestSymbolBars();
 			}
 		}
 
@@ -7787,13 +7728,6 @@ namespace ATMML
 				//}
 
 				_totalBarRequest = _barRequests.Count;
-
-				// Reset the bar-silence watchdog at this stage transition.
-				// Symbol bar collection is the bulk phase; without this reset, time consumed
-				// by reference-data fetch + index-bar collection (or the 30-sec index timeout)
-				// is counted against the 45-sec symbol-bar silence budget and we time out
-				// before the first symbol bar arrives.
-				_barReceivedTime = DateTime.UtcNow;
 			}
 		}
 
@@ -7803,23 +7737,36 @@ namespace ATMML
 			{
 				string ticker = e.Ticker;
 				string interval = e.Interval;
-				string key = ticker + ":" + interval;
 
-				// Route by membership rather than global state. With symbol bars and
-				// index bars now firing in parallel, _indexBarRequestCount > 0 is no
-				// longer a reliable discriminator — symbol bars can arrive while index
-				// collection is still in progress. A symbol-bar response has its key
-				// in _barRequests; anything else is treated as index-bar data.
-				bool isSymbolBar;
-				lock (_barRequests)
+				if (_indexBarRequestCount > 0)
 				{
-					isSymbolBar = _barRequests.Contains(key);
-				}
+					Series[] indexSeries = _barCache.GetSeries(ticker, interval, new string[] { "Close" }, 0, BarServer.MaxBarCount);
+					if (indexSeries.Length > 0 && indexSeries[0].Count > 0)
+					{
+						lock (_referenceData)
+						{
+							_referenceData["Index Prices : " + interval] = indexSeries[0];
+						}
+					}
 
-				if (isSymbolBar)
+					if (_progressState == ProgressState.CollectingData)
+					{
+						_progressCompletedNumber++;
+						sendProgressEvent();
+					}
+
+					//Trace.WriteLine("INDEX " + _indexBarRequestCount + " " + ticker + " " + interval);
+
+					if (--_indexBarRequestCount == 0)
+					{
+						requestSymbolBars();
+					}
+				}
+				else
 				{
 					lock (_barRequests)
 					{
+						string key = ticker + ":" + interval;
 						int index = _barRequests.IndexOf(key);
 						if (index >= 0)
 						{
@@ -7839,42 +7786,11 @@ namespace ATMML
 								{ } //Trace.WriteLine - bar requests
 							}
 
-							// Release the wait only when BOTH symbol and index phases are done.
-							// Serial flow implicitly guaranteed this (indexes always finished first);
-							// parallel flow requires an explicit joint check.
-							if (_barRequests.Count == 0 && _indexBarsCompleted)
+							if (_barRequests.Count == 0)
 							{
 								_waitForBars = false;
 							}
 						}
-					}
-				}
-				else if (_indexBarRequestCount > 0)
-				{
-					Series[] indexSeries = _barCache.GetSeries(ticker, interval, new string[] { "Close" }, 0, BarServer.MaxBarCount);
-					if (indexSeries.Length > 0 && indexSeries[0].Count > 0)
-					{
-						lock (_referenceData)
-						{
-							_referenceData["Index Prices : " + interval] = indexSeries[0];
-						}
-					}
-
-					if (_progressState == ProgressState.CollectingData)
-					{
-						// Reset silence watchdog on any bar arrival (index or symbol).
-						_barReceivedTime = DateTime.UtcNow;
-						_progressCompletedNumber++;
-						sendProgressEvent();
-					}
-
-					//Trace.WriteLine("INDEX " + _indexBarRequestCount + " " + ticker + " " + interval);
-
-					if (--_indexBarRequestCount == 0)
-					{
-						// Symbol bars already running in parallel — no chain to requestSymbolBars here.
-						// Just mark the index phase complete and let the joint-release check fire.
-						markIndexBarsCompleted();
 					}
 				}
 			}
@@ -7902,6 +7818,7 @@ namespace ATMML
 					_progressCompletedNumber = _progressTotalNumber;
 					_waitForBars = false;
 					_barCollectionTimedOut = true; // flag: no bars received, protect disk data
+					sendProgressEvent(); // push 100% to UI before state change
 				}
 			}
 		}

@@ -185,6 +185,11 @@ namespace ATMML
 		{
 			InitializeComponent();
 			DataContext = this;
+			// Strict role gate: if TISetup ever becomes visible for non-Admin, snap it back to Collapsed
+			TISetup.IsVisibleChanged += (s, e) => {
+				if ((bool)e.NewValue && !ATMML.Auth.AuthContext.Current.IsAdmin)
+					TISetup.Visibility = Visibility.Collapsed;
+			};
 			_mainView = mainView;
 
 			if (_mainView == null)
@@ -1566,8 +1571,8 @@ namespace ATMML
 
 					// Update GROSS / NET cells to the left of the tiles based on active view.
 
-					if (_activeTileView == "Industry") LoadTiles(industryPercents);
-					else if (_activeTileView == "SubIndustry") LoadTiles(subIndustryPercents);
+					if (_activeLabel == "Industry") LoadTiles(industryPercents);
+					else if (_activeLabel == "SubIndustry") LoadTiles(subIndustryPercents);
 					else LoadTiles(sectorPercents);
 
 					// Push sector percents + alert max values to shared info so Timing reads
@@ -5691,17 +5696,11 @@ namespace ATMML
 			RebalanceSideNav.Visibility = Visibility.Collapsed;
 			PerformanceGrid.Visibility = Visibility.Collapsed;
 			PerformanceSideNav.Visibility = Visibility.Collapsed;
+			// Show ProgressCalculations2 FIRST so it covers the grid area before
+			// UserFactorModelGrid becomes visible. This prevents any brief child flash (e.g. TISetup)
+			clearStats();
+			ProgressCalculations2.Visibility = Visibility.Visible;
 			UserFactorModelGrid.Visibility = Visibility.Visible;
-			// Re-collapse TISetup for non-Admin at every dispatcher priority to catch WPF resets
-			if (!isAdmin)
-			{
-				TISetup.Visibility = Visibility.Collapsed;
-				Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Send,    new Action(() => TISetup.Visibility = Visibility.Collapsed));
-				Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,  new Action(() => TISetup.Visibility = Visibility.Collapsed));
-				Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Render,  new Action(() => TISetup.Visibility = Visibility.Collapsed));
-				Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded,  new Action(() => TISetup.Visibility = Visibility.Collapsed));
-				Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() => TISetup.Visibility = Visibility.Collapsed));
-			}
 			setModelRadioButtons();
 			_progressState = ProgressState.CollectingData;
 			_run = true;
@@ -5804,7 +5803,7 @@ namespace ATMML
 				}
 				else
 				{
-					Console.WriteLine($"[FlexOne] All {result.OrdersPlaced} orders submitted successfully.");
+					//Console.WriteLine($"[FlexOne] All {result.OrdersPlaced} orders submitted successfully.");
 
 					// Log each submitted trade to the blotter
 					foreach (var detail in result.Details.Where(d => d.Success))
@@ -6044,7 +6043,7 @@ namespace ATMML
 					var shares1 = trade.Shares.ContainsKey(time1) ? trade.Shares[time1] : 0;
 					var shares = Math.Abs(shares0 - shares1);
 					var price = trade.Closes.ContainsKey(time2) ? trade.Closes[time2] : 0;
-					Trace.WriteLine("New," + date + "," + side + "," + ticker + "," + shares.ToString("0") + "," + price.ToString("0.##"));
+					//Trace.WriteLine("New," + date + "," + side + "," + ticker + "," + shares.ToString("0") + "," + price.ToString("0.##"));
 				});
 				addTrades.ForEach(trade =>
 				{
@@ -6054,7 +6053,7 @@ namespace ATMML
 					var shares1 = trade.Shares.ContainsKey(time1) ? trade.Shares[time1] : 0;
 					var shares = Math.Abs(shares0 - shares1);
 					var price = trade.Closes.ContainsKey(time2) ? trade.Closes[time2] : 0;
-					Trace.WriteLine("Add," + date + "," + side + "," + ticker + "," + shares.ToString("0") + "," + price.ToString("0.##"));
+					//Trace.WriteLine("Add," + date + "," + side + "," + ticker + "," + shares.ToString("0") + "," + price.ToString("0.##"));
 				});
 				reduceTrades.ForEach(trade =>
 				{
@@ -6064,7 +6063,7 @@ namespace ATMML
 					var shares1 = trade.Shares.ContainsKey(time1) ? trade.Shares[time1] : 0;
 					var shares = Math.Abs(shares0 - shares1);
 					var price = trade.Closes.ContainsKey(time2) ? trade.Closes[time2] : 0;
-					Trace.WriteLine("Reduce," + date + "," + side + "," + ticker + "," + shares.ToString("0") + "," + price.ToString("0.##"));
+					//Trace.WriteLine("Reduce," + date + "," + side + "," + ticker + "," + shares.ToString("0") + "," + price.ToString("0.##"));
 				});
 				exitedTrades.ForEach(trade =>
 				{
@@ -6074,7 +6073,7 @@ namespace ATMML
 					var shares1 = trade.Shares.ContainsKey(time1) ? trade.Shares[time1] : 0;
 					var shares = Math.Abs(shares0 - shares1);
 					var price = trade.Closes.ContainsKey(time2) ? trade.Closes[time2] : trade.ExitPrice;
-					Trace.WriteLine("Exit," + date + "," + side + "," + ticker + "," + shares.ToString("0") + "," + price.ToString("0.##"));
+					//Trace.WriteLine("Exit," + date + "," + side + "," + ticker + "," + shares.ToString("0") + "," + price.ToString("0.##"));
 				});
 				time1 = time2;
 			});
@@ -9393,14 +9392,23 @@ namespace ATMML
 			var V = Visibility.Visible;
 			var C = Visibility.Collapsed;
 			var defaultMargin = new System.Windows.Thickness(10, -50, 10, 4);
-			var tightMargin   = new System.Windows.Thickness(10, 0, 10, 4);
+			var tightMargin   = new System.Windows.Thickness(2, -50, 10, 4);
 
 			if (isViewer)
 			{
+				// Viewer sees only Portfolio Performance for LIVE portfolios (same layout as Compliance)
 				if (TISetup        != null) TISetup.Visibility        = C;
 				if (TIPositions22 != null) TIPositions22.Visibility   = C;
-				if (PerformanceGrid    != null) PerformanceGrid.Visibility    = C;
+				if (PerformanceGrid    != null) PerformanceGrid.Visibility    = V;
 				if (PerformanceSideNav != null) PerformanceSideNav.Visibility = C;
+				if (PositionsChartBorder   != null) PositionsChartBorder.Visibility   = V;
+				if (TotalReturnChartBorder != null) TotalReturnChartBorder.Visibility = V;
+				if (ReturnTable            != null) ReturnTable.Visibility            = V;
+				if (PortSetup3 != null) PortSetup3.Visibility = C;
+				if (OrderMgm3  != null) OrderMgm3.Visibility  = C;
+				if (PortPerf3  != null) { PortPerf3.Visibility = V; PortPerf3.Margin = tightMargin; }
+				Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded,
+					new Action(() => { try { drawReturnChart(); } catch { } }));
 				return;
 			}
 
@@ -9410,9 +9418,17 @@ namespace ATMML
 				if (TIPositions22 != null) TIPositions22.Visibility = C;
 				if (PerformanceGrid != null) PerformanceGrid.Visibility = V;
 				if (PerformanceSideNav != null) PerformanceSideNav.Visibility = C;
+				// Compliance lands on Performance view directly, so the chart borders that
+				// are normally shown by Performance_MouseDown must be made visible here
+				if (PositionsChartBorder   != null) PositionsChartBorder.Visibility   = V;
+				if (TotalReturnChartBorder != null) TotalReturnChartBorder.Visibility = V;
+				if (ReturnTable            != null) ReturnTable.Visibility            = V;
 				if (PortSetup3 != null) PortSetup3.Visibility = C;
 				if (OrderMgm3  != null) OrderMgm3.Visibility  = C;
 				if (PortPerf3  != null) { PortPerf3.Visibility = V; PortPerf3.Margin = tightMargin; }
+				// Trigger chart draw after the layout settles
+				Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded,
+					new Action(() => { try { drawReturnChart(); } catch { } }));
 				return;
 			}
 
@@ -9437,7 +9453,7 @@ namespace ATMML
 			{
 				if (TISetup    != null) TISetup.Visibility    = V;
 				if (PortSetup1 != null) PortSetup1.Visibility = V;
-				if (OrderMgm1  != null) { OrderMgm1.Visibility = V; OrderMgm1.Margin = tightMargin; }
+				if (OrderMgm1 != null) { OrderMgm1.Visibility = V; }
 				if (PortPerf1  != null) PortPerf1.Visibility = V;
 				if (PortSetup2 != null) PortSetup2.Visibility = V;
 				if (OrderMgm2  != null) { OrderMgm2.Visibility = V; OrderMgm2.Margin = defaultMargin; }
@@ -11499,7 +11515,7 @@ namespace ATMML
 			header.PreviewMouseDown += (s, e) => e.Handled = true;
 			var tb = new TextBlock();
 			tb.Text = text;
-			tb.Foreground = Brushes.White;
+			tb.Foreground = Brushes.Silver;
 			tb.FontFamily = new FontFamily("Helvetica Neue");
 			tb.FontSize = 11;
 			tb.FontWeight = FontWeights.Normal;
@@ -13586,7 +13602,6 @@ namespace ATMML
 
 		private string _graphDataType = "CUMULATIVE RETURN";
 		private string _graphSector = "ALL SECTORS";
-		private string _activeTileView = "Sector";
 
 		private void OnUseMTExitChecked(object sender, RoutedEventArgs e)
 		{

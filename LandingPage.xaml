@@ -543,7 +543,7 @@ Fill="red" Stroke="DarkRed" StrokeThickness="2" />-->
 
                 <Label Content=" ML" Grid.Row="2"  Grid.Column="8" Grid.ColumnSpan="2"  HorizontalAlignment="Left" Margin="23.5,0,0,9.5" FontFamily="Helvetica Neue" FontSize="34" Foreground="#e1e1e1"  VerticalAlignment="Bottom" />
 
-                <Label Grid.Row="2" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"  Grid.Column="3" Grid.ColumnSpan="7" Grid.RowSpan="3" Margin="5,240,0,8"  Content="Portfolio Builder"
+                <Label Grid.Row="2" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"  Grid.Column="3" Grid.ColumnSpan="7" Grid.RowSpan="3" Margin="5,240,0,8"  Content="Hedge Fund App"
        FontFamily="Helvetica Neue" FontSize="20" Foreground="White" />
 
 

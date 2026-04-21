@@ -56,7 +56,7 @@
                 <Label Grid.Row="0" Grid.Column="0" Margin="0,0,38,13" HorizontalAlignment="Right"
                        VerticalContentAlignment="Center" Background="Transparent" Content="ML" FontFamily="Helvetica Neue"
                        FontSize="12" FontStyle="Normal" FontWeight="Normal" Foreground="White" />
-                <Label Grid.Row="1" Margin="0,0,0,12"  Content="Portfolio Builder"
+                <Label Grid.Row="1" Margin="0,0,0,12"  Content="Hedge Fund App"
                        HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" FontFamily="Helvetica Neue"
                        FontSize="9" FontWeight="Normal" Foreground="White" />
             </Grid>
@@ -296,7 +296,8 @@
                         </Grid.RowDefinitions>
                         <Label Grid.Row="2" Grid.RowSpan="3" Grid.ColumnSpan="2" Margin="0,0,5,0"
                                Padding="2" Content="PORTFOLIO SURVEILLANCE" FontFamily="Helvetica Neue" FontSize="12"
-                               Foreground="White" MouseDown="Server_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"/>
+                               Foreground="White" MouseDown="Server_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"
+                               Visibility="{Binding CanAccessSurveillance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
                     </Grid>
 
                     <Grid
@@ -316,7 +317,8 @@
                         <Label
                             Grid.Row="2" Grid.RowSpan="3" Grid.ColumnSpan="2" Margin="0,0,0,0" Padding="2"  x:Name="ATMPROButton"
                             Content="PORTFOLIO RESEARCH" FontFamily="Helvetica Neue" FontSize="12"
-                               Foreground="White" MouseDown="OurView_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"/>
+                               Foreground="White" MouseDown="OurView_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"
+                               Visibility="{Binding CanAccessResearch, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
                     </Grid>
 
                 </StackPanel>
@@ -406,7 +408,7 @@
                            Background="Transparent" Content="PORTFOLIO SETUP"  FontFamily="Helvetica Neue" FontSize="12" 
                            FontWeight="Normal" Foreground="#00ccff"
                            Visibility="{Binding CanAccessPortfolioSetup, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
-                    <Label x:Name="OrderMgm1"  Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                    <Label x:Name="OrderMgm1"  Margin="10,-0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
                            Background="Transparent" Content="ORDER MANAGEMENT"  Cursor="Hand" FontFamily="Helvetica Neue"
                            FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="RebalanceView_MouseDown"
                            MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"

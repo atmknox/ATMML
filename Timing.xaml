@@ -118,7 +118,7 @@
                 <Label Grid.Row="0" Grid.Column="0" Margin="0,0,38,13" HorizontalAlignment="Right"
                        VerticalContentAlignment="Center" Background="Transparent" Content="ML" FontFamily="Helvetica Neue"
                        FontSize="12" FontStyle="Normal" FontWeight="Normal" Foreground="White" />
-                <Label Grid.Row="1" Margin="0,0,0,12"  Content="Portfolio Optimizer"
+                <Label Grid.Row="1" Margin="0,0,0,12"  Content="Hedge Fund App"
                        HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" FontFamily="Helvetica Neue"
                        FontSize="9" FontWeight="Normal" Foreground="White" />
                 <Label Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="2" Margin="0,0,0,0"  Content=""
@@ -2994,88 +2994,88 @@
                            Content="Q" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="12"
                            FontWeight="Normal" Foreground="White" MouseDown="TimeInterval_MouseDown" MouseEnter="Portfolio_MouseEnter"
                            MouseLeave="Portfolio_MouseLeave2" ToolTip="Quarterly" />
-                    <Label x:Name="AgoQ" Grid.Column="2" Padding="0,0" HorizontalAlignment="Center"
+                    <!--<Label x:Name="AgoQ" Grid.Column="2" Padding="0,0" HorizontalAlignment="Center"
                            VerticalAlignment="Top" HorizontalContentAlignment="Center" Background="Transparent" Content=""
-                           FontFamily="Helvetica Neue" FontSize="9" FontWeight="Normal" Foreground="#FF00CCFF" />
+                           FontFamily="Helvetica Neue" FontSize="9" FontWeight="Normal" Foreground="#FF00CCFF" />-->
                     <Label x:Name="TimeIntervalMonthly" Grid.Column="3" Margin="0,0,0,5" Padding="4,0"
                            HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" Background="Transparent"
                            Content="M" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="12"
                            FontWeight="Normal" Foreground="White" MouseDown="TimeInterval_MouseDown" MouseEnter="Portfolio_MouseEnter"
                            MouseLeave="Portfolio_MouseLeave2" ToolTip="Monthly" />
-                    <Label x:Name="AgoM" Grid.Column="4" Padding="0,0" HorizontalAlignment="Center"
+                    <!--<Label x:Name="AgoM" Grid.Column="4" Padding="0,0" HorizontalAlignment="Center"
                            VerticalAlignment="Top" HorizontalContentAlignment="Center" Background="Transparent" Content=""
-                           FontFamily="Helvetica Neue" FontSize="9" FontWeight="Normal" Foreground="#FF00CCFF" />
+                           FontFamily="Helvetica Neue" FontSize="9" FontWeight="Normal" Foreground="#FF00CCFF" />-->
                     <Label x:Name="TimeIntervalWeekly" Grid.Column="5" Margin="0,0,0,5" Padding="4,0"
                            HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" Background="Transparent"
                            Content="W" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="12"
                            FontWeight="Normal" Foreground="White" MouseDown="TimeInterval_MouseDown" MouseEnter="Portfolio_MouseEnter"
                            MouseLeave="Portfolio_MouseLeave2" ToolTip="Weekly" />
-                    <Label x:Name="AgoW" Grid.Column="6" Padding="0,0" HorizontalAlignment="Center"
+                    <!--<Label x:Name="AgoW" Grid.Column="6" Padding="0,0" HorizontalAlignment="Center"
                            VerticalAlignment="Top" HorizontalContentAlignment="Center" Background="Transparent" Content=""
-                           FontFamily="Helvetica Neue" FontSize="9" FontWeight="Normal" Foreground="#FF00CCFF" />
+                           FontFamily="Helvetica Neue" FontSize="9" FontWeight="Normal" Foreground="#FF00CCFF" />-->
                     <Label x:Name="TimeIntervalDaily" Grid.Column="7" Margin="0,0,0,5" Padding="4,0"
                            HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" Background="Transparent"
                            Content="D" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="12"
                            FontWeight="Normal" Foreground="White" MouseDown="TimeInterval_MouseDown" MouseEnter="Portfolio_MouseEnter"
                            MouseLeave="Portfolio_MouseLeave2" ToolTip="Daily" />
-                    <Label x:Name="AgoD" Grid.Column="8" Padding="0,0" HorizontalAlignment="Center"
+                    <!--<Label x:Name="AgoD" Grid.Column="8" Padding="0,0" HorizontalAlignment="Center"
                            VerticalAlignment="Top" HorizontalContentAlignment="Center" Background="Transparent" Content=""
-                           FontFamily="Helvetica Neue" FontSize="9" FontWeight="Normal" Foreground="#FF00CCFF" />
+                           FontFamily="Helvetica Neue" FontSize="9" FontWeight="Normal" Foreground="#FF00CCFF" />-->
                     <Label
                         x:Name="TimeInterval240" Grid.Column="9" Margin="0,0,0,5" Padding="4,0" HorizontalAlignment="Center"
                         VerticalAlignment="Center" HorizontalContentAlignment="Center" Background="Transparent" Content="240" Cursor="Hand"
                         FontFamily="Helvetica Neue" FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="TimeInterval_MouseDown"
                         MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" ToolTip="240 Min" />
-                    <Label
+                    <!--<Label
                         x:Name="Ago240" Grid.Column="10" Padding="0,0" HorizontalAlignment="Center" VerticalAlignment="Top"
                         HorizontalContentAlignment="Center" Background="Transparent" Content="" FontFamily="Helvetica Neue" FontSize="9"
-                        FontWeight="Normal" Foreground="#FF00CCFF" />
+                        FontWeight="Normal" Foreground="#FF00CCFF" />-->
                     <Label
                         x:Name="TimeInterval120" Grid.Column="11" Margin="0,0,0,5" Padding="4,0" HorizontalAlignment="Center"
                         VerticalAlignment="Center" HorizontalContentAlignment="Center" Background="Transparent" Content="120" Cursor="Hand"
                         FontFamily="Helvetica Neue" FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="TimeInterval_MouseDown"
                         MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" ToolTip="120 Min" />
-                    <Label
+                    <!--<Label
                         x:Name="Ago120" Grid.Column="12" Padding="0,0" HorizontalAlignment="Center" VerticalAlignment="Top"
                         HorizontalContentAlignment="Center" Background="Transparent" Content="" FontFamily="Helvetica Neue" FontSize="9"
-                        FontWeight="Normal" Foreground="#FF00CCFF" />
+                        FontWeight="Normal" Foreground="#FF00CCFF" />-->
                     <Label
                         x:Name="TimeInterval60" Grid.Column="13" Margin="0,0,0,5" Padding="4,0" HorizontalAlignment="Center"
                         VerticalAlignment="Center" HorizontalContentAlignment="Center" Background="Transparent" Content="60" Cursor="Hand"
                         FontFamily="Helvetica Neue" FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="TimeInterval_MouseDown"
                         MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" ToolTip="60 Min" />
-                    <Label
+                    <!--<Label
                         x:Name="Ago60" Grid.Column="14" Padding="0,0" HorizontalAlignment="Center" VerticalAlignment="Top"
                         HorizontalContentAlignment="Center" Background="Transparent" Content="" FontFamily="Helvetica Neue" FontSize="9"
-                        FontWeight="Normal" Foreground="#FF00CCFF" />
+                        FontWeight="Normal" Foreground="#FF00CCFF" />-->
                     <Label
                         x:Name="TimeInterval30" Grid.Column="15" Margin="0,0,0,5" Padding="4,0" HorizontalAlignment="Center"
                         VerticalAlignment="Center" HorizontalContentAlignment="Center" Background="Transparent" Content="30" Cursor="Hand"
                         FontFamily="Helvetica Neue" FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="TimeInterval_MouseDown"
                         MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" ToolTip="30 Min" />
-                    <Label
+                    <!--<Label
                         x:Name="Ago30" Grid.Column="16" Padding="0,0" HorizontalAlignment="Center" VerticalAlignment="Top"
                         HorizontalContentAlignment="Center" Background="Transparent" Content="" FontFamily="Helvetica Neue" FontSize="9"
-                        FontWeight="Normal" Foreground="#FF00CCFF" />
+                        FontWeight="Normal" Foreground="#FF00CCFF" />-->
 
                     <Label
                         x:Name="TimeInterval15" Grid.Column="17" Margin="0,0,0,5" Padding="4,0" HorizontalAlignment="Center"
                         VerticalAlignment="Center" HorizontalContentAlignment="Center" Background="Transparent" Content="15" Cursor="Hand"
                         FontFamily="Helvetica Neue" FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="TimeInterval_MouseDown"
                         MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" ToolTip="15 Min" />
-                    <Label
+                    <!--<Label
                         x:Name="Ago15" Grid.Column="18" Padding="0,0" HorizontalAlignment="Center" VerticalAlignment="Top"
                         HorizontalContentAlignment="Center" Background="Transparent" Content="" FontFamily="Helvetica Neue" FontSize="9"
-                        FontWeight="Normal" Foreground="#FF00CCFF" />
+                        FontWeight="Normal" Foreground="#FF00CCFF" />-->
                     <Label
                         x:Name="TimeInterval5" Grid.Column="19" Margin="0,0,0,5" Padding="4,0" HorizontalAlignment="Center"
                         VerticalAlignment="Center" HorizontalContentAlignment="Center" Background="Transparent" Content="5" Cursor="Hand"
                         FontFamily="Helvetica Neue" FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="TimeInterval_MouseDown"
                         MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" ToolTip="5 Min" />
-                    <Label
+                    <!--<Label
                         x:Name="Ago5" Grid.Column="20" Padding="0,0" HorizontalAlignment="Center" VerticalAlignment="Top"
                         HorizontalContentAlignment="Center" Background="Transparent" Content="" FontFamily="Helvetica Neue" FontSize="9"
-                        FontWeight="Normal" Foreground="#FF00CCFF" />
+                        FontWeight="Normal" Foreground="#FF00CCFF" />-->
 
                 </Grid>
 
@@ -3609,9 +3609,9 @@
                            Height="20"  Margin="0,10,0,0"  Padding="0,10,0,0" HorizontalContentAlignment="Center" Content="D"
                            FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#00CCFF"
                            ToolTip="ATM X Signal Time Frame"   />
-                    <Label Name="AgoZero" Grid.Row="0" Grid.Column="22" Visibility="Visible"
+                    <!--<Label Name="AgoZero" Grid.Row="0" Grid.Column="22" Visibility="Visible"
                            Height="20"  Margin="30,0,0,0"  Padding="0,10,0,0" HorizontalContentAlignment="Center" Content="0"
-                           FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#00CCFF" />
+                           FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#00CCFF" />-->
                     <Label Name="AgoOnePlus" Grid.Row="0" Grid.Column="22" Visibility="Collapsed"
                            Height="20"  Margin="30,0,0,0"  Padding="0,10,0,0" HorizontalContentAlignment="Center" Content="1"
                            FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#00CCFF" />
