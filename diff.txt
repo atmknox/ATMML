@@ -1,0 +1,395 @@
+diff --git a/Auth/Usermanagementwindow.xaml.cs b/Auth/Usermanagementwindow.xaml.cs
+index e18d351..e63ede4 100644
+--- a/Auth/Usermanagementwindow.xaml.cs
++++ b/Auth/Usermanagementwindow.xaml.cs
+@@ -34,13 +34,21 @@ namespace ATMML.Auth
+ 		// ─────────────────────────────────────────────────────────────────────
+ 		//  Load / refresh
+ 		// ─────────────────────────────────────────────────────────────────────
+-		private void LoadUsers()
++		private void LoadUsers(string reselectUsername = null)
+ 		{
+ 			_users = UserStore.LoadUsers()
+ 							  .OrderBy(u => u.Username)
+ 							  .ToList();
+ 			UserGrid.ItemsSource = null;
+ 			UserGrid.ItemsSource = _users;
++
++			// Restore selection (and therefore edit-panel + status message) after a refresh
++			if (!string.IsNullOrEmpty(reselectUsername))
++			{
++				var row = _users.FirstOrDefault(u =>
++					string.Equals(u.Username, reselectUsername, StringComparison.OrdinalIgnoreCase));
++				if (row != null) UserGrid.SelectedItem = row;
++			}
+ 		}
+ 
+ 		// ─────────────────────────────────────────────────────────────────────
+@@ -48,7 +56,10 @@ namespace ATMML.Auth
+ 		// ─────────────────────────────────────────────────────────────────────
+ 		private void UserGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+ 		{
+-			_isAddMode = false;
++			// If we're in the middle of adding a user, an UnselectAll() fires this event.
++			// Do not clobber _isAddMode or reset the edit panel in that case.
++			if (_isAddMode) return;
++
+ 			_selectedUser = UserGrid.SelectedItem as AppUser;
+ 
+ 			if (_selectedUser == null)
+@@ -100,14 +111,14 @@ namespace ATMML.Auth
+ 				var (ok, error) = UserStore.CreateUser(username, newPwd, role, adminName);
+ 				if (!ok) { ShowError(error); return; }
+ 
+-				ShowStatus($"User '{username}' created. They must change their password on first login.");
+-				LoadUsers();
+ 				_isAddMode = false;
++				LoadUsers(username);
++				ShowStatus($"User '{username}' created. They must change their password on first login.");
+ 			}
+ 			else
+ 			{
+ 				// ── Update existing user ──────────────────────────────────────
+-				if (_selectedUser == null) return;
++				if (_selectedUser == null) { ShowError("No user selected. Click Add User or select a row."); return; }
+ 
+ 				// Role change
+ 				if (_selectedUser.Role != role)
+@@ -130,8 +141,9 @@ namespace ATMML.Auth
+ 					if (!ok) { ShowError(error); return; }
+ 				}
+ 
++				string usernameToReselect = _selectedUser.Username;
++				LoadUsers(usernameToReselect);
+ 				ShowStatus("Changes saved.");
+-				LoadUsers();
+ 			}
+ 		}
+ 
+@@ -143,16 +155,19 @@ namespace ATMML.Auth
+ 			if (_selectedUser == null) return;
+ 			HideMessages();
+ 
+-			bool newState = !_selectedUser.IsActive;
++			string targetUsername = _selectedUser.Username;
++			bool wasActive = _selectedUser.IsActive;
++			bool newState = !wasActive;
+ 			string adminName = AuthContext.Current.Username;
+ 
+-			var (ok, error) = UserStore.SetActive(_selectedUser.Username, newState, adminName);
++			var (ok, error) = UserStore.SetActive(targetUsername, newState, adminName);
+ 			if (!ok) { ShowError(error); return; }
+ 
+-			ShowStatus(_selectedUser.IsActive
+-				? $"User '{_selectedUser.Username}' deactivated."
+-				: $"User '{_selectedUser.Username}' reactivated.");
+-			LoadUsers();
++			// Reload first so _selectedUser is refreshed, then show status so it survives
++			LoadUsers(targetUsername);
++			ShowStatus(wasActive
++				? $"User '{targetUsername}' deactivated."
++				: $"User '{targetUsername}' reactivated.");
+ 		}
+ 
+ 		// ─────────────────────────────────────────────────────────────────────
+diff --git a/Bar.cs b/Bar.cs
+index 6ca9f78..6b56ca9 100644
+--- a/Bar.cs
++++ b/Bar.cs
+@@ -2583,6 +2583,7 @@ namespace ATMML
+ 
+ 		private void initializeUpdating(string threadId, Session session, string ticker, string interval)
+ 		{
++			System.Diagnostics.Debug.WriteLine($"[RTDIAG-SUB] initializeUpdating entered: ticker={ticker} interval={interval}");
+ 			try
+ 			{
+ 				if (ticker.Length > 0)
+@@ -2608,7 +2609,7 @@ namespace ATMML
+ 					if (ok)
+ 					{
+ 						List<string> fields = new List<string>();
+-						fields.Add("LAST_PRICE");
++						fields.Add("LAST_TRADE");
+ 
+ 						List<string> options = new List<string>();
+ 						if (!historical)
+@@ -2622,6 +2623,7 @@ namespace ATMML
+ 						List<Subscription> subscriptions = new List<Subscription>();
+ 						Subscription subscription = new Subscription(security, fields, options, new CorrelationID(subscriptionKey));
+ 						subscriptions.Add(subscription);
++						System.Diagnostics.Debug.WriteLine($"[RTDIAG-SUB] session.Subscribe: security={security} fields=[{string.Join(",", fields)}] options=[{string.Join(",", options)}]");
+ 
+ 						session.Subscribe(subscriptions);
+ 					}
+@@ -2674,6 +2676,7 @@ namespace ATMML
+ 					int barCount = 0;
+ 					if (msg.MessageType.Equals(Bloomberglp.Blpapi.Name.GetName("MarketDataEvents")))
+ 					{
++						System.Diagnostics.Debug.WriteLine($"[RTDIAG-TICK] MarketDataEvents received for key={key}");
+ 						bool isBar = false;
+ 
+ 						foreach (Element field in msg.Elements)
+@@ -2686,7 +2689,7 @@ namespace ATMML
+ 									dateTime = new DateTime(dateTime.Year, dateTime.Month, dateTime.Day);
+ 									barKey = dateTime.ToString("yyyyMMdd");
+ 								}
+-								else if (field.Name.Equals("LAST_PRICE"))
++								else if (field.Name.Equals("LAST_PRICE") || field.Name.Equals("LAST_TRADE"))
+ 								{
+ 									close = field.GetValueAsFloat64();
+ 								}
+diff --git a/Portfolio Builder.cs b/Portfolio Builder.cs
+index 326a87b..8ad520f 100644
+--- a/Portfolio Builder.cs	
++++ b/Portfolio Builder.cs	
+@@ -115,7 +115,7 @@ namespace ATMML
+ 		private DateTime _lastGridRefreshTime = DateTime.MinValue;
+ 		private DateTime _lastPerfCursorTime = default(DateTime); // last cursor time user explicitly set on perf chart
+ 		private double _liveMtMBalance = 0.0; // cached live MtM balance, updated by drawPortfolioGrid
+-		private Dictionary<string, (double price, DateTime ts)> _rtPrices = new Dictionary<string, (double, DateTime)>(); // PRICE_LAST_RT per ticker — timestamped for 3-min TTL
++		private Dictionary<string, (double price, DateTime ts)> _rtPrices = new Dictionary<string, (double, DateTime)>(); // PX_LAST per ticker — timestamped for 3-min TTL
+ 		private HashSet<string> _pendingRtTickers = new HashSet<string>(); // tickers waiting for Symbol event before RT subscribe
+ 		private Dictionary<string, double> _lastKnownPrices = new Dictionary<string, double>(); // latest prices from drawPortfolioGrid
+ 		DispatcherTimer _portfolioTimer = new DispatcherTimer();
+@@ -124,7 +124,7 @@ namespace ATMML
+ 		private Stopwatch _doubleClickStopwatch = null;
+ 
+ 		Portfolio _portfolio1 = new Portfolio(7);
+-		Portfolio _livePortfolio = new Portfolio(47); // dedicated instance for PRICE_LAST_RT subscriptions
++		Portfolio _livePortfolio = new Portfolio(47); // dedicated instance for PX_LAST subscriptions
+ 		Dictionary<string, int> _sizes = new Dictionary<string, int>();
+ 
+ 		Portfolio _filterPortfolio = new Portfolio(41);
+@@ -325,6 +325,9 @@ namespace ATMML
+ 			hideNavigation();
+ 			showView();
+ 			loadModel();
++			// Subscribe RT prices for the loaded live portfolio on startup
++			Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded,
++				new Action(() => { try { subscribeLivePortfolioRtPrices(); } catch { } }));
+ 			highlightStats();
+ 			highlightSectors();
+ 
+@@ -2978,7 +2981,9 @@ namespace ATMML
+ 
+ 		private void barChanged(object sender, BarEventArgs e)
+ 		{
+-			if (e.Type == BarEventArgs.EventType.BarsReceived)
++			// BarsReceived = initial historical load; BarsUpdated = live streaming update.
++			// Must handle BOTH so live price changes propagate to the grid/balance.
++			if (e.Type == BarEventArgs.EventType.BarsReceived || e.Type == BarEventArgs.EventType.BarsUpdated)
+ 			{
+ 				string ticker = e.Ticker;
+ 				string interval = e.Interval;
+@@ -3007,6 +3012,7 @@ namespace ATMML
+ 					{
+ 						if (model.IsLiveMode)
+ 						{
++							System.Diagnostics.Debug.WriteLine($"[RTDIAG-BAR] Bar update: {ticker}:{interval} at {DateTime.Now:HH:mm:ss}");
+ 							// Trigger grid redraw on bar updates — but do NOT overwrite _portfolioTimes
+ 							// from bar dates; rebalance dates are loaded from saved data in loadModel()
+ 							// and must not be replaced with daily/weekly bar timestamps
+@@ -3736,12 +3742,14 @@ namespace ATMML
+ 			{
+ 				bool okToRequestIndexBars = false;
+ 
++				System.Diagnostics.Debug.WriteLine($"[RTDIAG-P1] portfolio1 RefData ticker='{e.Ticker}' keys=[{string.Join(",", e.ReferenceData.Keys)}]");
+ 				foreach (KeyValuePair<string, object> kvp in e.ReferenceData)
+ 				{
+ 					string name = kvp.Key;
+ 					string value = kvp.Value as string;
++					System.Diagnostics.Debug.WriteLine($"[RTDIAG-P1]   {e.Ticker} key='{name}' val='{kvp.Value}'");
+ 					// Store live RT price for portfolio balance calculation
+-					if (name == "PRICE_LAST_RT")
++					if (name == "PX_LAST")
+ 					{
+ 						if (kvp.Value is double rtPx && rtPx > 0)
+ 						{
+@@ -3841,22 +3849,33 @@ namespace ATMML
+ 		{
+ 			if (e.Type == PortfolioEventType.Symbol)
+ 			{
+-				// Symbol registered — now safe to subscribe RT reference data
+-				bool pending = false;
+-				lock (_pendingRtTickers)
++				// Symbol events are bulk-level ("portfolio membership changed"); e.Ticker is empty.
++				// Enumerate the now-registered symbols and issue RequestReferenceData for any
++				// that are in our _pendingRtTickers set.
++				var registered = _livePortfolio.GetSymbols();
++				System.Diagnostics.Debug.WriteLine($"[RTDIAG] Symbol event: eTicker='{e.Ticker}' registered={registered.Count}");
++				foreach (var sym in registered)
+ 				{
+-					pending = _pendingRtTickers.Remove(e.Ticker);
+-				}
+-				if (pending)
+-				{
+-					_livePortfolio.RequestReferenceData(e.Ticker, new[] { "PRICE_LAST_RT" }, true);
++					var tk = sym.Ticker;
++					if (string.IsNullOrEmpty(tk)) continue;
++					bool pending;
++					lock (_pendingRtTickers) { pending = _pendingRtTickers.Remove(tk); }
++					if (pending)
++					{
++						System.Diagnostics.Debug.WriteLine($"[RTDIAG] Issuing RequestReferenceData PX_LAST for {tk}");
++						_livePortfolio.RequestReferenceData(tk, new[] { "PX_LAST" }, true);
++					}
+ 				}
+ 			}
+ 			else if (e.Type == PortfolioEventType.ReferenceData)
+ 			{
++				// DIAG: Confirm ReferenceData events are arriving at all
++				System.Diagnostics.Debug.WriteLine($"[RTDIAG] RefData event: ticker={e.Ticker} keys=[{string.Join(",", e.ReferenceData.Keys)}]");
+ 				foreach (KeyValuePair<string, object> kvp in e.ReferenceData)
+ 				{
+-					if (kvp.Key == "PRICE_LAST_RT")
++					// DIAG: Show every key/value so we see what field names Bloomberg is sending
++					System.Diagnostics.Debug.WriteLine($"[RTDIAG]   {e.Ticker} key='{kvp.Key}' val='{kvp.Value}' type={kvp.Value?.GetType().Name}");
++					if (kvp.Key == "PX_LAST")
+ 					{
+ 						double px = double.NaN;
+ 						if (kvp.Value is double d && d > 0) px = d;
+@@ -3866,13 +3885,56 @@ namespace ATMML
+ 						if (!double.IsNaN(px))
+ 						{
+ 							lock (_rtPrices) { _rtPrices[e.Ticker] = (px, DateTime.Now); }
++							System.Diagnostics.Debug.WriteLine($"[RTDIAG] STORED {e.Ticker} = {px:F4} at {DateTime.Now:HH:mm:ss.fff}");
+ 							_update = 500;
+ 						}
++						else
++						{
++							System.Diagnostics.Debug.WriteLine($"[RTDIAG] PX_LAST unparseable for {e.Ticker}: val='{kvp.Value}'");
++						}
+ 					}
+ 				}
+ 			}
+ 		}
+ 
++		// Subscribe PX_LAST for every ticker currently held in the live portfolio.
++		// Called whenever a live portfolio is loaded (via changeUserFactorModel) so that
++		// real-time balance updates flow without requiring the user to run the optimizer.
++		private void subscribeLivePortfolioRtPrices()
++		{
++			try
++			{
++				var model = getModel();
++				System.Diagnostics.Debug.WriteLine($"[RTDIAG] subscribeLivePortfolioRtPrices entered: model={(model==null?"NULL":model.Name)} IsLive={model?.IsLiveMode} BBConn={BarServer.ConnectedToBloomberg()}");
++				if (model == null) { System.Diagnostics.Debug.WriteLine("[RTDIAG] abort: model null"); return; }
++				if (!model.IsLiveMode) { System.Diagnostics.Debug.WriteLine("[RTDIAG] abort: model not live"); return; }
++				if (!BarServer.ConnectedToBloomberg()) { System.Diagnostics.Debug.WriteLine("[RTDIAG] abort: Bloomberg disconnected"); return; }
++
++				var trades = _portfolio1.GetTrades(model.Name);
++				System.Diagnostics.Debug.WriteLine($"[RTDIAG] _portfolio1.GetTrades({model.Name}) -> {(trades==null?"null":trades.Count.ToString())} trades");
++				if (trades == null) { System.Diagnostics.Debug.WriteLine("[RTDIAG] abort: trades null"); return; }
++
++				var liveTickers = trades
++					.Select(t => t.Ticker)
++					.Where(t => !string.IsNullOrEmpty(t))
++					.Distinct()
++					.ToList();
++				System.Diagnostics.Debug.WriteLine($"[RTDIAG] Distinct tickers to subscribe: {liveTickers.Count} first5=[{string.Join(",", liveTickers.Take(5))}]");
++
++				foreach (var ticker in liveTickers)
++				{
++					// Request bars with live-update flag TRUE (5th param). This routes through
++					// Bar.initializeUpdating which calls Bloomberg session.Subscribe on //blp/mktbar
++					// for streaming live bar updates. barChanged fires when prices update,
++					// triggering _update = 500 which refreshes the grid and balance labels.
++					_barCache.RequestBars(ticker, "Daily",  true, BarServer.MaxBarCount, true);
++					_barCache.RequestBars(ticker, "Weekly", true, BarServer.MaxBarCount, true);
++				}
++				System.Diagnostics.Debug.WriteLine($"[RTDIAG] Subscribed {liveTickers.Count} tickers to live bar updates");
++			}
++			catch (Exception exRt) { System.Diagnostics.Debug.WriteLine($"[RTDIAG] EXCEPTION in subscribeLivePortfolioRtPrices: {exRt}"); }
++		}
++
+ 		DateTime _fundamentalResponseTime = DateTime.Now;
+ 
+ 		/// <summary>
+@@ -3999,10 +4061,25 @@ namespace ATMML
+ 			if (portfolio.Count == 0) return;
+ 
+ 			double livePnL = 0.0;
++			bool loggedSample = false;
+ 			foreach (var liveTrade in portfolio)
+ 			{
+ 				var lt = liveTrade.Ticker;
+ 				double livePx = getCurrentPrice(lt);
++				if (!loggedSample && lt != null && lt.StartsWith("NVDA"))
++				{
++					// Also look up the raw weekly/daily bar close directly, bypassing the price cache
++					var wb = _barCache.GetBars(lt, "Weekly", 0, 3);
++					var wbClose = wb?.LastOrDefault(b => b.Close > 0)?.Close ?? double.NaN;
++					var wbTime = wb?.LastOrDefault(b => b.Close > 0)?.Time ?? default;
++					var db = _barCache.GetBars(lt, "Daily", 0, 3);
++					var dbClose = db?.LastOrDefault(b => b.Close > 0)?.Close ?? double.NaN;
++					var dbTime = db?.LastOrDefault(b => b.Close > 0)?.Time ?? default;
++					bool lkpHas = false; double lkpVal = 0;
++					lock (_lastKnownPrices) { lkpHas = _lastKnownPrices.TryGetValue(lt, out lkpVal); }
++					System.Diagnostics.Debug.WriteLine($"[RTDIAG-PX] {lt}: livePx={livePx:F4} wkClose={wbClose:F4}@{wbTime:MM-dd} dyClose={dbClose:F4}@{dbTime:MM-dd} lkpHas={lkpHas} lkpVal={lkpVal:F4}");
++					loggedSample = true;
++				}
+ 				if (double.IsNaN(livePx) || livePx <= 0) continue;
+ 
+ 				// Reference price = time2 close (most recent rebalance, e.g. Apr 3)
+@@ -4033,6 +4110,7 @@ namespace ATMML
+ 			}
+ 
+ 			double liveMtM = baseBalance + livePnL;
++			System.Diagnostics.Debug.WriteLine($"[RTDIAG-BAL] refreshLiveBalance: base={baseBalance:F0} livePnL={livePnL:F0} liveMtM={liveMtM:F0}");
+ 			if (liveMtM > 0)
+ 			{
+ 				_liveMtMBalance = liveMtM;
+@@ -4354,8 +4432,9 @@ namespace ATMML
+ 						_barRequests.Add(ticker + ":Weekly");
+ 						_barCache.RequestBars(ticker, "Weekly", true);
+ 						// RequestSymbols establishes Bloomberg session; once Symbol event fires,
+-						// livePortfolioChanged calls RequestReferenceData for PRICE_LAST_RT
++						// livePortfolioChanged calls RequestReferenceData for PX_LAST
+ 						lock (_pendingRtTickers) { _pendingRtTickers.Add(ticker); }
++						System.Diagnostics.Debug.WriteLine($"[RTDIAG] RequestSymbols for {ticker} (Bloomberg connected={BarServer.ConnectedToBloomberg()})");
+ 						_livePortfolio.RequestSymbols(ticker, Portfolio.PortfolioType.Single, false);
+ 					}
+ 				}
+@@ -4414,6 +4493,7 @@ namespace ATMML
+ 			{
+ 				_lastGridRefreshTime = DateTime.Now;
+ 				var m = getModel();
++				System.Diagnostics.Debug.WriteLine($"[RTDIAG-TIMER] 10s tick: model={m?.Name} IsLive={m?.IsLiveMode} BBConn={BarServer.ConnectedToBloomberg()}");
+ 				if (m != null && m.IsLiveMode && BarServer.ConnectedToBloomberg())
+ 				{
+ 					var liveTrades = _portfolio1.GetTrades(m.Name);
+@@ -4430,6 +4510,7 @@ namespace ATMML
+ 				// Only redraw grid/balance when viewing live date -- don't disturb historical cursor.
+ 				// IsViewingLive() handles intra-week: last Friday cursor IS the live view.
+ 				bool viewingLive = IsViewingLive(activeCursor);
++				System.Diagnostics.Debug.WriteLine($"[RTDIAG-TIMER] activeCursor={activeCursor:yyyy-MM-dd} viewingLive={viewingLive} PerfGridVis={PerformanceGrid.Visibility}");
+ 				if (viewingLive)
+ 				{
+ 					// Only recalculate live prices when Bloomberg is connected.
+@@ -4437,6 +4518,7 @@ namespace ATMML
+ 					// previous session as "current" prices, producing wrong PnL and balance.
+ 					if (BarServer.ConnectedToBloomberg())
+ 					{
++						System.Diagnostics.Debug.WriteLine("[RTDIAG-TIMER] Calling drawPortfolioGrid and refreshLiveBalance");
+ 						drawPortfolioGrid();
+ 						refreshLiveBalance();
+ 					}
+@@ -8721,7 +8803,7 @@ namespace ATMML
+ 
+ 		private double getCurrentPrice(string symbol)
+ 		{
+-			// RT tick price from PRICE_LAST_RT subscription — 3-minute TTL prevents a lapsed
++			// RT tick price from PX_LAST subscription — 3-minute TTL prevents a lapsed
+ 			// subscription from masking fresher bar-cache closes indefinitely.
+ 			lock (_rtPrices)
+ 			{
+@@ -13560,6 +13642,9 @@ namespace ATMML
+ 				updateStrategyTree();
+ 				hideChart();
+ 
++				// Kick off real-time price subscriptions for the newly loaded live portfolio
++				subscribeLivePortfolioRtPrices();
++
+ 				_initializing = false;
+ 			}
+ 			_update = 20;

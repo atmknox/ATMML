@@ -182,7 +182,7 @@
                     </Grid>
 
 
-                    <Grid Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Visible">
+                    <Grid Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Visible" >
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="40" />
@@ -326,7 +326,7 @@
 
             <!--big background-->
             <Grid x:Name="UserFactorModelGrid" Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
-                  Grid.ColumnSpan="2" Margin="0,35,0,0" Background="Transparent" Visibility="Visible">
+                  Grid.ColumnSpan="2" Margin="0,35,0,0" Background="Transparent" Visibility="Collapsed">
 
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="80" />
@@ -2393,8 +2393,8 @@
             </Grid>
 
             <!--New Trades-->
-            <Grid x:Name="RebalanceSideNav" Grid.Row="1" Grid.Column="0" Margin="1,1,0,0" 
-                  Visibility="Collapsed">
+            <Grid x:Name="RebalanceSideNav" Grid.Row="1" Grid.Column="0" Margin="1,1,0,0" Background="Transparent" 
+                  Visibility="Visible">
 
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="130" />
@@ -2429,7 +2429,7 @@
                 </Grid.RowDefinitions>
 
                 <!--left rect-->
-                <Rectangle Grid.Row="1" Grid.RowSpan="24" Width="128" Margin="0,0,0,0" Fill="Black"
+                <Rectangle Grid.Row="1" Grid.RowSpan="14" Width="128" Margin="0,0,0,0" Fill="Transparent"
                            Stroke="#FF124b72" StrokeThickness="1" />
 
                 <Rectangle Grid.Row="1" Width="125" Height="1" Margin="5,0,5,0"
@@ -2444,10 +2444,30 @@
                        HorizontalAlignment="Left" VerticalAlignment="Center" Content="Portfolios" FontFamily="Helvetica Neue"
                        FontSize="10" FontWeight="Normal" Foreground="PaleGreen" />
 
-                <ListBox x:Name="UserFactorModelPanel3" Grid.Row="1" Grid.RowSpan="24" Grid.Column="0"
-                         Margin="1,0,0,0" Background="Black" BorderBrush="Transparent" BorderThickness="2"
+                <ListBox x:Name="UserFactorModelPanel3" Grid.Row="1" Grid.RowSpan="14" Grid.Column="0"
+                         Margin="1,0,0,0" Background="blue" BorderBrush="Transparent" BorderThickness="2"
                          FontFamily="Helvetica Neue" FontSize="11" Foreground="White" SelectionChanged="UserFactorModel_SelectionChanged"
                          Visibility="Visible" />
+
+                <Grid x:Name="AlertsPanel" Grid.Row="15" Grid.Column="0" Margin="1,12,0,0" Background="Green" Grid.RowSpan="12"
+                        Visibility="Visible">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="130" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="25" />
+                        <RowDefinition Height="25" />
+                        <RowDefinition Height="25" />
+                        <RowDefinition Height="25" />
+                        <RowDefinition Height="25" />
+                        <RowDefinition Height="25" />
+                        <RowDefinition Height="25" />
+                        <RowDefinition Height="25" />
+                        <RowDefinition Height="25" />
+                    </Grid.RowDefinitions>
+                </Grid>
 
                 <Grid Name="MLScenario" Grid.Row="13" Grid.RowSpan="3" Width="130"
                       Margin="0,0,0,0" Visibility="Collapsed">
@@ -2482,6 +2502,7 @@
                            Content="C1 | C0" FontFamily="Helvetica Neue" FontSize="11" Foreground="#FF00CCFF" />
                 </Grid>
 
+
                 <Grid Grid.Row="13" Grid.Column="0" Grid.ColumnSpan="4"  Margin="1,0,0,0" Grid.RowSpan="2" Visibility="Hidden"
                          HorizontalAlignment="Center">
                     <Grid.RowDefinitions>
@@ -2515,6 +2536,8 @@
                            Background="Black" FontFamily="Helvetica Neue" FontSize="10" Foreground="#BDBDBD" />
 
                 </Grid>
+
+
 
                 <!--<Rectangle Grid.Row="14" Width="125" Height="1" Margin="5,0,5,0" Grid.RowSpan="2"
                            VerticalAlignment="Bottom" Fill="Transparent" Stroke="#FF124b72" StrokeThickness="1" />-->
@@ -2700,9 +2723,10 @@
                             HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent" Content="FT | SC"
                             FontFamily="Helvetica Neue" FontSize="10" Foreground="#00ccff" />
                 </Grid>
+
             </Grid>
 
-            <Grid x:Name="RebalanceChartGrid" Grid.Row="1" Grid.Column="1" Visibility="Collapsed">
+            <Grid x:Name="RebalanceChartGrid" Grid.Row="1" Grid.Column="1" Visibility="Visible">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="67*" />
                     <RowDefinition Height="50*" />
@@ -3343,7 +3367,7 @@
             </Grid>
 
             <Grid x:Name="PerformanceSideNav" Grid.Row="1" Grid.Column="0" Margin="0,0,0,0" 
-                  Visibility="Collapsed">
+                  Visibility="Visible">
 
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="130" />
@@ -3374,7 +3398,6 @@
                     <RowDefinition Height="25" />
                     <RowDefinition Height="25" />
                     <RowDefinition Height="25" />
-
                     <RowDefinition Height="25" />
                 </Grid.RowDefinitions>
 
@@ -3395,7 +3418,7 @@
                        Background="Transparent" Content="Portfolios" FontFamily="Helvetica Neue" FontSize="10"
                        Foreground="PaleGreen" />
 
-                <ListBox x:Name="UserFactorModelPanel2" Grid.Row="1" Grid.RowSpan="24" Grid.Column="0"
+                <ListBox x:Name="UserFactorModelPanel2" Grid.Row="1" Grid.RowSpan="12" Grid.Column="0"
                          Margin="4,3,1,1" Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
                          FontFamily="Helvetica Neue" FontSize="11" Foreground="White" SelectionChanged="UserFactorModel_SelectionChanged"
                          Visibility="Visible" />
@@ -3423,7 +3446,7 @@
                 <ListBox x:Name="UserFactorModelPanelRes3" Grid.Row="16" Grid.RowSpan="10" Grid.Column="0"
                          Grid.ColumnSpan="2" Margin="1,1,0,0" Background="Transparent" BorderBrush="Transparent"
                          FontFamily="Helvetica Neue" FontSize="9" Foreground="Red" SelectionChanged="UserFactorModel_SelectionChanged"
-                         Visibility="Visible" />
+                         Visibility="Collapsed" />
 
                 <Grid Grid.Row="14" Grid.RowSpan="11" Margin="1,15,0,0" Visibility="Collapsed"  >
                     <Grid.RowDefinitions>

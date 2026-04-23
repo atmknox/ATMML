@@ -34,13 +34,21 @@ namespace ATMML.Auth
 		// ─────────────────────────────────────────────────────────────────────
 		//  Load / refresh
 		// ─────────────────────────────────────────────────────────────────────
-		private void LoadUsers()
+		private void LoadUsers(string reselectUsername = null)
 		{
 			_users = UserStore.LoadUsers()
 							  .OrderBy(u => u.Username)
 							  .ToList();
 			UserGrid.ItemsSource = null;
 			UserGrid.ItemsSource = _users;
+
+			// Restore selection (and therefore edit-panel + status message) after a refresh
+			if (!string.IsNullOrEmpty(reselectUsername))
+			{
+				var row = _users.FirstOrDefault(u =>
+					string.Equals(u.Username, reselectUsername, StringComparison.OrdinalIgnoreCase));
+				if (row != null) UserGrid.SelectedItem = row;
+			}
 		}
 
 		// ─────────────────────────────────────────────────────────────────────
@@ -48,7 +56,10 @@ namespace ATMML.Auth
 		// ─────────────────────────────────────────────────────────────────────
 		private void UserGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
 		{
-			_isAddMode = false;
+			// If we're in the middle of adding a user, an UnselectAll() fires this event.
+			// Do not clobber _isAddMode or reset the edit panel in that case.
+			if (_isAddMode) return;
+
 			_selectedUser = UserGrid.SelectedItem as AppUser;
 
 			if (_selectedUser == null)
@@ -100,14 +111,14 @@ namespace ATMML.Auth
 				var (ok, error) = UserStore.CreateUser(username, newPwd, role, adminName);
 				if (!ok) { ShowError(error); return; }
 
-				ShowStatus($"User '{username}' created. They must change their password on first login.");
-				LoadUsers();
 				_isAddMode = false;
+				LoadUsers(username);
+				ShowStatus($"User '{username}' created. They must change their password on first login.");
 			}
 			else
 			{
 				// ── Update existing user ──────────────────────────────────────
-				if (_selectedUser == null) return;
+				if (_selectedUser == null) { ShowError("No user selected. Click Add User or select a row."); return; }
 
 				// Role change
 				if (_selectedUser.Role != role)
@@ -130,8 +141,9 @@ namespace ATMML.Auth
 					if (!ok) { ShowError(error); return; }
 				}
 
+				string usernameToReselect = _selectedUser.Username;
+				LoadUsers(usernameToReselect);
 				ShowStatus("Changes saved.");
-				LoadUsers();
 			}
 		}
 
@@ -143,16 +155,19 @@ namespace ATMML.Auth
 			if (_selectedUser == null) return;
 			HideMessages();
 
-			bool newState = !_selectedUser.IsActive;
+			string targetUsername = _selectedUser.Username;
+			bool wasActive = _selectedUser.IsActive;
+			bool newState = !wasActive;
 			string adminName = AuthContext.Current.Username;
 
-			var (ok, error) = UserStore.SetActive(_selectedUser.Username, newState, adminName);
+			var (ok, error) = UserStore.SetActive(targetUsername, newState, adminName);
 			if (!ok) { ShowError(error); return; }
 
-			ShowStatus(_selectedUser.IsActive
-				? $"User '{_selectedUser.Username}' deactivated."
-				: $"User '{_selectedUser.Username}' reactivated.");
-			LoadUsers();
+			// Reload first so _selectedUser is refreshed, then show status so it survives
+			LoadUsers(targetUsername);
+			ShowStatus(wasActive
+				? $"User '{targetUsername}' deactivated."
+				: $"User '{targetUsername}' reactivated.");
 		}
 
 		// ─────────────────────────────────────────────────────────────────────

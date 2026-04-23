@@ -189,6 +189,25 @@ namespace ATMML
 		private double _alertEqStress10 = 0;  // |portfolio PnL| if market moves ±10%
 		private bool _alertDataValid = false;  // true after first successful loadPortfolioInfo
 
+		// Live RT price pipeline — mirrors Portfolio_Builder.cs exactly.
+		// _liveRtPortfolio is a DEDICATED Portfolio instance (NOT Timing's main _portfolio)
+		// used only for PRICE_LAST_RT subscriptions. PB uses Portfolio(47); Timing uses 48.
+		// Flow: loadPortfolioInfo adds ticker to _pendingRtTickers + calls RequestSymbols.
+		//       liveRtPortfolioChanged gets Symbol event → calls RequestReferenceData.
+		//       liveRtPortfolioChanged gets ReferenceData event with PRICE_LAST_RT → populates _rtPrices.
+		// liveMtM compute reads _rtPrices directly.
+		private Portfolio _liveRtPortfolio = new Portfolio(48);
+		private Dictionary<string, (double price, DateTime ts)> _rtPrices = new Dictionary<string, (double, DateTime)>(StringComparer.OrdinalIgnoreCase);
+		private HashSet<string> _rtSubscribedTickers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		private HashSet<string> _pendingRtTickers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+		// Idempotent bar subscription tracking — prevents the 30s loadPortfolioInfo
+		// cycle from re-issuing RequestBars for the same (ticker,interval). Each
+		// RequestBars call queues a Bloomberg HistoricalDataRequest (1 quota point).
+		// Without this gate: 54 tickers × 2 intervals × 120 cycles/hr × 8 hrs ≈ 104k/day.
+		// With this gate: ~108 one-time subscribes per session, then zero.
+		private HashSet<string> _subscribedBarTickers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
 		private const double _limitMVaR95Pct = 0.15;  // 15%  max single-position component VaR as % of portfolio VaR
 		private const double _limitIdioRiskMin = 0.70;  // 70%  minimum idiosyncratic risk fraction
 		private const double _limitEqStress5 = 0.02;  // 2.0% max portfolio loss if market ±5%
@@ -669,6 +688,7 @@ namespace ATMML
 			initializeCharts();
 
 			_portfolio.PortfolioChanged += new PortfolioChangedEventHandler(portfolioChanged);
+			_liveRtPortfolio.PortfolioChanged += new PortfolioChangedEventHandler(liveRtPortfolioChanged);
 			_barCache = new BarCache(barChanged);
 
 			loadPortfolioInfo();
@@ -1088,10 +1108,38 @@ namespace ATMML
 
 			// Subscribe daily bars for all portfolio tickers so barCache stays current.
 			// Also subscribe Weekly for intraday price updates during market hours.
+			// Idempotent gate: each (ticker,interval) subscribes ONCE per Timing session.
+			// Without this, this loop ran 120x/hr × 108 calls each = ~104k Bloomberg
+			// historical requests/day, burning 30-40% of the daily quota while Timing
+			// was left open.
 			foreach (var t in trades.Select(tr => tr.Ticker).Distinct())
 			{
-				_barCache.RequestBars(t, "D", true, 10);
-				_barCache.RequestBars(t, "Weekly", true, 5);
+				var dKey = t + ":D";
+				var wKey = t + ":Weekly";
+				if (_subscribedBarTickers.Add(dKey)) _barCache.RequestBars(t, "D", true, 10);
+				if (_subscribedBarTickers.Add(wKey)) _barCache.RequestBars(t, "Weekly", true, 5);
+			}
+
+			// Subscribe each ticker ONCE per session to PRICE_LAST_RT stream.
+			// Uses the exact 2-step pattern from Portfolio_Builder.cs line 4358:
+			//   1. Add to _pendingRtTickers + RequestSymbols (registers ticker with Bloomberg session)
+			//   2. On Symbol event (in liveRtPortfolioChanged), call RequestReferenceData for PRICE_LAST_RT
+			// RequestReferenceData with subscribe=true establishes persistent live stream.
+			// Without this, BarCache weekly/daily bars don't tick intraday and liveMtM would freeze.
+			if (BarServer.ConnectedToBloomberg())
+			{
+				foreach (var tk in trades.Select(tr => tr.Ticker).Distinct())
+				{
+					if (_rtSubscribedTickers.Add(tk))  // Add returns true only if newly added
+					{
+						try
+						{
+							lock (_pendingRtTickers) { _pendingRtTickers.Add(tk); }
+							_liveRtPortfolio.RequestSymbols(tk, Portfolio.PortfolioType.Single, false);
+						}
+						catch { /* isolated — don't block the rest of loadPortfolioInfo */ }
+					}
+				}
 			}
 
 			// Compute portfolioBalance at time2.
@@ -1293,6 +1341,92 @@ namespace ATMML
 							: symbol.Volatility30D.Last().Value;
 						// Volatility30D is annualised % (e.g. 25.0 = 25%) — convert to decimal
 						volatility[ticker] = vol30 / 100.0;
+					}
+				}
+
+				// Compute live MtM NAV from current RT prices and publish to LiveNav_
+				// so Balance2 stays current. Primary source: _rtPrices (populated by
+				// PRICE_LAST_RT stream in portfolioChanged). Fallback: bar cache (stale
+				// intraday but better than nothing if RT stream hasn't populated yet).
+				// Zero Bloomberg cost — all dictionary lookups.
+				if (isLiveDate && time2 != default(DateTime) && model != null
+					&& portfolioValues != null && portfolioValues.Count > 0
+					&& BarServer.ConnectedToBloomberg())
+				{
+					var baseIdx = portfolioTimes.FindIndex(x => x.Date == time2.Date);
+					if (baseIdx == -1) baseIdx = portfolioTimes.FindLastIndex(x => x.Date <= time2.Date);
+					if (baseIdx == -1 || baseIdx >= portfolioValues.Count) baseIdx = portfolioValues.Count - 1;
+					double baseNav = (baseIdx >= 0)
+						? model.InitialPortfolioBalance * (1 + portfolioValues[baseIdx] / 100)
+						: 0.0;
+
+					if (baseNav > 0)
+					{
+						double livePnL = 0.0;
+						foreach (var lt in trades)
+						{
+							var tk = lt.Ticker;
+							// Reference price = close at time2 (last settled Friday)
+							var refKey = lt.Closes.Keys.FirstOrDefault(k => k.Date == time2.Date);
+							double refPx = refKey != default(DateTime) ? lt.Closes[refKey] : double.NaN;
+							if (double.IsNaN(refPx))
+							{
+								// Fallback: search bar cache for a bar dated at time2
+								var refBars = _barCache.GetBars(tk, "Weekly", 0, 50);
+								var refBar = refBars?.LastOrDefault(b => b != null && b.Time.Date == time2.Date);
+								refPx = (refBar != null && refBar.Close > 0) ? refBar.Close : double.NaN;
+							}
+							if (double.IsNaN(refPx) || refPx <= 0) continue;
+
+							// Live price — prefer _rtPrices (live PRICE_LAST_RT ticks),
+							// fall back to latest bar close if RT not yet populated.
+							// RT freshness window: 10 min (covers normal market hours).
+							double livePx = double.NaN;
+							lock (_rtPrices)
+							{
+								if (_rtPrices.TryGetValue(tk, out var rtEntry)
+									&& rtEntry.price > 0
+									&& (DateTime.Now - rtEntry.ts).TotalMinutes <= 10)
+								{
+									livePx = rtEntry.price;
+								}
+							}
+							if (double.IsNaN(livePx) || livePx <= 0)
+							{
+								// Fallback 1: Weekly bar latest close
+								var liveBars = _barCache.GetBars(tk, "Weekly", 0, 5);
+								if (liveBars != null && liveBars.Count > 0)
+								{
+									var lastBar = liveBars.LastOrDefault(b => b != null && b.Close > 0);
+									if (lastBar != null) livePx = lastBar.Close;
+								}
+							}
+							if (double.IsNaN(livePx) || livePx <= 0)
+							{
+								// Fallback 2: Daily bar latest close
+								var dailyBars = _barCache.GetBars(tk, "D", 0, 5);
+								if (dailyBars != null && dailyBars.Count > 0)
+								{
+									var lastBar = dailyBars.LastOrDefault(b => b != null && b.Close > 0);
+									if (lastBar != null) livePx = lastBar.Close;
+								}
+							}
+							if (double.IsNaN(livePx) || livePx <= 0) continue;
+
+							double sharesVal = shares.ContainsKey(tk) ? shares[tk] : 0;
+							if (sharesVal == 0) continue;
+
+							int ldir = Math.Sign((int)lt.Direction);
+							livePnL += ldir * sharesVal * (livePx - refPx);
+						}
+
+						double liveMtM = baseNav + livePnL;
+						if (liveMtM > 0)
+						{
+							_mainView.SetInfo("LiveNav_" + (_portfolioModelName ?? getPortfolioName()),
+								liveMtM.ToString("R"));
+							portfolioBalance = liveMtM;  // refresh local so Balance2 reflects fresh MtM
+						}
 					}
 				}
 
@@ -2640,6 +2774,7 @@ namespace ATMML
 				{
 					string name = kvp.Key;
 					object value = kvp.Value;
+
 					if (name == "CUR_MKT_CAP")
 					{
 						// Strip date prefix e.g. "2012-12-1252731.0753" → "52731.0753"
@@ -2727,6 +2862,57 @@ namespace ATMML
 						}
 					}
 					calculateColors(true);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Handler for _liveRtPortfolio (the dedicated PRICE_LAST_RT subscription Portfolio instance).
+		/// Mirrors Portfolio_Builder.cs livePortfolioChanged at line 3840 exactly.
+		/// Two-step flow:
+		///   1. PortfolioEventType.Symbol fires when RequestSymbols registers a ticker with Bloomberg.
+		///      We check _pendingRtTickers and, if the ticker is pending, call RequestReferenceData
+		///      to subscribe to the PRICE_LAST_RT field (subscribe=true establishes persistent stream).
+		///   2. PortfolioEventType.ReferenceData fires whenever Bloomberg pushes a PRICE_LAST_RT tick.
+		///      We parse the price and populate _rtPrices[ticker] with a timestamp.
+		/// The liveMtM compute in loadPortfolioInfo reads _rtPrices directly.
+		/// </summary>
+		void liveRtPortfolioChanged(object sender, PortfolioEventArgs e)
+		{
+			if (e.Type == PortfolioEventType.Symbol)
+			{
+				// Symbol registered — now safe to subscribe RT reference data
+				bool pending = false;
+				lock (_pendingRtTickers)
+				{
+					pending = _pendingRtTickers.Remove(e.Ticker);
+				}
+				if (pending)
+				{
+					try
+					{
+						_liveRtPortfolio.RequestReferenceData(e.Ticker, new[] { "PRICE_LAST_RT" }, true);
+					}
+					catch { /* isolated */ }
+				}
+			}
+			else if (e.Type == PortfolioEventType.ReferenceData)
+			{
+				foreach (KeyValuePair<string, object> kvp in e.ReferenceData)
+				{
+					if (kvp.Key == "PRICE_LAST_RT")
+					{
+						double px = double.NaN;
+						if (kvp.Value is double d && d > 0) px = d;
+						else if (double.TryParse(kvp.Value?.ToString(),
+							System.Globalization.NumberStyles.Any,
+							System.Globalization.CultureInfo.InvariantCulture,
+							out double parsed) && parsed > 0) px = parsed;
+						if (!double.IsNaN(px))
+						{
+							lock (_rtPrices) { _rtPrices[e.Ticker] = (px, DateTime.Now); }
+						}
+					}
 				}
 			}
 		}
@@ -7927,6 +8113,16 @@ namespace ATMML
 			Trade.Manager.TradeEvent -= new TradeEventHandler(TradeEvent);  // event
 
 			_portfolio.PortfolioChanged -= new PortfolioChangedEventHandler(portfolioChanged);
+
+			// Cleanup for live RT price pipeline added v3. Detach handler and close
+			// the dedicated Portfolio instance so its Bloomberg PRICE_LAST_RT subscriptions
+			// are released. Without this, each Timing session leaks ~54 live subscriptions.
+			_liveRtPortfolio.PortfolioChanged -= new PortfolioChangedEventHandler(liveRtPortfolioChanged);
+			try { _liveRtPortfolio.Close(); } catch { /* best effort */ }
+			lock (_rtPrices) { _rtPrices.Clear(); }
+			lock (_pendingRtTickers) { _pendingRtTickers.Clear(); }
+			_rtSubscribedTickers.Clear();
+			_subscribedBarTickers.Clear();
 
 			//List<Alert> alerts = Alert.Manager.Alerts;
 			//foreach (Alert alert in alerts)

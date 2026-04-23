@@ -9396,19 +9396,10 @@ namespace ATMML
 
 			if (isViewer)
 			{
-				// Viewer sees only Portfolio Performance for LIVE portfolios (same layout as Compliance)
 				if (TISetup        != null) TISetup.Visibility        = C;
 				if (TIPositions22 != null) TIPositions22.Visibility   = C;
-				if (PerformanceGrid    != null) PerformanceGrid.Visibility    = V;
+				if (PerformanceGrid    != null) PerformanceGrid.Visibility    = C;
 				if (PerformanceSideNav != null) PerformanceSideNav.Visibility = C;
-				if (PositionsChartBorder   != null) PositionsChartBorder.Visibility   = V;
-				if (TotalReturnChartBorder != null) TotalReturnChartBorder.Visibility = V;
-				if (ReturnTable            != null) ReturnTable.Visibility            = V;
-				if (PortSetup3 != null) PortSetup3.Visibility = C;
-				if (OrderMgm3  != null) OrderMgm3.Visibility  = C;
-				if (PortPerf3  != null) { PortPerf3.Visibility = V; PortPerf3.Margin = tightMargin; }
-				Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded,
-					new Action(() => { try { drawReturnChart(); } catch { } }));
 				return;
 			}
 
@@ -9418,17 +9409,9 @@ namespace ATMML
 				if (TIPositions22 != null) TIPositions22.Visibility = C;
 				if (PerformanceGrid != null) PerformanceGrid.Visibility = V;
 				if (PerformanceSideNav != null) PerformanceSideNav.Visibility = C;
-				// Compliance lands on Performance view directly, so the chart borders that
-				// are normally shown by Performance_MouseDown must be made visible here
-				if (PositionsChartBorder   != null) PositionsChartBorder.Visibility   = V;
-				if (TotalReturnChartBorder != null) TotalReturnChartBorder.Visibility = V;
-				if (ReturnTable            != null) ReturnTable.Visibility            = V;
 				if (PortSetup3 != null) PortSetup3.Visibility = C;
 				if (OrderMgm3  != null) OrderMgm3.Visibility  = C;
 				if (PortPerf3  != null) { PortPerf3.Visibility = V; PortPerf3.Margin = tightMargin; }
-				// Trigger chart draw after the layout settles
-				Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded,
-					new Action(() => { try { drawReturnChart(); } catch { } }));
 				return;
 			}
 
@@ -11515,7 +11498,7 @@ namespace ATMML
 			header.PreviewMouseDown += (s, e) => e.Handled = true;
 			var tb = new TextBlock();
 			tb.Text = text;
-			tb.Foreground = Brushes.Silver;
+			tb.Foreground = Brushes.White;
 			tb.FontFamily = new FontFamily("Helvetica Neue");
 			tb.FontSize = 11;
 			tb.FontWeight = FontWeights.Normal;
