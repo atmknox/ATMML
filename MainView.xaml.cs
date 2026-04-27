@@ -12,6 +12,8 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace ATMML
@@ -1609,6 +1611,85 @@ namespace ATMML
 			_research["Outside"] = new Dictionary<string, Research>();
 			Loaded += MainViewLoaded;
 			_startTime = DateTime.Now;
+
+			// Show a spinner placeholder IMMEDIATELY so the user sees feedback
+			// right after login. PB construction (~1-3s of XAML parse + file I/O)
+			// is deferred to a post-render dispatcher tick so the black window
+			// with spinner paints first. When PB is ready we swap Content — the
+			// background stays black throughout, so there's no flash.
+			// Guard: only the primary MainView gets this treatment. Auxiliary
+			// MainViews spawned by displayView (Admin multi-screen) set their
+			// own Content directly and must not be overridden here.
+			if (!_primaryConstructed)
+			{
+				_primaryConstructed = true;
+				this.Content = BuildSpinnerPlaceholder();
+				// Use ApplicationIdle priority: the dispatcher processes pending
+				// input, layout, render, AND animation frames before picking up
+				// ApplicationIdle work. Guarantees the spinner paints AND ticks
+				// a few frames before PB construction begins on the UI thread.
+				// Note: once PB construction starts, the UI thread is blocked
+				// until it completes, so the spinner freezes during that period.
+				// The visible spin beforehand gives the user clear feedback that
+				// the app is loading.
+				this.Dispatcher.BeginInvoke(
+					DispatcherPriority.ApplicationIdle,
+					new Action(() => { this.Content = new PortfolioBuilder(this); }));
+			}
+		}
+
+		private static bool _primaryConstructed = false;
+
+		/// <summary>
+		/// Builds a black full-window panel with a rotating arc spinner in the
+		/// centre. Used as the initial Content so the window paints instantly
+		/// while PortfolioBuilder is being constructed.
+		/// </summary>
+		private Grid BuildSpinnerPlaceholder()
+		{
+			var root = new Grid { Background = Brushes.Black };
+
+			// Arc spinner — a 270° arc drawn via Path geometry. An asymmetric
+			// arc makes the rotation visible (a symmetric dashed circle rotating
+			// around its centre shows no apparent motion). Path is centred at
+			// (28, 28) inside a 56×56 bounding box with a 22px radius.
+			var arc = new System.Windows.Shapes.Path
+			{
+				Stroke = new SolidColorBrush(Color.FromRgb(0x00, 0xCC, 0xFF)),
+				StrokeThickness = 8,
+				StrokeStartLineCap = PenLineCap.Round,
+				StrokeEndLineCap = PenLineCap.Round,
+				Width = 56,
+				Height = 56,
+				HorizontalAlignment = HorizontalAlignment.Center,
+				VerticalAlignment = VerticalAlignment.Center,
+				RenderTransformOrigin = new Point(0.5, 0.5),
+				Data = Geometry.Parse("M 28,6 A 22,22 0 1 1 6,28"),
+				// Start: angle 0° (top, 12 o'clock). End: angle 270° (9 o'clock, arcing clockwise through 3 and 6).
+				// Leaves a 90° gap from 9 o'clock back to 12 — the "mouth" of the spinner.
+			};
+			var rotate = new RotateTransform(0);
+			arc.RenderTransform = rotate;
+
+			// Start the animation AFTER the arc is added to the visual tree.
+			// Calling BeginAnimation on a RotateTransform whose target Path
+			// hasn't been loaded yet can register but not tick — WPF's property
+			// engine needs the element "live" for the animation clock to run.
+			// The Loaded event on the arc fires once when it's first realized.
+			arc.Loaded += (_, __) =>
+			{
+				var spin = new DoubleAnimation
+				{
+					From = 0,
+					To = 360,
+					Duration = TimeSpan.FromSeconds(1.0),
+					RepeatBehavior = RepeatBehavior.Forever
+				};
+				rotate.BeginAnimation(RotateTransform.AngleProperty, spin);
+			};
+
+			root.Children.Add(arc);
+			return root;
 		}
 
 		private void loadResearch(string name)
@@ -1671,7 +1752,13 @@ namespace ATMML
 
 		private void displayView()
 		{
-			int screenCount = 1; // System.Windows.Forms.Screen.AllScreens.Length;
+			// Auxiliary windows on secondary screens are Admin-only.
+			// Non-admin roles get a clean single-window experience (which aligns
+			// with the Blazor port target — server-rendered, one window per session).
+			// Note: screenCount=1 + (screenCount - 1) means the loop is currently inert;
+			// the Admin gate is added for when multi-screen spawn is re-enabled.
+			bool isAdmin = ATMML.Auth.AuthContext.Current.IsAdmin;
+			int screenCount = isAdmin ? 1 : 0; // System.Windows.Forms.Screen.AllScreens.Length;
 			for (int ii = 0; ii < screenCount - 1; ii++)
 			{
 				MainView mv = new MainView();
@@ -1703,7 +1790,9 @@ namespace ATMML
 
 			_progressTime = DateTime.Now;
 
-			this.Content = new LandingPage(this); // Opening View
+			// Content is now assigned in MainView's constructor (before Show)
+			// to eliminate the white-flash on login. Auxiliary MainViews spawned
+			// above set their own Content (MarketMonitor / PB) in the spawn loop.
 			this.UpdateLayout();
 		}
 

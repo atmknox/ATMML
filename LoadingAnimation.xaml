@@ -48,7 +48,7 @@
                     <RotateTransform x:Name="SpinnerRotate" Angle="0" />
                 </Canvas.RenderTransform>
                 <Canvas.Triggers>
-                    <EventTrigger RoutedEvent="ContentControl.Loaded">
+                    <EventTrigger RoutedEvent="FrameworkElement.Loaded">
                         <BeginStoryboard>
                             <Storyboard>
                                 <DoubleAnimation Storyboard.TargetName="SpinnerRotate" 

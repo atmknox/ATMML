@@ -41,8 +41,10 @@ namespace ATMML.Auth
 		// ── Portfolio Management sub-buttons ──────────────────────────────────
 		// Admin only
 		public bool CanAccessPortfolioSetup => IsAdmin;
-		// Admin, PortfolioManager, Trader
-		public bool CanAccessOrderManagement => IsAuthenticated && _user.Role >= UserRole.Trader;
+		// Admin, PortfolioManager, Trader, Compliance (Compliance is read-only — see CanRunPortfolio / CanSendOrdersToFlexOne for write gates)
+		public bool CanAccessOrderManagement => IsAuthenticated
+													 && (_user.Role >= UserRole.Trader
+														 || _user.Role == UserRole.Compliance);
 		// Admin, PortfolioManager, Trader, Compliance
 		public bool CanAccessPortfolioPerformance => IsAuthenticated;
 

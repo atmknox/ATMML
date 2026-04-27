@@ -115,7 +115,7 @@ namespace ATMML
 		private DateTime _lastGridRefreshTime = DateTime.MinValue;
 		private DateTime _lastPerfCursorTime = default(DateTime); // last cursor time user explicitly set on perf chart
 		private double _liveMtMBalance = 0.0; // cached live MtM balance, updated by drawPortfolioGrid
-		private Dictionary<string, (double price, DateTime ts)> _rtPrices = new Dictionary<string, (double, DateTime)>(); // PRICE_LAST_RT per ticker — timestamped for 3-min TTL
+		private Dictionary<string, (double price, DateTime ts)> _rtPrices = new Dictionary<string, (double, DateTime)>(); // PX_LAST per ticker — timestamped for 20-sec TTL
 		private HashSet<string> _pendingRtTickers = new HashSet<string>(); // tickers waiting for Symbol event before RT subscribe
 		private Dictionary<string, double> _lastKnownPrices = new Dictionary<string, double>(); // latest prices from drawPortfolioGrid
 		DispatcherTimer _portfolioTimer = new DispatcherTimer();
@@ -124,7 +124,7 @@ namespace ATMML
 		private Stopwatch _doubleClickStopwatch = null;
 
 		Portfolio _portfolio1 = new Portfolio(7);
-		Portfolio _livePortfolio = new Portfolio(47); // dedicated instance for PRICE_LAST_RT subscriptions
+		Portfolio _livePortfolio = new Portfolio(47); // dedicated instance for PX_LAST live-price subscriptions
 		Dictionary<string, int> _sizes = new Dictionary<string, int>();
 
 		Portfolio _filterPortfolio = new Portfolio(41);
@@ -152,6 +152,32 @@ namespace ATMML
 		private double _lastNetExposure = 0;
 		private double _lastLongExposure = 0;
 		private double _lastShortExposure = 0;
+
+		// ── Alert engine state (moved from Timing) ───────────────────────────
+		// Populated in step 3 once buildAlertSnapshot / updateAlerts are wired
+		// into PB's live-price refresh loop. Until then these stay inert —
+		// nothing reads them and no code path touches _alertController.
+		private AlertController _alertController;
+		private AlertComputeResult _latestAlerts;
+		private readonly AlertLimits _limits = AlertLimits.Default;
+
+		// Intraday drawdown baseline — captured on first refresh of each
+		// trading day; drives IntradayDD alert via (NAV - openNAV) / openNAV.
+		private double _navAtSessionStart = 0;
+		private DateTime _navSessionDate = DateTime.MinValue;
+
+		// Ticker → market cap in millions USD. Populated from Bloomberg
+		// CUR_MKT_CAP reference data; consumed by cap-tier aggregation.
+		private readonly Dictionary<string, double> _marketCapCache = new Dictionary<string, double>();
+
+		// Idempotent bar-subscription gate — prevents per-tick resubscribes
+		// to _barCache for ADV-history bars when updateAlerts runs repeatedly.
+		private readonly HashSet<string> _subscribedBarTickers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		// Gates _livePortfolio.RequestSymbols — a ticker registered once stays
+		// registered for the session, so re-firing on model switches is wasted
+		// quota (and triggers duplicate downstream RequestReferenceData). Same
+		// pattern as Timing.xaml.cs _rtSubscribedTickers.
+		private readonly HashSet<string> _rtSubscribedTickers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
 		private string SnapshotModelParams(Model model)
 		{
@@ -349,7 +375,12 @@ namespace ATMML
 
 		private void _mainReturnGraph_PropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
-			showRebalanceGrid();
+			// Clicking/dragging the return graph sets the holdings cursor.
+			// Only switch to Order Management for roles that can access it —
+			// Viewer lacks OM access entirely, so for Viewer we just update
+			// the cursor without switching views.
+			if (ATMML.Auth.AuthContext.Current.CanAccessOrderManagement)
+				showRebalanceGrid();
 			setHoldingsCursorTime(_mainReturnGraph.CursorTime);
 		}
 
@@ -1766,14 +1797,58 @@ namespace ATMML
 							tb1.MouseLeftButtonDown += TradeDateClicked;
 							DataGridColumnDtd.Children.Add(tb1);
 
-							// Col 2  Sector
+							// Col 2  Sector / Industry / Sub-Industry  (depends on _activeLabel)
+							// Self-healing: when the cached symbol classification is blank or 0
+							// (some tickers were saved before Bloomberg classification fields were
+							// available), re-fetch from _portfolio1 and write back to the symbol so
+							// the value persists with the model. Also fires an async Bloomberg
+							// re-request via RefreshClassification — won't fix this render, but the
+							// next render (or next click on the active label) will pick up the data.
 							TextBlock tbSECT = new TextBlock();
 							var name = "";
-							int sectorNumber;
 							if (symbol != null)
 							{
-								int.TryParse(symbol.Sector, out sectorNumber);
-								name = _portfolio1.GetSectorLabel(sectorNumber);
+								int code;
+								switch (_activeLabel)
+								{
+									case "Industry":
+										if (string.IsNullOrEmpty(symbol.Industry) || symbol.Industry == "0")
+										{
+											var fresh = _portfolio1.GetIndustry(ticker);
+											if (!string.IsNullOrEmpty(fresh) && fresh != "0")
+												symbol.Industry = fresh;
+											else
+												_portfolio1.RefreshClassification(ticker);
+										}
+										int.TryParse(symbol.Industry, out code);
+										name = _portfolio1.GetIndustryLabel(code);
+										break;
+									case "SubIndustry":
+										if (string.IsNullOrEmpty(symbol.SubIndustry) || symbol.SubIndustry == "0")
+										{
+											var fresh = _portfolio1.GetSubIndustry(ticker);
+											if (!string.IsNullOrEmpty(fresh) && fresh != "0")
+												symbol.SubIndustry = fresh;
+											else
+												_portfolio1.RefreshClassification(ticker);
+										}
+										int.TryParse(symbol.SubIndustry, out code);
+										name = _portfolio1.GetSubIndustryLabel(code);
+										break;
+									case "Sector":
+									default:
+										if (string.IsNullOrEmpty(symbol.Sector) || symbol.Sector == "0")
+										{
+											var fresh = _portfolio1.GetSector(ticker);
+											if (!string.IsNullOrEmpty(fresh) && fresh != "0")
+												symbol.Sector = fresh;
+											else
+												_portfolio1.RefreshClassification(ticker);
+										}
+										int.TryParse(symbol.Sector, out code);
+										name = _portfolio1.GetSectorLabel(code);
+										break;
+								}
 							}
 							tbSECT.Text = name;
 							tbSECT.HorizontalAlignment = HorizontalAlignment.Left;
@@ -2102,9 +2177,14 @@ namespace ATMML
 
 					//PortfolioBeta.Content = FormattableString.Invariant($"{beta:0.00}");
 
-					// Use live balance only when cursor is on today
-					bool isLiveNow = _showHoldingsTime == default(DateTime) || _showHoldingsTime.Date >= DateTime.Today;
-					if (_liveMtMBalance > 0 && time2.Date == DateTime.Today && isLiveNow)
+					// Use live balance whenever the cursor is viewing the live state
+					// (today, projected next rebalance, or last settled Friday — IsViewingLive
+					// covers all three). The old `time2.Date == DateTime.Today` gate was
+					// too strict: on a Monday with cursor anchored to last Friday, time2 = 4/24
+					// and that gate was always false, so the divisor used for exposure ratios
+					// stayed at last Friday's settled NAV instead of today's live MtM.
+					var model_isLiveMode = model?.IsLiveMode ?? false;
+					if (_liveMtMBalance > 0 && model_isLiveMode && IsViewingLive(time2))
 						portfolioBalance = _liveMtMBalance;
 
 					var grossInvestment = (longAmount + shortAmount) / portfolioBalance;
@@ -2234,10 +2314,15 @@ namespace ATMML
 
 			// Request bars for both intervals immediately -- each chart
 			// is independent and will populate as its bars arrive.
+			// Idempotent gate: same (ticker, interval) subscribes once per
+			// PB session. Chart bars update via live subscription, not
+			// repeated RequestBars calls.
 			if (!string.IsNullOrEmpty(ticker))
 			{
-				_barCache.RequestBars(ticker, gotoInterval1, true);
-				_barCache.RequestBars(ticker, gotoInterval2, true);
+				var k1 = ticker + ":" + gotoInterval1;
+				var k2 = ticker + ":" + gotoInterval2;
+				if (_subscribedBarTickers.Add(k1)) _barCache.RequestBars(ticker, gotoInterval1, true);
+				if (_subscribedBarTickers.Add(k2)) _barCache.RequestBars(ticker, gotoInterval2, true);
 			}
 
 			var model = getModel();
@@ -3740,8 +3825,8 @@ namespace ATMML
 				{
 					string name = kvp.Key;
 					string value = kvp.Value as string;
-					// Store live RT price for portfolio balance calculation
-					if (name == "PRICE_LAST_RT")
+					// Store live last price for portfolio balance calculation
+					if (name == "PX_LAST")
 					{
 						if (kvp.Value is double rtPx && rtPx > 0)
 						{
@@ -3849,14 +3934,24 @@ namespace ATMML
 				}
 				if (pending)
 				{
-					_livePortfolio.RequestReferenceData(e.Ticker, new[] { "PRICE_LAST_RT" }, true);
+					// Delayed-entitlement last price — PX_LAST is fetched as a one-shot
+					// (subscribe=false) because Bloomberg does not stream PX_LAST on
+					// delayed entitlements; subscribe=true delivers a 3-4 value handshake
+					// burst then goes silent. Continuous freshness is provided by the
+					// per-ticker poll loop in Timer_tick's 10-second block.
+					_livePortfolio.RequestReferenceData(e.Ticker, new[] { "PX_LAST" }, false);
+
+					// Market cap is a slow reference field; one-shot fetch (false) avoids
+					// throttling the RT price stream when bundled with it. Populates
+					// _marketCapCache once for cap-tier alert aggregation.
+					_livePortfolio.RequestReferenceData(e.Ticker, new[] { "CUR_MKT_CAP" }, false);
 				}
 			}
 			else if (e.Type == PortfolioEventType.ReferenceData)
 			{
 				foreach (KeyValuePair<string, object> kvp in e.ReferenceData)
 				{
-					if (kvp.Key == "PRICE_LAST_RT")
+					if (kvp.Key == "PX_LAST")
 					{
 						double px = double.NaN;
 						if (kvp.Value is double d && d > 0) px = d;
@@ -3867,6 +3962,23 @@ namespace ATMML
 						{
 							lock (_rtPrices) { _rtPrices[e.Ticker] = (px, DateTime.Now); }
 							_update = 500;
+						}
+					}
+					else if (kvp.Key == "CUR_MKT_CAP")
+					{
+						// Bloomberg returns millions USD. Occasionally prefixed with
+						// a date stamp "YYYY-MM-DD<value>" — strip before parsing.
+						// Matches Timing's handler at line 2778-2785 verbatim.
+						var text = kvp.Value?.ToString() ?? "";
+						if (text.Length > 10 && text[4] == '-' && text[7] == '-')
+							text = text.Substring(10);
+						if (!string.IsNullOrEmpty(text) &&
+							double.TryParse(text,
+								System.Globalization.NumberStyles.Any,
+								System.Globalization.CultureInfo.InvariantCulture,
+								out double capM) && capM > 0)
+						{
+							lock (_marketCapCache) { _marketCapCache[e.Ticker] = capM; }
 						}
 					}
 				}
@@ -3906,7 +4018,7 @@ namespace ATMML
 				if (settledNav <= 0) return;
 				_liveMtMBalance = settledNav;
 				_mainView.SetInfo("LiveNav_" + model.Name, settledNav.ToString("R"));
-				if (IsViewingLive(_showHoldingsTime))
+				if (IsViewingLive(_showHoldingsTime) || IsViewingLive(_lastPerfCursorTime))
 				{
 					Balance.Content  = "$ " + settledNav.ToString("#,##0");
 					Balance2.Content = "$ " + settledNav.ToString("#,##0");
@@ -4005,16 +4117,33 @@ namespace ATMML
 				double livePx = getCurrentPrice(lt);
 				if (double.IsNaN(livePx) || livePx <= 0) continue;
 
-				// Reference price = time2 close (most recent rebalance, e.g. Apr 3)
+				// Reference price for live PnL: the close at time2 (last settled Friday).
+				// Two paths, both lenient — strict equality used to fail silently and
+				// collapse the entire portfolio's livePnL to zero:
+				//
+				//   1. liveTrade.Closes — IC-populated dict keyed by historical close
+				//      dates. Use "<=" not "==" so a trade whose Closes dict wasn't
+				//      updated for the latest Friday (e.g. unchanged-position carryover)
+				//      still finds its prior Friday close.
+				//
+				//   2. Bar cache fallback — find the most recent bar with Time strictly
+				//      BEFORE today. This survives both weekly-bar conventions
+				//      (Mon-anchored: bar at 4/20, Fri-anchored: bar at 4/24) AND avoids
+				//      the live partial bar whose Close is updated with each delayed
+				//      print. The old `b.Time.Date == time2.Date` check failed silently
+				//      under start-of-week conventions, leaving fridayPx=NaN and every
+				//      position skipping via `continue` — chart goes flat at 3:30 PM
+				//      with prices clearly different from Friday's close.
 				var fridayKey = liveTrade.Closes.Keys
-					.Where(k => k.Date == time2.Date)
+					.Where(k => k.Date <= time2.Date)
 					.OrderByDescending(k => k).FirstOrDefault();
-				double fridayPx = fridayKey != default(DateTime) ? liveTrade.Closes[fridayKey] : double.NaN;
+				double fridayPx = (fridayKey != default(DateTime) && liveTrade.Closes[fridayKey] > 0)
+					? liveTrade.Closes[fridayKey] : double.NaN;
 				if (double.IsNaN(fridayPx))
 				{
 					var fridayBars = _barCache.GetBars(lt, _ic?.GetLowestInterval() ?? "Weekly", 0, 500);
-					var fridayBar = fridayBars?.LastOrDefault(b => b.Time.Date == time2.Date);
-					fridayPx = (fridayBar != null && fridayBar.Close > 0) ? fridayBar.Close : double.NaN;
+					var fridayBar = fridayBars?.LastOrDefault(b => b.Time.Date < DateTime.Today && b.Close > 0);
+					fridayPx = (fridayBar != null) ? fridayBar.Close : double.NaN;
 				}
 				if (double.IsNaN(fridayPx) || fridayPx <= 0) continue;
 
@@ -4040,14 +4169,405 @@ namespace ATMML
 				// LiveClosingNav save removed — caused feedback loop where a bad save
 				// becomes next cycle's baseBalance, cascading the portfolio toward zero.
 				// baseBalance now always comes from portfolioValues (IC authoritative).
-				// Only push to Balance labels when viewing today (not a historical date)
-				if (IsViewingLive(_showHoldingsTime))
+				// Push to Balance labels when EITHER cursor (holdings or perf) is at a
+				// live date. Previous gate only checked _showHoldingsTime, which left
+				// Balance frozen when user was on the Performance grid with the holdings
+				// cursor at a stale historical date — _liveMtMBalance updated correctly
+				// but never reached the labels.
+				if (IsViewingLive(_showHoldingsTime) || IsViewingLive(_lastPerfCursorTime))
 				{
 					Balance.Content = "$ " + liveMtM.ToString("#,##0");
 					Balance2.Content = "$ " + liveMtM.ToString("#,##0");
 					Balance3.Content = liveMtM.ToString("##,##0");
 				}
 			}
+		}
+
+		// ── Alert engine integration (step 3) ─────────────────────────────────
+		// buildAlertSnapshot: synthesises AlertPortfolioInput from PB's live state
+		// (positions, prices, beta/vol from Symbol metadata, ADV from bar cache,
+		// market cap from _marketCapCache). Does NOT compute anything — pure
+		// data assembly. The engine does all the math.
+		//
+		// updateAlerts: calls buildAlertSnapshot, passes to the engine, caches
+		// the result in _latestAlerts and pokes _alertController (step 8 creates
+		// it; until then it's null and ForceRefresh is skipped).
+		//
+		// Step 4 will hook updateAlerts() into Timer_tick's 10-second block.
+		// Step 3b will plumb CUR_MKT_CAP into livePortfolioChanged so market
+		// cap tiers populate. Until then positions map to MarketCapTier.Unknown
+		// and cap-tier alerts sit at 0 (healthy).
+
+		private AlertPortfolioInput buildAlertSnapshot()
+		{
+			var model = getModel();
+			if (model == null) return null;
+			if (_portfolioTimes == null || _portfolioTimes.Count == 0) return null;
+			var time2 = _portfolioTimes.LastOrDefault();
+			if (time2 == default(DateTime)) return null;
+
+			var trades = _portfolio1.GetTrades(model.Name, "", time2);
+			if (trades == null) trades = new List<Trade>();
+
+			// NAV: prefer live MtM when available; fall back to stored balance.
+			// Matches the pattern used at line 797 (isViewingLiveDate ? _liveMtMBalance : getPortfolioBalance).
+			double nav = _liveMtMBalance > 0 ? _liveMtMBalance : getPortfolioBalance(time2);
+
+			// Intraday DD baseline — capture on first refresh of each trading day.
+			// Mirrors Timing's logic at line 1511: update when day has rolled or
+			// baseline was never captured. Guarded by nav > 0 so we don't anchor
+			// the baseline to a zero reading during startup.
+			if ((_navSessionDate.Date != DateTime.Today || _navAtSessionStart <= 0) && nav > 0)
+			{
+				_navAtSessionStart = nav;
+				_navSessionDate    = DateTime.Today;
+			}
+
+			// Idempotently subscribe daily bars (25-bar window for 20-day ADV calc).
+			// Gate key is "ticker:interval" so each (ticker, interval) pair subscribes
+			// exactly once per PB session. Without this, per-tick resubscription
+			// burns ~30% of the Bloomberg daily quota for a ~100-ticker portfolio.
+			// Matches Timing's idempotent pattern at line 1117-1120 of Timing.xaml.cs.
+			if (_barCache != null && BarServer.ConnectedToBloomberg())
+			{
+				foreach (var tk in trades.Select(tr => tr.Ticker).Distinct())
+				{
+					var dKey = tk + ":D";
+					if (_subscribedBarTickers.Add(dKey))
+						_barCache.RequestBars(tk, "D", true, 25);
+				}
+			}
+
+			// Aggregates
+			double longDollars = 0, shortDollars = 0;
+			var sectorNet     = new Dictionary<string, double>();
+			var sectorGross   = new Dictionary<string, double>();
+			var industryNet   = new Dictionary<string, double>();
+			var industryGross = new Dictionary<string, double>();
+			var subIndNet     = new Dictionary<string, double>();
+			var subIndGross   = new Dictionary<string, double>();
+			var positions     = new List<AlertPositionInput>(trades.Count);
+
+			string dateKey = time2.ToString("yyyy-MM-dd");
+
+			foreach (var trade in trades)
+			{
+				// Skip exited positions (Direction ±3). They remain in the trades
+				// list for display purposes but contribute nothing to exposure —
+				// same filter drawPortfolioGrid uses at line 1399.
+				if (Math.Abs((int)trade.Direction) == 3) continue;
+
+				string ticker = trade.Ticker;
+				if (string.IsNullOrEmpty(ticker)) continue;
+
+				// Shares as of the snapshot time. Exact-match first, then fall back
+				// to the latest key on or before time2 with non-zero shares. Matches
+				// drawPortfolioGrid's fallback pattern (line 1381-1388).
+				double sharesAbs = 0;
+				if (trade.Shares != null && trade.Shares.Count > 0)
+				{
+					if (trade.Shares.ContainsKey(time2) && trade.Shares[time2] != 0)
+					{
+						sharesAbs = Math.Abs(trade.Shares[time2]);
+					}
+					else
+					{
+						var sk = trade.Shares.Keys
+							.Where(k => k <= time2 && trade.Shares[k] != 0)
+							.OrderByDescending(k => k).FirstOrDefault();
+						if (sk != default(DateTime))
+							sharesAbs = Math.Abs(trade.Shares[sk]);
+					}
+				}
+				if (sharesAbs <= 0) continue;
+
+				// Live price via PB's standard multi-layer fallback:
+				// RT tick → _lastKnownPrices → weekly bar → daily bar → Trade.Manager.
+				double curPx = getCurrentPrice(ticker);
+				if (double.IsNaN(curPx) || curPx <= 0) continue;
+
+				int dir = Math.Sign((int)trade.Direction);
+				if (dir == 0) continue;
+
+				double posDollar = curPx * sharesAbs;      // always positive
+				double signed    = dir * posDollar;        // long + / short −
+
+				if (dir > 0) longDollars  += posDollar;
+				else         shortDollars += posDollar;
+
+				// Beta, vol, GICS labels from Symbol metadata
+				var symbol = model.Symbols?.Find(x => x.Ticker == ticker);
+
+				double beta      = 1.0;
+				double annVolDec = 0;
+				if (symbol != null)
+				{
+					if (symbol.Beta != null && symbol.Beta.Count > 0)
+					{
+						beta = symbol.Beta.ContainsKey(dateKey)
+							? symbol.Beta[dateKey]
+							: symbol.Beta.Last().Value;
+					}
+					if (symbol.Volatility30D != null && symbol.Volatility30D.Count > 0)
+					{
+						double vol30 = symbol.Volatility30D.ContainsKey(dateKey)
+							? symbol.Volatility30D[dateKey]
+							: symbol.Volatility30D.Last().Value;
+						annVolDec = vol30 / 100.0;   // engine expects decimal
+					}
+
+					int.TryParse(symbol.Sector,      out int sectorNumber);
+					int.TryParse(symbol.Industry,    out int industryNumber);
+					int.TryParse(symbol.SubIndustry, out int subIndustryNumber);
+
+					AddBucket(sectorNet,   sectorGross,
+						_portfolio1.GetSectorLabel(sectorNumber), signed, posDollar);
+					AddBucket(industryNet, industryGross,
+						_portfolio1.GetIndustryLabel(industryNumber), signed, posDollar);
+					AddBucket(subIndNet,   subIndGross,
+						_portfolio1.GetSubIndustryLabel(subIndustryNumber), signed, posDollar);
+				}
+
+				// ADV: position shares vs 20-day average daily volume
+				double advPct = 0;
+				if (_barCache != null)
+				{
+					var dailyBars = _barCache.GetBars(ticker, "D", 0, 25);
+					if (dailyBars != null && dailyBars.Count >= 5)
+					{
+						double avgVol = dailyBars.Skip(Math.Max(0, dailyBars.Count - 20))
+							.Where(b => b.Volume > 0).Select(b => b.Volume).DefaultIfEmpty(0).Average();
+						if (avgVol > 0)
+							advPct = sharesAbs / avgVol;
+					}
+				}
+
+				// Market cap tier — populated by step 3b via CUR_MKT_CAP reference
+				// data. Until then the cache is empty and tier = Unknown for all
+				// positions; engine skips Unknown from cap aggregation.
+				MarketCapTier tier = MarketCapTier.Unknown;
+				lock (_marketCapCache)
+				{
+					if (_marketCapCache.TryGetValue(ticker, out double capM))
+					{
+						double capB = capM / 1000.0;   // millions → billions
+						if      (capB > 5.0) tier = MarketCapTier.Large;
+						else if (capB > 1.0) tier = MarketCapTier.Mid;
+						else if (capB > 0.5) tier = MarketCapTier.Small;
+					}
+				}
+
+				positions.Add(new AlertPositionInput(
+					Ticker:        ticker,
+					SignedDollars: signed,
+					Beta:          beta,
+					AnnualVol:     annVolDec,
+					AdvPct:        advPct,
+					CapTier:       tier));
+			}
+
+			// Portfolio annualised vol (percent units — matches getAnnVol's
+			// convention and the engine's AnnualisedPortfolioVolPercent contract).
+			double annVolPct = double.NaN;
+			var volList = getAnnVol();
+			if (volList != null && volList.Count > 0)
+				annVolPct = volList[volList.Count - 1];
+
+			return new AlertPortfolioInput(
+				NAV:                           nav,
+				OpenNAV:                       _navAtSessionStart,
+				LongDollars:                   longDollars,
+				ShortDollars:                  shortDollars,
+				AnnualisedPortfolioVolPercent: annVolPct,
+				Positions:                     positions,
+				SectorNetDollars:              sectorNet,
+				SectorGrossDollars:            sectorGross,
+				IndustryNetDollars:            industryNet,
+				IndustryGrossDollars:          industryGross,
+				SubIndustryNetDollars:         subIndNet,
+				SubIndustryGrossDollars:       subIndGross);
+		}
+
+		/// <summary>Accumulate a signed amount into net and gross bucket dicts.</summary>
+		private static void AddBucket(
+			Dictionary<string, double> netDict,
+			Dictionary<string, double> grossDict,
+			string bucketName,
+			double signedDollars,
+			double absDollars)
+		{
+			if (string.IsNullOrEmpty(bucketName)) return;
+			if (double.IsNaN(signedDollars) || double.IsNaN(absDollars)) return;
+
+			if (netDict.ContainsKey(bucketName)) netDict[bucketName] += signedDollars;
+			else                                  netDict[bucketName]  = signedDollars;
+
+			if (grossDict.ContainsKey(bucketName)) grossDict[bucketName] += absDollars;
+			else                                    grossDict[bucketName]  = absDollars;
+		}
+		/// <summary>
+		/// Rolls up child alert circle colors to category header circles.
+		/// A category header turns Red if any child is Red; Lime otherwise.
+		/// Acknowledged (Yellow) children do NOT propagate, matching Timing's behavior.
+		/// Call immediately after _alertController.ForceRefresh().
+		/// </summary>
+		private void UpdateCategoryCircles()
+		{
+			var categories = new (Button Header, Button[] Children)[]
+			{
+				(BtnCatConnectivity,   new[] { BtnFlexOne, BtnBloomberg }),
+				(BtnCatPortfolioConst, new[] { BtnMktNeutral, BtnVolNeutral }),
+				(BtnCatExposure,       new[] { BtnIntradayDD, BtnUtilization, BtnGrossBook,
+											   BtnNetExposure, BtnMaxPosition }),
+				(BtnCatConcentration,  new[] { BtnTop5Long, BtnTop5Short,
+											   BtnTop10Long, BtnTop10Short }),
+				(BtnCatLiquidity,      new[] { BtnADV20, BtnADV50, BtnADV100, BtnLiqVaR95 }),
+				(BtnCatMktCap,         new[] { BtnLargeCapGross, BtnLargeCapNet,
+											   BtnMidCapGross,   BtnMidCapNet,
+											   BtnSmallCapGross, BtnSmallCapNet }),
+				(BtnCatRisk,           new[] { BtnMaxVaR95, BtnMaxPredVol, BtnCVaR95,
+												   BtnMVaR95, BtnIdioRisk,
+												   BtnEqStress5, BtnEqStress10 }),
+			};
+
+			foreach (var (header, children) in categories)
+			{
+				if (header == null) continue;
+				bool anyRed = children.Any(b =>
+					b != null && b.Foreground is SolidColorBrush sb && sb.Color == Colors.Red);
+				header.Foreground = anyRed ? Brushes.Red : Brushes.Lime;
+			}
+		}
+
+		private void updateAlerts()
+		{
+			var snap = buildAlertSnapshot();
+			if (snap == null) return;
+			_latestAlerts = PortfolioAlertEngine.Compute(snap, _limits);
+			_alertController?.ForceRefresh();
+			UpdateCategoryCircles();          // ← new
+		}
+
+		// ── Alert controller setup (step 8) ───────────────────────────────────
+		// Called once from PortfolioBuilder_Loaded (after InitializeComponent has
+		// built the visual tree, so the Btn*/Lbl* x:Name fields are populated).
+		// Registers all 34 alert buttons + labels with _alertController, wires
+		// every Check* lambda to read _latestAlerts?.Health.*, then starts the
+		// 30-second polling timer. Safe against _latestAlerts being null on the
+		// first ticks — each lambda short-circuits to "healthy" when no snapshot
+		// has been computed yet.
+
+		private void InitializeAlertController()
+		{
+			if (_alertController != null) return;          // idempotent
+			_alertController = new AlertController(pollSeconds: 30);
+
+			// ── Register buttons + labels (Btn*/Lbl* by naming convention) ────
+			// Connectivity
+			_alertController.Register("FlexOne",       BtnFlexOne,       LblFlexOne);
+			_alertController.Register("Bloomberg",     BtnBloomberg,     LblBloomberg);
+			// Portfolio construction
+			_alertController.Register("MktNeutral",    BtnMktNeutral,    LblMktNeutral);
+			_alertController.Register("VolNeutral",    BtnVolNeutral,    LblVolNeutral);
+			_alertController.Register("SectorGross",   BtnSectorGross,   LblSectorGross);
+			_alertController.Register("SectorNet",     BtnSectorNet,     LblSectorNet);
+			_alertController.Register("IndustryGross", BtnIndustryGross, LblIndustryGross);
+			_alertController.Register("IndustryNet",   BtnIndustryNet,   LblIndustryNet);
+			_alertController.Register("SubIndGross",   BtnSubIndGross,   LblSubIndGross);
+			_alertController.Register("SubIndNet",     BtnSubIndNet,     LblSubIndNet);
+			// Exposure
+			_alertController.Register("GrossBook",     BtnGrossBook,     LblGrossBook);
+			_alertController.Register("NetExposure",   BtnNetExposure,   LblNetExposure);
+			_alertController.Register("MaxPosition",   BtnMaxPosition,   LblMaxPosition);
+			_alertController.Register("IntradayDD",    BtnIntradayDD,    LblIntradayDD);
+			_alertController.Register("Utilization",   BtnUtilization,   LblUtilization);
+			// Risk analytics
+			_alertController.Register("MaxVaR95",      BtnMaxVaR95,      LblMaxVaR95);
+			_alertController.Register("CVaR95",        BtnCVaR95,        LblCVaR95);
+			_alertController.Register("MVaR95",        BtnMVaR95,        LblMVaR95);
+			_alertController.Register("IdioRisk",      BtnIdioRisk,      LblIdioRisk);
+			_alertController.Register("MaxPredVol",    BtnMaxPredVol,    LblMaxPredVol);
+			_alertController.Register("EqStress5",     BtnEqStress5,     LblEqStress5);
+			_alertController.Register("EqStress10",    BtnEqStress10,    LblEqStress10);
+			// Concentration
+			_alertController.Register("Top5Long",      BtnTop5Long,      LblTop5Long);
+			_alertController.Register("Top5Short",     BtnTop5Short,     LblTop5Short);
+			_alertController.Register("Top10Long",     BtnTop10Long,     LblTop10Long);
+			_alertController.Register("Top10Short",    BtnTop10Short,    LblTop10Short);
+			// Liquidity
+			_alertController.Register("ADV20",         BtnADV20,         LblADV20);
+			_alertController.Register("ADV50",         BtnADV50,         LblADV50);
+			_alertController.Register("ADV100",        BtnADV100,        LblADV100);
+			_alertController.Register("LiqVaR95",      BtnLiqVaR95,      LblLiqVaR95);
+			// Market-cap tiers
+			_alertController.Register("LargeCapGross", BtnLargeCapGross, LblLargeCapGross);
+			_alertController.Register("LargeCapNet",   BtnLargeCapNet,   LblLargeCapNet);
+			_alertController.Register("MidCapGross",   BtnMidCapGross,   LblMidCapGross);
+			_alertController.Register("MidCapNet",     BtnMidCapNet,     LblMidCapNet);
+			_alertController.Register("SmallCapGross", BtnSmallCapGross, LblSmallCapGross);
+			_alertController.Register("SmallCapNet",   BtnSmallCapNet,   LblSmallCapNet);
+
+			// ── Wire Check* lambdas to engine health results ─────────────────
+			// Convention: every lambda returns true (healthy) when _latestAlerts
+			// is null — prevents first-load red flash before the engine produces
+			// its first AlertComputeResult.
+			// Connectivity is NOT driven by the engine — those stay as lambdas
+			// that poll PB's live-data state directly.
+			_alertController.CheckFlexOne       = () => true;   // TODO: FlexOneSession.IsConnected (matches Timing)
+			_alertController.CheckBloomberg     = () => BarServer.ConnectedToBloomberg();
+			// Portfolio construction
+			_alertController.CheckMktNeutral    = () => _latestAlerts?.Health.MktNeutral    ?? true;
+			_alertController.CheckVolNeutral    = () => _latestAlerts?.Health.VolNeutral    ?? true;
+			_alertController.CheckSectorGross   = () => _latestAlerts?.Health.SectorGross   ?? true;
+			_alertController.CheckSectorNet     = () => _latestAlerts?.Health.SectorNet     ?? true;
+			_alertController.CheckIndustryGross = () => _latestAlerts?.Health.IndustryGross ?? true;
+			_alertController.CheckIndustryNet   = () => _latestAlerts?.Health.IndustryNet   ?? true;
+			_alertController.CheckSubIndGross   = () => _latestAlerts?.Health.SubIndGross   ?? true;
+			_alertController.CheckSubIndNet     = () => _latestAlerts?.Health.SubIndNet     ?? true;
+			// Exposure
+			_alertController.CheckGrossBook     = () => _latestAlerts?.Health.GrossBook     ?? true;
+			_alertController.CheckNetExposure   = () => _latestAlerts?.Health.NetExposure   ?? true;
+			_alertController.CheckMaxPosition   = () => _latestAlerts?.Health.MaxPosition   ?? true;
+			_alertController.CheckIntradayDD    = () => _latestAlerts?.Health.IntradayDD    ?? true;
+			_alertController.CheckUtilization   = () => _latestAlerts?.Health.Utilization   ?? true;
+			// Risk analytics
+			_alertController.CheckMaxVaR95      = () => _latestAlerts?.Health.MaxVaR95      ?? true;
+			_alertController.CheckCVaR95        = () => _latestAlerts?.Health.CVaR95        ?? true;
+			_alertController.CheckMVaR95        = () => _latestAlerts?.Health.MVaR95        ?? true;
+			_alertController.CheckIdioRisk      = () => _latestAlerts?.Health.IdioRisk      ?? true;
+			_alertController.CheckMaxPredVol    = () => _latestAlerts?.Health.MaxPredVol    ?? true;
+			_alertController.CheckEqStress5     = () => _latestAlerts?.Health.EqStress5     ?? true;
+			_alertController.CheckEqStress10    = () => _latestAlerts?.Health.EqStress10    ?? true;
+			// Concentration
+			_alertController.CheckTop5Long      = () => _latestAlerts?.Health.Top5Long      ?? true;
+			_alertController.CheckTop5Short     = () => _latestAlerts?.Health.Top5Short     ?? true;
+			_alertController.CheckTop10Long     = () => _latestAlerts?.Health.Top10Long     ?? true;
+			_alertController.CheckTop10Short    = () => _latestAlerts?.Health.Top10Short    ?? true;
+			// Liquidity
+			_alertController.CheckADV20         = () => _latestAlerts?.Health.ADV20         ?? true;
+			_alertController.CheckADV50         = () => _latestAlerts?.Health.ADV50         ?? true;
+			_alertController.CheckADV100        = () => _latestAlerts?.Health.ADV100        ?? true;
+			_alertController.CheckLiqVaR95      = () => _latestAlerts?.Health.LiqVaR95      ?? true;
+			// Market-cap tiers
+			_alertController.CheckLargeCapGross = () => _latestAlerts?.Health.LargeCapGross ?? true;
+			_alertController.CheckLargeCapNet   = () => _latestAlerts?.Health.LargeCapNet   ?? true;
+			_alertController.CheckMidCapGross   = () => _latestAlerts?.Health.MidCapGross   ?? true;
+			_alertController.CheckMidCapNet     = () => _latestAlerts?.Health.MidCapNet     ?? true;
+			_alertController.CheckSmallCapGross = () => _latestAlerts?.Health.SmallCapGross ?? true;
+			_alertController.CheckSmallCapNet   = () => _latestAlerts?.Health.SmallCapNet   ?? true;
+
+			_alertController.Start();   // fires EvaluateAll immediately, then every 30s
+		}
+
+		// Replaces step-6 stub. Delegates acknowledge/clear to AlertController,
+		// which toggles the tri-state (Red → Yellow ack → Red on re-breach → Lime clear).
+		private void AlertLabel_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+		{
+			if (_alertController == null) return;
+			var fe = sender as FrameworkElement;
+			var tag = fe?.Tag as string;
+			if (string.IsNullOrEmpty(tag)) return;
+			_alertController.HandleLabelClick(tag);
 		}
 
 		List<string> _refSyms = new List<string>();
@@ -4080,13 +4600,18 @@ namespace ATMML
 
 				if (_indexBarRequestCount > 0)
 				{
+					// Idempotent gate: each (indexSymbol, interval) subscribes once per
+					// PB session. Index bars (SPX, NDX, etc.) stream live once subscribed;
+					// re-requesting on every portfolio switch burned quota for no accuracy gain.
 					foreach (var interval in indexIntervals)
 					{
 						if (interval.Length > 0)
 						{
 							foreach (string symbol in _indexSymbols)
 							{
-								_barCache.RequestBars(symbol, interval, true);
+								var key = symbol + ":" + interval;
+								if (_subscribedBarTickers.Add(key))
+									_barCache.RequestBars(symbol, interval, true);
 							}
 						}
 					}
@@ -4323,14 +4848,27 @@ namespace ATMML
 			{
 				_barRequests.Clear();
 
+				// Idempotent gate: each (symbol, interval) subscribes to Bloomberg
+				// exactly once per PB session. Without this, every model switch /
+				// re-run re-subscribed every ticker × interval, burning quota.
+				// Example impact: 10 portfolio switches × 100 tickers × 3 intervals
+				// = 3,000 redundant requests per session. Uses same HashSet as
+				// Timer_tick and buildAlertSnapshot — keys are distinct because
+				// intervals differ ("Daily" vs "D" vs "Weekly").
+				// _barRequests itself still tracks everything for completion-counting;
+				// only the outbound Bloomberg call is gated.
 				string benchMarkSymbol = model.Benchmark;
 				foreach (var interval in intervals)
 				{
 					_barRequests.Add(benchMarkSymbol + ":" + interval);
-					_barCache.RequestBars(benchMarkSymbol, interval);
+					var bKey = benchMarkSymbol + ":" + interval;
+					if (_subscribedBarTickers.Add(bKey))
+						_barCache.RequestBars(benchMarkSymbol, interval);
 
 					_barRequests.Add(_compareToSymbol + ":" + interval);
-					_barCache.RequestBars(_compareToSymbol, interval);
+					var cKey = _compareToSymbol + ":" + interval;
+					if (_subscribedBarTickers.Add(cKey))
+						_barCache.RequestBars(_compareToSymbol, interval);
 				}
 
 				var trades = _portfolio1.GetTrades(model.Name);
@@ -4345,18 +4883,29 @@ namespace ATMML
 						_barRequests.Add(ticker + ":" + interval);
 						// Subscribe live for Daily bars in live mode so getCurrentPrice() stays current
 						bool liveSubscribe = model.IsLiveMode && interval == "Daily";
-						_barCache.RequestBars(ticker, interval, liveSubscribe);
+						var tKey = ticker + ":" + interval;
+						if (_subscribedBarTickers.Add(tKey))
+							_barCache.RequestBars(ticker, interval, liveSubscribe);
 					}
 					// Weekly live subscription for intraday prices — the current week's
 					// incomplete bar updates its Close with the latest trade throughout the day
 					if (model.IsLiveMode)
 					{
 						_barRequests.Add(ticker + ":Weekly");
-						_barCache.RequestBars(ticker, "Weekly", true);
+						var wKey = ticker + ":Weekly";
+						if (_subscribedBarTickers.Add(wKey))
+							_barCache.RequestBars(ticker, "Weekly", true);
 						// RequestSymbols establishes Bloomberg session; once Symbol event fires,
-						// livePortfolioChanged calls RequestReferenceData for PRICE_LAST_RT
-						lock (_pendingRtTickers) { _pendingRtTickers.Add(ticker); }
-						_livePortfolio.RequestSymbols(ticker, Portfolio.PortfolioType.Single, false);
+						// livePortfolioChanged calls RequestReferenceData for PX_LAST.
+						// Gate: register each ticker with the session ONCE. Subsequent
+						// PX_LAST refreshes come from the per-ticker poll loop in the
+						// 10-second block above; this initial registration only needs
+						// to happen once per ticker per session.
+						if (_rtSubscribedTickers.Add(ticker))
+						{
+							lock (_pendingRtTickers) { _pendingRtTickers.Add(ticker); }
+							_livePortfolio.RequestSymbols(ticker, Portfolio.PortfolioType.Single, false);
+						}
 					}
 				}
 				_totalBarRequest = _barRequests.Count;
@@ -4416,11 +4965,28 @@ namespace ATMML
 				var m = getModel();
 				if (m != null && m.IsLiveMode && BarServer.ConnectedToBloomberg())
 				{
+					// Idempotent subscription: each (ticker, interval) subscribes ONCE
+					// per PB session. Without this gate, a 100-ticker portfolio burned
+					// 100 × 2 × 360 = ~72k Bloomberg bar requests/hour from this block
+					// alone, exhausting the daily quota in a few hours. Matches the
+					// Timing pattern at line 1117-1120 of Timing.xaml.cs.
+					// BarCache.RequestBars performs its own retrieval internally, so
+					// skipping re-requests here does NOT starve the cache — the cache
+					// refreshes on its own subscription lifecycle.
 					var liveTrades = _portfolio1.GetTrades(m.Name);
 					foreach (var t in liveTrades.Select(x => x.Ticker).Distinct())
 					{
-						_barCache.RequestBars(t, "Daily", true);
-						_barCache.RequestBars(t, "Weekly", true);
+						var dKey = t + ":Daily";
+						var wKey = t + ":Weekly";
+						if (_subscribedBarTickers.Add(dKey)) _barCache.RequestBars(t, "Daily", true);
+						if (_subscribedBarTickers.Add(wKey)) _barCache.RequestBars(t, "Weekly", true);
+
+						// Poll PX_LAST one-shot per ticker every 10s. This is the live-
+						// price refresh path on delayed entitlement: Bloomberg won't
+						// stream PX_LAST, so we poll. Response arrives in
+						// livePortfolioChanged → updates _rtPrices → drives drawPortfolioGrid
+						// via the _update=500 trigger. Cost: ~6 calls/ticker/min.
+						_livePortfolio.RequestReferenceData(t, new[] { "PX_LAST" }, false);
 					}
 				}
 				// Determine which cursor time is active based on which grid is visible
@@ -4439,6 +5005,7 @@ namespace ATMML
 					{
 						drawPortfolioGrid();
 						refreshLiveBalance();
+						updateAlerts();
 					}
 					drawReturnChart();
 				}
@@ -4789,10 +5356,25 @@ namespace ATMML
 				&& (DateTime.Today - lastSettledDate.Date).TotalDays <= 7)
 			{
 				var liveReturn = (_liveMtMBalance / liveChartModel.InitialPortfolioBalance - 1.0) * 100.0;
-				graphData = new List<double>(graphData);
-				graphData.Add(liveReturn);
-				portfolioTimes = new List<DateTime>(portfolioTimes);
-				portfolioTimes.Add(DateTime.Today);
+
+				// Only extend the chart to today when liveMtM has materially diverged
+				// from the last settled NAV. On Monday mornings before delayed Bloomberg
+				// prints arrive for the new trading day, livePx == fridayPx for every
+				// position, livePnL collapses to zero, and liveMtM == baseBalance ==
+				// last Friday's NAV. In that state liveReturn equals graphData[last]
+				// exactly — appending today's point produces a horizontal line at last
+				// Friday's return value, which is mathematically correct but visually
+				// misleading (looks like 4/24's stored value is wrong, when really
+				// today just has no PnL to display yet). Suppress the today-point until
+				// real intraday movement appears, then it will pop in naturally.
+				var lastSettledReturn = graphData[graphData.Count - 1];
+				if (Math.Abs(liveReturn - lastSettledReturn) > 0.001)
+				{
+					graphData = new List<double>(graphData);
+					graphData.Add(liveReturn);
+					portfolioTimes = new List<DateTime>(portfolioTimes);
+					portfolioTimes.Add(DateTime.Today);
+				}
 			}
 
 			List<double> secondPortfolioValues = null;
@@ -5425,16 +6007,35 @@ namespace ATMML
 					//output.VaR = VaRValue.HistoricalValueAtRisk(input.ToArray(), 20, .95);
 					//output.AvgTurnover = _averageTurnover;
 
-					var time90 = cursorTime - new TimeSpan(90, 0, 0, 0);
-					var time180 = cursorTime - new TimeSpan(180, 0, 0, 0);
-					var time365 = cursorTime - new TimeSpan(365, 0, 0, 0);
-					var index90 = _portfolioTimes.FindIndex(x => x >= time90);
-					var index180 = _portfolioTimes.FindIndex(x => x >= time180);
-					var index365 = _portfolioTimes.FindIndex(x => x >= time365);
+					// Guard: _mainReturnGraph.CursorTime is DateTime.MinValue until the
+					// chart fires its first real cursor event. Subtracting a TimeSpan
+					// from MinValue (or any date within 365 days of it) underflows the
+					// DateTime range and throws. Mirrors the fallback in updateStatistics
+					// (line ~5495). If _portfolioTimes is also empty, Return90/180/YTD
+					// stay NaN (their initial value).
+					// Condition: cursorTime must be at least 365 days above MinValue to
+					// safely subtract a year. DateTime.MinValue.AddDays(365) ≈ 0001-01-01
+					// + 1yr. Any cursorTime below that is treated as "no real cursor yet."
+					bool cursorSafe = cursorTime >= DateTime.MinValue.AddDays(365);
+					if (!cursorSafe && _portfolioTimes.Count > 0)
+					{
+						cursorTime = _portfolioTimes.Last();
+						cursorSafe = cursorTime >= DateTime.MinValue.AddDays(365);
+					}
 
-					Return90 = (index90 >= 0 && index90 < _portfolioValues.Count) ? _portfolioValues.Last() - _portfolioValues[index90] : Double.NaN;
-					Return180 = (index180 >= 0 && index180 < _portfolioValues.Count) ? _portfolioValues.Last() - _portfolioValues[index180] : Double.NaN;
-					ReturnYTD = (index365 >= 0 && index365 < _portfolioValues.Count) ? _portfolioValues.Last() - _portfolioValues[index365] : Double.NaN;
+					if (cursorSafe)
+					{
+						var time90 = cursorTime - new TimeSpan(90, 0, 0, 0);
+						var time180 = cursorTime - new TimeSpan(180, 0, 0, 0);
+						var time365 = cursorTime - new TimeSpan(365, 0, 0, 0);
+						var index90 = _portfolioTimes.FindIndex(x => x >= time90);
+						var index180 = _portfolioTimes.FindIndex(x => x >= time180);
+						var index365 = _portfolioTimes.FindIndex(x => x >= time365);
+
+						Return90 = (index90 >= 0 && index90 < _portfolioValues.Count) ? _portfolioValues.Last() - _portfolioValues[index90] : Double.NaN;
+						Return180 = (index180 >= 0 && index180 < _portfolioValues.Count) ? _portfolioValues.Last() - _portfolioValues[index180] : Double.NaN;
+						ReturnYTD = (index365 >= 0 && index365 < _portfolioValues.Count) ? _portfolioValues.Last() - _portfolioValues[index365] : Double.NaN;
+					}
 
 					output.Return90 = Return90;
 					output.Return180 = Return180;
@@ -8721,24 +9322,22 @@ namespace ATMML
 
 		private double getCurrentPrice(string symbol)
 		{
-			// RT tick price from PRICE_LAST_RT subscription — 3-minute TTL prevents a lapsed
-			// subscription from masking fresher bar-cache closes indefinitely.
+			// Live last-price tick from PX_LAST subscription — 20-second TTL on delayed
+			// feeds so a stale entry can't mask the live partial weekly bar that the
+			// bar cache is updating with each delayed print.
 			lock (_rtPrices)
 			{
 				if (_rtPrices.TryGetValue(symbol, out var rtEntry)
 					&& rtEntry.price > 0
-					&& (DateTime.Now - rtEntry.ts).TotalMinutes < 3)
+					&& (DateTime.Now - rtEntry.ts).TotalSeconds < 20)
 					return rtEntry.price;
 			}
 
-			// Last price computed by drawPortfolioGrid — same as what Cur Px column shows
-			lock (_lastKnownPrices)
-			{
-				if (_lastKnownPrices.TryGetValue(symbol, out double cached) && cached > 0)
-					return cached;
-			}
-
-			// Weekly bar close
+			// Weekly bar close — partial current bar updates intra-week with delayed
+			// prints, making it the canonical live-price source on delayed feeds.
+			// Must be checked BEFORE _lastKnownPrices: drawPortfolioGrid populates
+			// _lastKnownPrices on every run, so checking it first would shadow the
+			// fresh bar cache with a snapshot from the previous draw.
 			var weeklyBars = _barCache.GetBars(symbol, "Weekly", 0, 5);
 			if (weeklyBars != null && weeklyBars.Count > 0)
 			{
@@ -8752,6 +9351,16 @@ namespace ATMML
 			{
 				var latestBar = dailyBars.LastOrDefault(b => b.Close > 0);
 				if (latestBar != null && latestBar.Close > 0) return latestBar.Close;
+			}
+
+			// _lastKnownPrices fallback — only used when bar cache hasn't loaded yet.
+			// This cache is populated by drawPortfolioGrid (line 1399), so it equals
+			// "the last price drawPortfolioGrid resolved" and must NOT be checked
+			// before the bar cache or it shadows fresh bar updates.
+			lock (_lastKnownPrices)
+			{
+				if (_lastKnownPrices.TryGetValue(symbol, out double cached) && cached > 0)
+					return cached;
 			}
 
 			// Trade.Manager last resort
@@ -9334,6 +9943,8 @@ namespace ATMML
 			_activeLabel = "Sector";
 			HighlightActiveLabel(LabelSectors);
 			LoadTiles(sectorPercents);
+			LblColumnSectorHeader.Content = "SECTOR";
+			drawPortfolioGrid();
 		}
 
 		private void LabelIndustry_MouseDown(object sender, MouseButtonEventArgs e)
@@ -9341,6 +9952,8 @@ namespace ATMML
 			_activeLabel = "Industry";
 			HighlightActiveLabel(LabelIndustry);
 			LoadTiles(industryPercents);
+			LblColumnSectorHeader.Content = "INDUSTRY";
+			drawPortfolioGrid();
 		}
 
 		private void LabelSubIndustry_MouseDown(object sender, MouseButtonEventArgs e)
@@ -9348,6 +9961,8 @@ namespace ATMML
 			_activeLabel = "SubIndustry";
 			HighlightActiveLabel(LabelSubIndustry);
 			LoadTiles(subIndustryPercents);
+			LblColumnSectorHeader.Content = "SUB-IND";
+			drawPortfolioGrid();
 		}
 
 		private void Portfolio_MouseEnter(object sender, MouseEventArgs e)
@@ -9375,6 +9990,39 @@ namespace ATMML
 			HighlightActiveLabel(LabelSectors);
 			LoadTiles(sectorPercents);
 			ApplyEntitlementMargins();
+			InitializeAlertController();
+
+			// Role-based initial view: non-admin roles that should land on a
+			// specific view are routed here through the same code path that
+			// runs when the user clicks the menu item. Prevents the layout drift
+			// where ApplyEntitlementMargins set grid visibility directly but
+			// skipped the cursor-time/chart init sequence.
+			var role = ATMML.Auth.AuthContext.Current.IsAuthenticated
+				? ATMML.Auth.AuthContext.Current.User?.Role ?? ATMML.Auth.UserRole.Viewer
+				: ATMML.Auth.UserRole.Viewer;
+			if (role == ATMML.Auth.UserRole.PortfolioManager
+				|| role == ATMML.Auth.UserRole.Trader
+				|| role == ATMML.Auth.UserRole.Compliance)
+			{
+				GoToOrderManagement();
+			}
+			else if (role == ATMML.Auth.UserRole.Viewer)
+			{
+				GoToPerformance();
+			}
+
+			// Role view is now configured. Drop the login spinner — but at
+			// ContextIdle priority so the dispatcher first completes any
+			// pending layout/render passes for the role grids. Hiding
+			// synchronously here would close the spinner before the role
+			// view actually paints, producing a brief flash of unrendered
+			// chrome. ContextIdle fires AFTER Render, guaranteeing the
+			// user sees the fully-rendered role view the moment the
+			// spinner disappears. SpinnerHost.Hide is idempotent and safe
+			// to call from any thread.
+			Dispatcher.BeginInvoke(
+				System.Windows.Threading.DispatcherPriority.ContextIdle,
+				new Action(() => ATMML.SpinnerHost.Hide()));
 		}
 
 		private void ApplyEntitlementMargins()
@@ -9397,21 +10045,53 @@ namespace ATMML
 			if (isViewer)
 			{
 				if (TISetup        != null) TISetup.Visibility        = C;
-				if (TIPositions22 != null) TIPositions22.Visibility   = C;
-				if (PerformanceGrid    != null) PerformanceGrid.Visibility    = C;
-				if (PerformanceSideNav != null) PerformanceSideNav.Visibility = C;
+				if (TIPositions22  != null) TIPositions22.Visibility  = C;
+				// Performance view is the Viewer's only landing area.
+				if (PerformanceGrid    != null) PerformanceGrid.Visibility    = V;
+				if (PerformanceSideNav != null) PerformanceSideNav.Visibility = V;
+				// Order Management and Setup grids off-limits.
+				if (RebalanceChartGrid != null) RebalanceChartGrid.Visibility = C;
+				if (RebalanceGrid      != null) RebalanceGrid.Visibility      = C;
+				if (RebalanceSideNav   != null) RebalanceSideNav.Visibility   = C;
+				// Menu: hide Setup and OM entries across all three row variants, show Performance only.
+				if (PortSetup1 != null) PortSetup1.Visibility = C;
+				if (OrderMgm1  != null) OrderMgm1.Visibility  = C;
+				if (PortPerf1  != null) PortPerf1.Visibility  = V;
+				if (PortSetup2 != null) PortSetup2.Visibility = C;
+				if (OrderMgm2  != null) OrderMgm2.Visibility  = C;
+				if (PortPerf2  != null) PortPerf2.Visibility  = V;
+				if (PortSetup3 != null) PortSetup3.Visibility = C;
+				if (OrderMgm3  != null) OrderMgm3.Visibility  = C;
+				if (PortPerf3  != null) { PortPerf3.Visibility = V; PortPerf3.Margin = tightMargin; }
 				return;
 			}
 
 			if (isCompliance)
 			{
 				if (TISetup       != null) TISetup.Visibility      = C;
-				if (TIPositions22 != null) TIPositions22.Visibility = C;
-				if (PerformanceGrid != null) PerformanceGrid.Visibility = V;
+				// Order Management grids visible — Compliance lands here for read-only oversight.
+				if (RebalanceChartGrid != null) RebalanceChartGrid.Visibility = V;
+				if (RebalanceGrid      != null) RebalanceGrid.Visibility      = V;
+				if (TIPositions22 != null) TIPositions22.Visibility = V;
+				if (PerformanceGrid != null) PerformanceGrid.Visibility = C;
 				if (PerformanceSideNav != null) PerformanceSideNav.Visibility = C;
+				// Menu: hide Portfolio Setup entry across all three row variants;
+				// show OM + Performance. PortSetup1 also has a binding to
+				// CanAccessPortfolioSetup (IsAdmin) which already collapses it for
+				// Compliance, but set it explicitly to defend against binding
+				// re-evaluation races.
+				if (PortSetup1 != null) PortSetup1.Visibility = C;
+				if (OrderMgm1  != null) OrderMgm1.Visibility  = V;
+				if (PortPerf1  != null) PortPerf1.Visibility  = V;
+				if (PortSetup2 != null) PortSetup2.Visibility = C;
+				if (OrderMgm2  != null) { OrderMgm2.Visibility = V; OrderMgm2.Margin = tightMargin; }
+				if (PortPerf2  != null) { PortPerf2.Visibility = V; PortPerf2.Margin = tightMargin; }
 				if (PortSetup3 != null) PortSetup3.Visibility = C;
-				if (OrderMgm3  != null) OrderMgm3.Visibility  = C;
+				if (OrderMgm3  != null) { OrderMgm3.Visibility = V; OrderMgm3.Margin = tightMargin; }
 				if (PortPerf3  != null) { PortPerf3.Visibility = V; PortPerf3.Margin = tightMargin; }
+				// Read-only ring-fence: Compliance must not trigger runs or submit orders.
+				if (RunPortfolio != null) RunPortfolio.Visibility = C;
+				if (SendOrders   != null) SendOrders.Visibility   = C;
 				return;
 			}
 
@@ -9849,6 +10529,18 @@ namespace ATMML
 			//    _accuracyView = null;
 			//}
 
+			GoToPerformance();
+		}
+
+		// Canonical "enter Performance view" sequence.
+		// Called from Performance_MouseDown (user clicks the menu item) and
+		// from PortfolioBuilder_Loaded for roles whose initial landing view is
+		// Performance (Viewer). Centralising here prevents the first-time-entry
+		// bug where the return graph and histogram failed to render because
+		// ApplyEntitlementMargins set grid visibility piecemeal without running
+		// the rest of the Performance-view setup.
+		private void GoToPerformance()
+		{
 			hideNavigation();
 
 			PositionsChartBorder.Visibility = Visibility.Visible;
@@ -9889,7 +10581,6 @@ namespace ATMML
 			//        requestPortfolio(model.Universe);
 			//    }
 			//}
-
 		}
 
 		private void RebalanceView_MouseDown(object sender, MouseEventArgs e)
@@ -9901,6 +10592,18 @@ namespace ATMML
 			//    _accuracyView = null;
 			//}
 
+			GoToOrderManagement();
+		}
+
+		// Canonical "enter Order Management view" sequence.
+		// Called from RebalanceView_MouseDown (user clicks the menu item) and
+		// from PortfolioBuilder_Loaded for roles whose initial landing view is
+		// Order Management (PM, Trader, Compliance). Centralising it here prevents
+		// the subtle layout drift where ApplyEntitlementMargins showed the grids
+		// piecemeal but skipped the cursor-time / model-list refresh that
+		// showRebalanceGrid's caller normally performs.
+		private void GoToOrderManagement()
+		{
 			hideNavigation();
 
 			showRebalanceGrid();
@@ -11552,7 +12255,7 @@ namespace ATMML
 						lb.PreviewMouseDown += Tb_PreviewMouseDown;
 						lb.Height = 18;
 						lb.Padding = new Thickness(0, 2, 0, 2);
-						lb.Margin = new Thickness(2, 0, 0, 0);
+						lb.Margin = new Thickness(4, 0, 0, 0);
 						lb.HorizontalAlignment = HorizontalAlignment.Left;
 						lb.VerticalAlignment = VerticalAlignment.Center;
 						lb.MouseEnter += Portfolio_MouseEnter;
@@ -13576,7 +14279,12 @@ namespace ATMML
 
 				if (isTradingModel(model.Name))
 				{
-					_barCache.RequestBars("SPY US Equity", "Daily");
+					// Idempotent gate: SPY Daily subscribes once per PB session.
+					// loadModel runs on every model selection; without this gate
+					// each selection re-requested SPY bars.
+					var spyKey = "SPY US Equity:Daily";
+					if (_subscribedBarTickers.Add(spyKey))
+						_barCache.RequestBars("SPY US Equity", "Daily");
 				}
 
 				model.SetTimeRanges();

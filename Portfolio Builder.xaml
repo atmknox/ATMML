@@ -48,17 +48,17 @@
                 <ColumnDefinition Width="5" />
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.Row="0" Grid.Column="0" Margin="4,0,0,0" Background="Black"
+            <Grid Grid.Row="0" Grid.Column="0" Margin="40,0,0,0" Background="Black" Grid.ColumnSpan="3"
                   Visibility="Visible">
                 <Viewbox>
                     <StaticResource ResourceKey="Logo" />
                 </Viewbox>
-                <Label Grid.Row="0" Grid.Column="0" Margin="0,0,38,13" HorizontalAlignment="Right"
+                <Label Grid.Row="0" Grid.Column="0" Margin="0,0,422,13" HorizontalAlignment="Right"
                        VerticalContentAlignment="Center" Background="Transparent" Content="ML" FontFamily="Helvetica Neue"
                        FontSize="12" FontStyle="Normal" FontWeight="Normal" Foreground="White" />
-                <Label Grid.Row="1" Margin="0,0,0,12"  Content="Hedge Fund App"
-                       HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" FontFamily="Helvetica Neue"
-                       FontSize="9" FontWeight="Normal" Foreground="White" />
+                <!--<Label Grid.Row="1" Margin="0,0,445,12"  Content="Hedge Fund App"
+                       HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Transparent" FontFamily="Helvetica Neue"
+                       FontSize="9" FontWeight="Normal" Foreground="White" />-->
             </Grid>
 
             <!-- ── Logged-in user display + settings gear ──────────────── -->
@@ -182,7 +182,7 @@
                     </Grid>
 
 
-                    <Grid Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Visible" >
+                    <Grid Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Collapsed" >
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="40" />
@@ -281,7 +281,7 @@
                                MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"/>
                     </Grid>
 
-                    <Grid Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Visible" >
+                    <Grid Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Collapsed" >
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="40" />
@@ -301,7 +301,7 @@
                     </Grid>
 
                     <Grid
-                        Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Visible" >
+                        Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Collapsed" >
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="40" />
@@ -402,8 +402,8 @@
                            Margin="0,22,0,0" Fill="#FF124B72" Stroke="#FF124B72" StrokeThickness="1" />
 
 
-                <StackPanel x:Name="TISetup" Grid.Row="0" Grid.ColumnSpan="20" Margin="140,6,0,0" 
-                            HorizontalAlignment="Left" Orientation="Horizontal" Visibility="Collapsed">
+                <StackPanel x:Name="TISetup" Grid.Row="0" Grid.ColumnSpan="20" Margin="62,5,0,0"
+                            HorizontalAlignment="Center" Orientation="Horizontal" Visibility="Collapsed">
                     <Label x:Name="PortSetup1"  Margin="2,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" 
                            Background="Transparent" Content="PORTFOLIO SETUP"  FontFamily="Helvetica Neue" FontSize="12" 
                            FontWeight="Normal" Foreground="#00ccff"
@@ -466,7 +466,7 @@
                        FontFamily="Helvetica Neue" FontSize="11" FontWeight="Normal" Foreground="White"
                        MouseDown="UserFactorModelName_MouseDown" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" />
 
-                <Label Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="13" Margin="10,1"
+                <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="15" Margin="136,1,0,0"
                        HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" Content="Portfolio Config"
                        FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="PaleGreen" />
 
@@ -2445,28 +2445,1868 @@
                        FontSize="10" FontWeight="Normal" Foreground="PaleGreen" />
 
                 <ListBox x:Name="UserFactorModelPanel3" Grid.Row="1" Grid.RowSpan="14" Grid.Column="0"
-                         Margin="1,0,0,0" Background="blue" BorderBrush="Transparent" BorderThickness="2"
+                         Margin="1,0,0,0" Background="Transparent" BorderBrush="Transparent" BorderThickness="2"
                          FontFamily="Helvetica Neue" FontSize="11" Foreground="White" SelectionChanged="UserFactorModel_SelectionChanged"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
                          Visibility="Visible" />
 
-                <Grid x:Name="AlertsPanel" Grid.Row="15" Grid.Column="0" Margin="1,12,0,0" Background="Green" Grid.RowSpan="12"
+                <Grid x:Name="PbAlertsPanel" Grid.Row="15" Grid.Column="0" Margin="1,10,0,0" Background="Black" Grid.RowSpan="12"
+                        Width="128" Height="240"
+                        HorizontalAlignment="Left" VerticalAlignment="Top"
+                        Panel.ZIndex="10"
                         Visibility="Visible">
 
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="130" />
-                    </Grid.ColumnDefinitions>
+                    <ScrollViewer Background="Black"
+                                  MaxHeight="250"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel x:Name="PbAlertsStack">
+                            <Expander IsExpanded="False">
+                                <Expander.Style>
+                                    <Style TargetType="Expander">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Expander">
+                                                    <StackPanel>
+                                                        <ToggleButton IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                                                      Background="Transparent" BorderThickness="0"
+                                                                      HorizontalContentAlignment="Stretch" Padding="0" Cursor="Hand">
+                                                            <ToggleButton.Template>
+                                                                <ControlTemplate TargetType="ToggleButton">
+                                                                    <Border Background="{TemplateBinding Background}">
+                                                                        <ContentPresenter HorizontalAlignment="Stretch"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </ToggleButton.Template>
+                                                            <ContentPresenter ContentSource="Header"/>
+                                                        </ToggleButton>
+                                                        <ContentPresenter x:Name="ExpanderContent" Visibility="Collapsed" Content="{TemplateBinding Content}"/>
+                                                    </StackPanel>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsExpanded" Value="True">
+                                                            <Setter TargetName="ExpanderContent" Property="Visibility" Value="Visible"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Expander.Style>
+                                <Expander.Header>
+                                    <Border Height="22" Background="#1A2A3A" BorderBrush="#FF1E6FA0" BorderThickness="0,0,0,1" Margin="0,2,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="14"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="▾" FontSize="12" Foreground="#FFFFFF"
+                                                       VerticalAlignment="Center" Margin="3,0,0,0"/>
+                                            <TextBlock Grid.Column="1" Text="CONNECTIVITY" FontFamily="Helvetica Neue"
+                                               FontSize="10" Foreground="White" VerticalAlignment="Center" Margin="2,2,0,0"/>
+                                            <Button x:Name="BtnCatConnectivity" Grid.Column="2"
+                                                       Content="●" FontSize="12" Foreground="Lime"
+                                                       Background="Transparent" BorderThickness="0"
+                                                       HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                       Margin="0,0,2,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </Expander.Header>
+                                <StackPanel>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblFlexOne" Grid.Column="0" Text="Flex One"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="FlexOne"/>
+                                            <TextBlock Grid.Column="1" Text="Live"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnFlexOne" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblBloomberg" Grid.Column="0" Text="Bloomberg"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="Bloomberg"/>
+                                            <TextBlock Grid.Column="1" Text="Live"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnBloomberg" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Expander>
+                            <Expander IsExpanded="False">
+                                <Expander.Style>
+                                    <Style TargetType="Expander">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Expander">
+                                                    <StackPanel>
+                                                        <ToggleButton IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                                                      Background="Transparent" BorderThickness="0"
+                                                                      HorizontalContentAlignment="Stretch" Padding="0" Cursor="Hand">
+                                                            <ToggleButton.Template>
+                                                                <ControlTemplate TargetType="ToggleButton">
+                                                                    <Border Background="{TemplateBinding Background}">
+                                                                        <ContentPresenter HorizontalAlignment="Stretch"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </ToggleButton.Template>
+                                                            <ContentPresenter ContentSource="Header"/>
+                                                        </ToggleButton>
+                                                        <ContentPresenter x:Name="ExpanderContent" Visibility="Collapsed" Content="{TemplateBinding Content}"/>
+                                                    </StackPanel>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsExpanded" Value="True">
+                                                            <Setter TargetName="ExpanderContent" Property="Visibility" Value="Visible"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Expander.Style>
+                                <Expander.Header>
+                                    <Border Height="22" Background="#1A2A3A" BorderBrush="#FF1E6FA0" BorderThickness="0,0,0,1" Margin="0,2,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="14"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="▾" FontSize="12" Foreground="#FFFFFF"
+                                                       VerticalAlignment="Center" Margin="3,0,0,0"/>
+                                            <TextBlock Grid.Column="1" Text="EXPOSURE" FontFamily="Helvetica Neue"
+                                               FontSize="10" Foreground="White" VerticalAlignment="Center" Margin="2,2,0,0"/>
+                                            <Button x:Name="BtnCatExposure" Grid.Column="2"
+                                                       Content="●" FontSize="12" Foreground="Lime"
+                                                       Background="Transparent" BorderThickness="0"
+                                                       HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                       Margin="0,0,2,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </Expander.Header>
+                                <StackPanel>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblIntradayDD" Grid.Column="0" Text="Intraday DD &#8804;3"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="IntradayDD"/>
+                                            <TextBlock Grid.Column="1" Text="3"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnIntradayDD" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
 
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="25" />
-                        <RowDefinition Height="25" />
-                        <RowDefinition Height="25" />
-                        <RowDefinition Height="25" />
-                        <RowDefinition Height="25" />
-                        <RowDefinition Height="25" />
-                        <RowDefinition Height="25" />
-                        <RowDefinition Height="25" />
-                        <RowDefinition Height="25" />
-                    </Grid.RowDefinitions>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblUtilization" Grid.Column="0" Text="UT &gt; 50"
+                                                FontSize="9" Foreground="Silver" Background="Transparent"
+                                                BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                                VerticalAlignment="Center" Margin="3,0,0,0"
+                                                MouseDown="AlertLabel_MouseDown" Tag="Utilization"/>
+                                            <TextBlock x:Name="LblUtilizationValue" Grid.Column="1" Text=""
+                                                FontSize="9" Foreground="Silver"
+                                                VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnUtilization" Grid.Column="2"
+                                                   Content="●" FontSize="12" Foreground="Lime"
+                                                   Background="Transparent" BorderThickness="0"
+                                                   HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                   Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblGrossBook" Grid.Column="0" Text="Gross Book &#8804;200"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="GrossBook"/>
+                                            <TextBlock Grid.Column="1" Text="200"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnGrossBook" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblNetExposure" Grid.Column="0" Text="Net Exposure &#8804;10"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="NetExposure"/>
+                                            <TextBlock Grid.Column="1" Text="10"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnNetExposure" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblMaxPosition" Grid.Column="0" Text="Max Position &#8804;10"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="MaxPosition"/>
+                                            <TextBlock Grid.Column="1" Text="10"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnMaxPosition" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Expander>
+                            <Expander IsExpanded="False">
+                                <Expander.Style>
+                                    <Style TargetType="Expander">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Expander">
+                                                    <StackPanel>
+                                                        <ToggleButton IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                                                      Background="Transparent" BorderThickness="0"
+                                                                      HorizontalContentAlignment="Stretch" Padding="0" Cursor="Hand">
+                                                            <ToggleButton.Template>
+                                                                <ControlTemplate TargetType="ToggleButton">
+                                                                    <Border Background="{TemplateBinding Background}">
+                                                                        <ContentPresenter HorizontalAlignment="Stretch"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </ToggleButton.Template>
+                                                            <ContentPresenter ContentSource="Header"/>
+                                                        </ToggleButton>
+                                                        <ContentPresenter x:Name="ExpanderContent" Visibility="Collapsed" Content="{TemplateBinding Content}"/>
+                                                    </StackPanel>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsExpanded" Value="True">
+                                                            <Setter TargetName="ExpanderContent" Property="Visibility" Value="Visible"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Expander.Style>
+                                <Expander.Header>
+                                    <Border Height="22" Background="#1A2A3A" BorderBrush="#FF1E6FA0" BorderThickness="0,0,0,1" Margin="0,2,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="14"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="▾" FontSize="12" Foreground="#FFFFFF"
+                                                       VerticalAlignment="Center" Margin="3,0,0,0"/>
+                                            <TextBlock Grid.Column="1" Text="PORTFOLIO CONST" FontFamily="Helvetica Neue"
+                                               FontSize="10" Foreground="White" VerticalAlignment="Center" Margin="2,2,0,0"/>
+                                            <Button x:Name="BtnCatPortfolioConst" Grid.Column="2"
+                                                       Content="●" FontSize="12" Foreground="Lime"
+                                                       Background="Transparent" BorderThickness="0"
+                                                       HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                       Margin="0,0,2,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </Expander.Header>
+                                <StackPanel>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblMktNeutral" Grid.Column="0" Text="Mkt Neutral &#8804;10"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="MktNeutral"/>
+                                            <TextBlock Grid.Column="1" Text="10"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnMktNeutral" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblVolNeutral" Grid.Column="0" Text="Vol Neutral &#8804;12"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="VolNeutral"/>
+                                            <TextBlock Grid.Column="1" Text="12"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnVolNeutral" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblSectorGross" Grid.Column="0" Text="Sector Gross &#8804;200"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="SectorGross"/>
+                                            <TextBlock Grid.Column="1" Text="200"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnSectorGross" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblSectorNet" Grid.Column="0" Text="Sector Net &#8804;12"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="SectorNet"/>
+                                            <TextBlock Grid.Column="1" Text="12"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnSectorNet" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblIndustryGross" Grid.Column="0" Text="Industry Gross &#8804;200"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="IndustryGross"/>
+                                            <TextBlock Grid.Column="1" Text="200"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnIndustryGross" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblIndustryNet" Grid.Column="0" Text="Industry Net &#8804;12"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="IndustryNet"/>
+                                            <TextBlock Grid.Column="1" Text="12"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnIndustryNet" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblSubIndGross" Grid.Column="0" Text="SubInd Gross &#8804;150"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="SubIndGross"/>
+                                            <TextBlock Grid.Column="1" Text="150"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnSubIndGross" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblSubIndNet" Grid.Column="0" Text="SubInd Net &#8804;12"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="SubIndNet"/>
+                                            <TextBlock Grid.Column="1" Text="12"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnSubIndNet" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Expander>
+                            <Expander IsExpanded="False">
+                                <Expander.Style>
+                                    <Style TargetType="Expander">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Expander">
+                                                    <StackPanel>
+                                                        <ToggleButton IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                                                      Background="Transparent" BorderThickness="0"
+                                                                      HorizontalContentAlignment="Stretch" Padding="0" Cursor="Hand">
+                                                            <ToggleButton.Template>
+                                                                <ControlTemplate TargetType="ToggleButton">
+                                                                    <Border Background="{TemplateBinding Background}">
+                                                                        <ContentPresenter HorizontalAlignment="Stretch"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </ToggleButton.Template>
+                                                            <ContentPresenter ContentSource="Header"/>
+                                                        </ToggleButton>
+                                                        <ContentPresenter x:Name="ExpanderContent" Visibility="Collapsed" Content="{TemplateBinding Content}"/>
+                                                    </StackPanel>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsExpanded" Value="True">
+                                                            <Setter TargetName="ExpanderContent" Property="Visibility" Value="Visible"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Expander.Style>
+                                <Expander.Header>
+                                    <Border Height="22" Background="#1A2A3A" BorderBrush="#FF1E6FA0" BorderThickness="0,0,0,1" Margin="0,2,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="14"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="▾" FontSize="12" Foreground="#FFFFFF"
+                                                       VerticalAlignment="Center" Margin="3,0,0,0"/>
+                                            <TextBlock Grid.Column="1" Text="STATISTICAL RISK" FontFamily="Helvetica Neue"
+                                               FontSize="10" Foreground="White" VerticalAlignment="Center" Margin="2,2,0,0"/>
+                                            <Button x:Name="BtnCatRisk" Grid.Column="2"
+                                                       Content="●" FontSize="12" Foreground="Lime"
+                                                       Background="Transparent" BorderThickness="0"
+                                                       HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                       Margin="0,0,2,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </Expander.Header>
+                                <StackPanel>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblMaxVaR95" Grid.Column="0" Text="Port VaR95 &#8804;1"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="MaxVaR95"/>
+                                            <TextBlock Grid.Column="1" Text="1"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnMaxVaR95" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblCVaR95" Grid.Column="0" Text="Port CVaR95 &#8804;1.5"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="CVaR95"/>
+                                            <TextBlock Grid.Column="1" Text="1.5"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnCVaR95" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblMVaR95" Grid.Column="0" Text="Pos VaR95 &#8804;15"
+                                                    FontSize="9" Foreground="Silver" Background="Transparent"
+                                                    BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                                    VerticalAlignment="Center" Margin="3,0,0,0"
+                                                    MouseDown="AlertLabel_MouseDown" Tag="MVaR95"/>
+                                            <TextBlock Grid.Column="1" Text="15"
+                                                    FontSize="9" Foreground="Silver"
+                                                    VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnMVaR95" Grid.Column="2"
+                                                    Content="●" FontSize="12" Foreground="Lime"
+                                                    Background="Transparent" BorderThickness="0"
+                                                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                    Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblIdioRisk" Grid.Column="0" Text="Idio Risk &#8805;70"
+                                                 FontSize="9" Foreground="Silver" Background="Transparent"
+                                                 BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                                 VerticalAlignment="Center" Margin="3,0,0,0"
+                                                 MouseDown="AlertLabel_MouseDown" Tag="IdioRisk"/>
+                                            <TextBlock Grid.Column="1" Text="70"
+                                                 FontSize="9" Foreground="Silver"
+                                                 VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnIdioRisk" Grid.Column="2"
+                                                Content="●" FontSize="12" Foreground="Lime"
+                                                Background="Transparent" BorderThickness="0"
+                                                HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <!--<Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblFactorRisk" Grid.Column="0" Text="Factor Risk &#8804;15"
+                                                FontSize="9" Foreground="Silver" Background="Transparent"
+                                                BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                                VerticalAlignment="Center" Margin="3,0,0,0"
+                                                MouseDown="AlertLabel_MouseDown" Tag="IdioRisk"/>
+                                            <TextBlock Grid.Column="1" Text="15"
+                                                FontSize="9" Foreground="Silver"
+                                                VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnFactorRisk" Grid.Column="2"
+                                                Content="●" FontSize="12" Foreground="Lime"
+                                                Background="Transparent" BorderThickness="0"
+                                                HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>-->
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblMaxPredVol" Grid.Column="0" Text="Pred Vol &#8804;12"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="MaxPredVol"/>
+                                            <TextBlock Grid.Column="1" Text="12"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnMaxPredVol" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+
+
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblEqStress5" Grid.Column="0" Text="Loss @ 5% &#8804;2"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="EqStress5"/>
+                                            <TextBlock Grid.Column="1" Text="2"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnEqStress5" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblEqStress10" Grid.Column="0" Text="Loss @ 10% &#8804;3.5"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="EqStress10"/>
+                                            <TextBlock Grid.Column="1" Text="3.5"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnEqStress10" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Expander>
+                            <Expander IsExpanded="False">
+                                <Expander.Style>
+                                    <Style TargetType="Expander">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Expander">
+                                                    <StackPanel>
+                                                        <ToggleButton IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                                                      Background="Transparent" BorderThickness="0"
+                                                                      HorizontalContentAlignment="Stretch" Padding="0" Cursor="Hand">
+                                                            <ToggleButton.Template>
+                                                                <ControlTemplate TargetType="ToggleButton">
+                                                                    <Border Background="{TemplateBinding Background}">
+                                                                        <ContentPresenter HorizontalAlignment="Stretch"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </ToggleButton.Template>
+                                                            <ContentPresenter ContentSource="Header"/>
+                                                        </ToggleButton>
+                                                        <ContentPresenter x:Name="ExpanderContent" Visibility="Collapsed" Content="{TemplateBinding Content}"/>
+                                                    </StackPanel>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsExpanded" Value="True">
+                                                            <Setter TargetName="ExpanderContent" Property="Visibility" Value="Visible"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Expander.Style>
+                                <Expander.Header>
+                                    <Border Height="22" Background="#1A2A3A" BorderBrush="#FF1E6FA0" BorderThickness="0,0,0,1" Margin="0,2,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="14"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="▾" FontSize="12" Foreground="#FFFFFF"
+                                                       VerticalAlignment="Center" Margin="3,0,0,0"/>
+                                            <TextBlock Grid.Column="1" Text="CONCENTRATION" FontFamily="Helvetica Neue"
+                                               FontSize="10" Foreground="White" VerticalAlignment="Center" Margin="2,2,0,0"/>
+                                            <Button x:Name="BtnCatConcentration" Grid.Column="2"
+                                                       Content="●" FontSize="12" Foreground="Lime"
+                                                       Background="Transparent" BorderThickness="0"
+                                                       HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                       Margin="0,0,2,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </Expander.Header>
+                                <StackPanel>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblTop5Long" Grid.Column="0" Text="Top 5 Long &#8804;40"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="Top5Long"/>
+                                            <TextBlock Grid.Column="1" Text="40"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnTop5Long" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblTop5Short" Grid.Column="0" Text="Top 5 Short &#8804;35"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="Top5Short"/>
+                                            <TextBlock Grid.Column="1" Text="35"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnTop5Short" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblTop10Long" Grid.Column="0" Text="Top 10 Long &#8804;75"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="Top10Long"/>
+                                            <TextBlock Grid.Column="1" Text="75"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnTop10Long" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblTop10Short" Grid.Column="0" Text="Top 10 Short &#8804;65"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="Top10Short"/>
+                                            <TextBlock Grid.Column="1" Text="65"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnTop10Short" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Expander>
+                            <Expander IsExpanded="False">
+                                <Expander.Style>
+                                    <Style TargetType="Expander">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Expander">
+                                                    <StackPanel>
+                                                        <ToggleButton IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                                                      Background="Transparent" BorderThickness="0"
+                                                                      HorizontalContentAlignment="Stretch" Padding="0" Cursor="Hand">
+                                                            <ToggleButton.Template>
+                                                                <ControlTemplate TargetType="ToggleButton">
+                                                                    <Border Background="{TemplateBinding Background}">
+                                                                        <ContentPresenter HorizontalAlignment="Stretch"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </ToggleButton.Template>
+                                                            <ContentPresenter ContentSource="Header"/>
+                                                        </ToggleButton>
+                                                        <ContentPresenter x:Name="ExpanderContent" Visibility="Collapsed" Content="{TemplateBinding Content}"/>
+                                                    </StackPanel>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsExpanded" Value="True">
+                                                            <Setter TargetName="ExpanderContent" Property="Visibility" Value="Visible"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Expander.Style>
+                                <Expander.Header>
+                                    <Border Height="22" Background="#1A2A3A" BorderBrush="#FF1E6FA0" BorderThickness="0,0,0,1" Margin="0,2,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="14"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="▾" FontSize="12" Foreground="#FFFFFF"
+                                                       VerticalAlignment="Center" Margin="3,0,0,0"/>
+                                            <TextBlock Grid.Column="1" Text="LIQUIDITY" FontFamily="Helvetica Neue"
+                                               FontSize="10" Foreground="White" VerticalAlignment="Center" Margin="2,2,0,0"/>
+                                            <Button x:Name="BtnCatLiquidity" Grid.Column="2"
+                                                       Content="●" FontSize="12" Foreground="Lime"
+                                                       Background="Transparent" BorderThickness="0"
+                                                       HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                       Margin="0,0,2,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </Expander.Header>
+                                <StackPanel>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblADV20" Grid.Column="0" Text="ADV 20% &#8804;30"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="ADV20"/>
+                                            <Button x:Name="BtnADV20" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblADV50" Grid.Column="0" Text="ADV 50% &#8804;50"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="ADV50"/>
+                                            <Button x:Name="BtnADV50" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblADV100" Grid.Column="0" Text="ADV 100% &#8804;0"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="ADV100"/>
+                                            <Button x:Name="BtnADV100" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblLiqVaR95" Grid.Column="0" Text="Liquidation Risk &#8804;2"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="LiqVaR95"/>
+                                            <TextBlock Grid.Column="1" Text="0.00"
+                                            FontSize="9" Foreground="Silver"
+                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                            <Button x:Name="BtnLiqVaR95" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Expander>
+                            <Expander IsExpanded="False">
+                                <Expander.Style>
+                                    <Style TargetType="Expander">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Expander">
+                                                    <StackPanel>
+                                                        <ToggleButton IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                                                      Background="Transparent" BorderThickness="0"
+                                                                      HorizontalContentAlignment="Stretch" Padding="0" Cursor="Hand">
+                                                            <ToggleButton.Template>
+                                                                <ControlTemplate TargetType="ToggleButton">
+                                                                    <Border Background="{TemplateBinding Background}">
+                                                                        <ContentPresenter HorizontalAlignment="Stretch"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </ToggleButton.Template>
+                                                            <ContentPresenter ContentSource="Header"/>
+                                                        </ToggleButton>
+                                                        <ContentPresenter x:Name="ExpanderContent" Visibility="Collapsed" Content="{TemplateBinding Content}"/>
+                                                    </StackPanel>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsExpanded" Value="True">
+                                                            <Setter TargetName="ExpanderContent" Property="Visibility" Value="Visible"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Expander.Style>
+                                <Expander.Header>
+                                    <Border Height="22" Background="#1A2A3A" BorderBrush="#FF1E6FA0" BorderThickness="0,0,0,1" Margin="0,2,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="14"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="▾" FontSize="12" Foreground="#FFFFFF"
+                                                       VerticalAlignment="Center" Margin="3,0,0,0"/>
+                                            <TextBlock Grid.Column="1" Text="MKT CAP" FontFamily="Helvetica Neue"
+                                               FontSize="10" Foreground="White" VerticalAlignment="Center" Margin="2,2,0,0"/>
+                                            <Button x:Name="BtnCatMktCap" Grid.Column="2"
+                                                       Content="●" FontSize="12" Foreground="Lime"
+                                                       Background="Transparent" BorderThickness="0"
+                                                       HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                       Margin="0,0,2,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </Expander.Header>
+                                <StackPanel>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblLargeCapGross" Grid.Column="0" Text="Lg Gross &#8804;175"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="LargeCapGross"/>
+                                            <Button x:Name="BtnLargeCapGross" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblLargeCapNet" Grid.Column="0" Text="Lg Net &#8804;15"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="LargeCapNet"/>
+                                            <Button x:Name="BtnLargeCapNet" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblMidCapGross" Grid.Column="0" Text="Mid Gross &#8804;100"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="MidCapGross"/>
+                                            <Button x:Name="BtnMidCapGross" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblMidCapNet" Grid.Column="0" Text="Mid Net &#8804;15"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="MidCapNet"/>
+                                            <Button x:Name="BtnMidCapNet" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblSmallCapGross" Grid.Column="0" Text="Sm Gross &#8804;25"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="SmallCapGross"/>
+                                            <Button x:Name="BtnSmallCapGross" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="15"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="LblSmallCapNet" Grid.Column="0" Text="Sm Net &#8804;2.5"
+                                            FontSize="9" Foreground="Silver" Background="Transparent"
+                                            BorderThickness="0" IsReadOnly="True" Cursor="Hand"
+                                            VerticalAlignment="Center" Margin="3,0,0,0"
+                                            MouseDown="AlertLabel_MouseDown" Tag="SmallCapNet"/>
+                                            <Button x:Name="BtnSmallCapNet" Grid.Column="2"
+                                               Content="●" FontSize="12" Foreground="Lime"
+                                               Background="Transparent" BorderThickness="0"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Margin="0,0,0,2" Width="16" Height="16" Cursor="Arrow">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Expander>
+                        </StackPanel>
+                    </ScrollViewer>
                 </Grid>
 
                 <Grid Name="MLScenario" Grid.Row="13" Grid.RowSpan="3" Width="130"
@@ -2727,13 +4567,17 @@
             </Grid>
 
             <Grid x:Name="RebalanceChartGrid" Grid.Row="1" Grid.Column="1" Visibility="Visible">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="37*"/>
+                    <ColumnDefinition Width="363*"/>
+                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="67*" />
                     <RowDefinition Height="50*" />
                 </Grid.RowDefinitions>
 
                 <Grid x:Name="RebalanceGrid" Grid.RowSpan="2" Margin="10,3,0,0" Background="Black"
-                      Visibility="Visible">
+                      Visibility="Visible" Grid.ColumnSpan="2">
 
                     <Grid.RowDefinitions>
                         <RowDefinition Height="25" />
@@ -2804,14 +4648,14 @@
                     </StackPanel>
 
 
-                    <StackPanel x:Name="TIPositions22" Grid.Row="0" Grid.ColumnSpan="11" Margin="0,0,0,0" Visibility="Visible"
-                            HorizontalAlignment="Left" Orientation="Horizontal" >
+                    <StackPanel x:Name="TIPositions22" Grid.Row="0" Grid.ColumnSpan="11" Margin="0,0,78,0" Visibility="Visible"
+                            HorizontalAlignment="Center" Orientation="Horizontal" >
                         <Label x:Name="PortSetup2" Grid.Column="0" Margin="2,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Center"
                            VerticalAlignment="Center" Background="Transparent" Content="PORTFOLIO SETUP"  Cursor="Hand" Visibility="Visible"
                            FontFamily="Helvetica Neue" FontSize="12" FontWeight="Normal" Foreground="White"
                            MouseDown="FundamentalML_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave" />
 
-                        <Label x:Name="OrderMgm2" Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Visible"
+                        <Label x:Name="OrderMgm2" Margin="10,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Visible"
                            Background="Transparent" Content="ORDER MANAGEMENT"  FontFamily="Helvetica Neue" FontSize="12"
                            FontWeight="Normal" Foreground="#00ccff" />
                         <Label x:Name="PortPerf2" Margin="10,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Visible"
@@ -2824,7 +4668,7 @@
                            MouseEnter="SendOrders_MouseEnter" MouseLeave="SendOrders_MouseLeave" MouseDown="RunPortfolio_MouseDown" Cursor="Hand"
                            Visibility="{Binding CanRunPortfolio, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
 
-                    <StackPanel Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="7" HorizontalAlignment="Center"
+                    <StackPanel Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="5" HorizontalAlignment="Center" Margin="0,0,12,0" 
                                 Orientation="Horizontal">
                         <Label Grid.Row="0" x:Name="ModelName3" Margin="0,0,5,0" Padding="0,4,0,0"  HorizontalAlignment="Left" VerticalAlignment="Top"
                                Background="Transparent" Content="" FontFamily="Helvetica Neue" FontSize="10"
@@ -3112,8 +4956,9 @@
                                    HorizontalContentAlignment="Left" Background="Transparent" Content=" DATE" Cursor="Hand"
                                    FontFamily="Helvetica Neue" FontSize="10" Foreground="White" MouseEnter="Portfolio_MouseEnter"
                                    MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="Date_MouseLeftButtonDown" />
-                            <!--Sector-->
-                            <Label Grid.ColumnSpan="3" Width="70" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,0,0"
+                            <!--Sector / Industry / Sub-Industry header (label name and column population
+                                 retitle in code based on _activeLabel)-->
+                            <Label x:Name="LblColumnSectorHeader" Grid.ColumnSpan="3" Width="70" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,0,0"
                                    HorizontalContentAlignment="Left" Background="Transparent" Content="SECTOR" FontFamily="Helvetica Neue"
                                    MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="Sector_MouseLeftButtonDown"
                                    FontSize="10" Foreground="White" />
@@ -3185,7 +5030,7 @@
                     </Grid>
 
 
-                    <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="7" Margin="0,12,0,0"
+                    <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="7" Margin="0,12,150,0"
                                 HorizontalAlignment="Center" Orientation="Horizontal">
                         <Label x:Name="ModelName4" Margin="0,0,0,0" Padding="0,6,0,0"  HorizontalAlignment="Center" VerticalAlignment="Top"
                                Background="Transparent" Content="" FontFamily="Helvetica Neue" FontSize="10" Foreground="#00ccff" />
@@ -3301,8 +5146,7 @@
                     </Grid>
                 </Grid>
 
-                <Grid x:Name="ExportHelp" Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
-                      Grid.ColumnSpan="3" Margin="27,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                <Grid x:Name="ExportHelp" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Margin="340,0,0,0" HorizontalAlignment="Left"
                       Background="Black" Visibility="Collapsed">
 
                     <Grid.RowDefinitions>
@@ -3792,8 +5636,8 @@
                 <Rectangle Grid.Row="2" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="3"
                            Margin="0,23,0,0" Fill="Transparent" Stroke="#FF124B72" StrokeThickness="1" />
 
-                <Grid x:Name="PerformanceBlue" Grid.Row="0" Grid.ColumnSpan="11" Margin="0,0,0,0"
-                      HorizontalAlignment="Left" Visibility="Visible">
+                <Grid x:Name="PerformanceBlue" Grid.Row="0" Grid.ColumnSpan="11" Margin="0,0,78,0"
+                      HorizontalAlignment="Center" Visibility="Visible">
 
                     <Grid.RowDefinitions>
                         <RowDefinition Height="25" />
@@ -3824,7 +5668,9 @@
 
                 </Grid>
 
-                <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="9" HorizontalAlignment="Center" Margin="0,0,0,0" Padding="0,3,0,0"
+
+
+                <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="9" HorizontalAlignment="Center" Margin="0,0,135,0" Padding="0,3,0,0"
                        VerticalAlignment="Top" Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
                        Content="Returns" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal"
                        Foreground="PaleGreen" />

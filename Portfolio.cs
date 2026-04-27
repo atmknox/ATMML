@@ -10455,6 +10455,69 @@ namespace ATMML
 			return subIndustry;
 		}
 
+		// Re-fetches GICS classifications (sector / industry / sub-industry) from Bloomberg
+		// for a single ticker. Used to self-heal cache misses where a ticker was previously
+		// added with empty classification data (e.g. Bloomberg response timing issues).
+		// Async / fire-and-forget — caller will see fresh data on the next render after
+		// Bloomberg responds (typically <1s, populated via the same handler path used by
+		// requestSymbolInfo at lines ~41032/41051/41066).
+		// Also clears the in-memory _refCache for these field files so the next loadData
+		// call goes to disk after the Bloomberg handler writes the new value.
+		public void RefreshClassification(string ticker)
+		{
+			if (string.IsNullOrEmpty(ticker)) return;
+
+			try
+			{
+				bool ok = openSession();
+				if (!ok) return;
+
+				Service refDataService = _session.GetService("//blp/refdata");
+				if (refDataService == null) return;
+
+				Request request = refDataService.CreateRequest("ReferenceDataRequest");
+				Element securities = request.GetElement("securities");
+				Element fields = request.GetElement("fields");
+
+				securities.AppendValue(ticker);
+				fields.AppendValue("GICS_SECTOR");
+				fields.AppendValue("GICS_INDUSTRY");
+				fields.AppendValue("GICS_SUB_INDUSTRY");
+
+				// Ensure the ticker is in _symbols so the response handler can store
+				// the values back. Adds a stub if not already present.
+				lock (_symbols)
+				{
+					if (!_symbols.ContainsKey(ticker))
+					{
+						_symbols[ticker] = new Symbol(ticker);
+					}
+				}
+
+				// Drop any cached empty results so the next loadData re-reads from disk
+				// after the Bloomberg response writes the file via saveValue.
+				try
+				{
+					var sectorFile  = getFileName(ticker, "GICS_SECTOR",       false);
+					var industryFile = getFileName(ticker, "GICS_INDUSTRY",     false);
+					var subIndFile  = getFileName(ticker, "GICS_SUB_INDUSTRY", false);
+					_refCache.Remove(sectorFile);
+					_refCache.Remove(industryFile);
+					_refCache.Remove(subIndFile);
+				}
+				catch { /* cache invalidation is best-effort */ }
+
+				// Use a distinguishable correlation id so it doesn't collide with the
+				// batch requestSymbolInfo path's "requestSymbolInfo" key.
+				var key = "RefreshClassification:" + ticker;
+				_session.SendRequest(request, new CorrelationID(key));
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine("RefreshClassification failed for " + ticker + ": " + ex.Message);
+			}
+		}
+
 		public string GetSectorName(int input)
 		{
 			string output = "";
@@ -10698,14 +10761,18 @@ namespace ATMML
 			else if (input == 20202010) output = "HRSV";
 			else if (input == 20202020) output = "CONS";
 			else if (input == 20202030) output = "DATA";
-			else if (input == 20301010) output = "AIRP";
-			else if (input == 20302010) output = "MARN";
-			else if (input == 20305010) output = "AIRL";
+			else if (input == 20301010) output = "AFLG";
+			else if (input == 20302010) output = "PSAL";
+			else if (input == 20303010) output = "MTRN";
+			else if (input == 20304010) output = "RTRN";
+			else if (input == 20304030) output = "CARG";
+			else if (input == 20304040) output = "PSGT";
+			else if (input == 20305010) output = "ARPT";
+			else if (input == 20305020) output = "HWRR";
+			else if (input == 20305030) output = "MNPT";
+			else if (input == 20305040) output = "PORT";
 			else if (input == 20306010) output = "RAIL";
 			else if (input == 20306020) output = "TRUK";
-			else if (input == 20305020) output = "APRT";
-			else if (input == 20305030) output = "HWRT";
-			else if (input == 20305040) output = "PORT";
 			else if (input == 25101010) output = "AUPT";
 			else if (input == 25101020) output = "TIRE";
 			else if (input == 25102010) output = "AUTO";
@@ -10719,6 +10786,10 @@ namespace ATMML
 			else if (input == 25201070) output = "TEXT";
 			else if (input == 25201080) output = "APPX";
 			else if (input == 25201090) output = "SHOE";
+			else if (input == 25202010) output = "LEIP";
+			else if (input == 25203010) output = "AALG";
+			else if (input == 25203020) output = "FOOT";
+			else if (input == 25203030) output = "TXTL";
 			else if (input == 25301010) output = "CAGM";
 			else if (input == 25301020) output = "HRCL";
 			else if (input == 25301030) output = "LEIF";
@@ -10726,43 +10797,61 @@ namespace ATMML
 			else if (input == 25302010) output = "EDUC";
 			else if (input == 25302020) output = "OCSV";
 			else if (input == 25401010) output = "DIST";
-			else if (input == 25504010) output = "BRDL";
+			else if (input == 25501010) output = "DSTR";
+			else if (input == 25502010) output = "IDMR";
 			else if (input == 25503010) output = "AUTR";
 			else if (input == 25503020) output = "HOME";
-			else if (input == 25503030) output = "SPCL";
-			else if (input == 30101010) output = "AGPR";
+			else if (input == 25503030) output = "BRRE";
+			else if (input == 25504010) output = "APRE";
+			else if (input == 25504020) output = "CELR";
+			else if (input == 25504030) output = "HMIR";
+			else if (input == 25504040) output = "OSPR";
+			else if (input == 25504050) output = "ATRT";
+			else if (input == 25504060) output = "HFUR";
+			else if (input == 30101010) output = "DRGR";
+			else if (input == 30101020) output = "FDDS";
+			else if (input == 30101030) output = "FDRL";
+			else if (input == 30101040) output = "CSMR";
+			else if (input == 30101050) output = "HMSC";
 			else if (input == 30201010) output = "BREW";
 			else if (input == 30201020) output = "DIST";
 			else if (input == 30201030) output = "SOFT";
-			else if (input == 30202010) output = "FOOD";
+			else if (input == 30202010) output = "AGPS";
+			else if (input == 30202030) output = "PFOM";
 			else if (input == 30203010) output = "TOBA";
-			else if (input == 30101020) output = "DRUG";
-			else if (input == 30101030) output = "FDSV";
-			else if (input == 30101040) output = "FDRT";
-			else if (input == 30101050) output = "HMSC";
 			else if (input == 30301010) output = "HOUS";
 			else if (input == 30302010) output = "PERS";
-			else if (input == 40101010) output = "BANK";
-			else if (input == 40101015) output = "REGB";
-			else if (input == 40102010) output = "THFT";
-			else if (input == 40201020) output = "IBBR";
-			else if (input == 40201030) output = "ASMG";
-			else if (input == 40201040) output = "INSB";
-			else if (input == 40202010) output = "CNFN";
-			else if (input == 40201010) output = "DVFN";
-			else if (input == 40201050) output = "MSHL";
-			else if (input == 40201060) output = "SPFN";
-			else if (input == 40301010) output = "LIFE";
-			else if (input == 40301020) output = "PROP";
-			else if (input == 40301030) output = "REIN";
 			else if (input == 35101010) output = "HCEQ";
 			else if (input == 35101020) output = "HCSP";
 			else if (input == 35102010) output = "HCDS";
-			else if (input == 35102020) output = "HCSV";
-			else if (input == 35102030) output = "HCFX";
+			else if (input == 35102015) output = "HCSR";
+			else if (input == 35102020) output = "HCFC";
+			else if (input == 35102030) output = "MGHC";
 			else if (input == 35102040) output = "MHCR";
+			else if (input == 35103010) output = "HCTC";
 			else if (input == 35201010) output = "BIOT";
 			else if (input == 35202010) output = "DRUG";
+			else if (input == 35203010) output = "LSTS";
+			else if (input == 40101010) output = "BANK";
+			else if (input == 40101015) output = "REGB";
+			else if (input == 40102010) output = "THFT";
+			else if (input == 40201010) output = "DVFN";
+			else if (input == 40201020) output = "DFSV";
+			else if (input == 40201030) output = "MSCT";
+			else if (input == 40201040) output = "SPFC";
+			else if (input == 40201050) output = "CRMF";
+			else if (input == 40201060) output = "TPPS";
+			else if (input == 40202010) output = "CNFN";
+			else if (input == 40203010) output = "AMCB";
+			else if (input == 40203020) output = "INVB";
+			else if (input == 40203030) output = "DCAP";
+			else if (input == 40203040) output = "FEXD";
+			else if (input == 40204010) output = "MRTR";
+			else if (input == 40301010) output = "INBK";
+			else if (input == 40301020) output = "LHIN";
+			else if (input == 40301030) output = "MLIN";
+			else if (input == 40301040) output = "PCIN";
+			else if (input == 40301050) output = "RINS";
 			else if (input == 45102010) output = "ITSV";
 			else if (input == 45102020) output = "DATA";
 			else if (input == 45102030) output = "INTS";
@@ -10770,21 +10859,27 @@ namespace ATMML
 			else if (input == 45103020) output = "SYSP";
 			else if (input == 45201020) output = "COMM";
 			else if (input == 45202010) output = "TECH";
+			else if (input == 45202030) output = "THSP";
+			else if (input == 45202040) output = "EQPM";
 			else if (input == 45203010) output = "EEQI";
 			else if (input == 45203015) output = "ECMP";
 			else if (input == 45203020) output = "EMFG";
 			else if (input == 45203030) output = "TDIS";
-			else if (input == 45202030) output = "SEMI";
-			else if (input == 45202040) output = "EQPM";
+			else if (input == 45301010) output = "SMEQ";
+			else if (input == 45301020) output = "SMCN";
+			else if (input == 50101010) output = "ALCA";
+			else if (input == 50101020) output = "ITLS";
+			else if (input == 50102010) output = "WTEL";
 			else if (input == 50201010) output = "ADVT";
-			else if (input == 50202010) output = "BRDC";
-			else if (input == 50202020) output = "CABL";
+			else if (input == 50201020) output = "BCST";
+			else if (input == 50201030) output = "CSAT";
+			else if (input == 50201040) output = "PUBL";
+			else if (input == 50202010) output = "MOEN";
+			else if (input == 50202020) output = "INHE";
 			else if (input == 50202030) output = "PUBS";
-			else if (input == 50203010) output = "ENTR";
+			else if (input == 50203010) output = "INMS";
 			else if (input == 50203020) output = "GAME";
 			else if (input == 50203030) output = "IMED";
-			else if (input == 50101010) output = "TELI";
-			else if (input == 50101020) output = "TELW";
 			else if (input == 55101010) output = "UTIL";
 			else if (input == 55102010) output = "GASU";
 			else if (input == 55103010) output = "MULT";
@@ -10802,24 +10897,22 @@ namespace ATMML
 			else if (input == 60102010) output = "REOC";
 			else if (input == 60102020) output = "REDE";
 			else if (input == 60102030) output = "RESE";
-			else if (input == 25201070) output = "TEXT";
-			else if (input == 25201080) output = "APPX";
-			else if (input == 25201090) output = "SHOE";
-			else if (input == 25301030) output = "LEIF";
-			else if (input == 25301040) output = "REST";
-			else if (input == 25302010) output = "EDUC";
-			else if (input == 25302020) output = "OCSV";
-			else if (input == 25502010) output = "IDMR";
-			else if (input == 30101020) output = "DRUG";
-			else if (input == 30101030) output = "FDSV";
-			else if (input == 30101040) output = "FDRT";
-			else if (input == 30101050) output = "HMSC";
-			else if (input == 40301030) output = "REIN";
-			else if (input == 45203015) output = "ECMP";
-			else if (input == 45203020) output = "EMFG";
-			else if (input == 45203030) output = "TDIS";
-			else if (input == 60102020) output = "REDE";
-			else if (input == 60102030) output = "RESE";
+			else if (input == 60102510) output = "IRRE";
+			else if (input == 60103010) output = "HRRT";
+			else if (input == 60104010) output = "OFRT";
+			else if (input == 60105010) output = "HCRT";
+			else if (input == 60106010) output = "MFRR";
+			else if (input == 60106020) output = "SFRR";
+			else if (input == 60107010) output = "RRRT";
+			else if (input == 60108010) output = "OSRT";
+			else if (input == 60108020) output = "SSRT";
+			else if (input == 60108030) output = "TTRT";
+			else if (input == 60108040) output = "TBRT";
+			else if (input == 60108050) output = "DCRT";
+			else if (input == 60201010) output = "DREA";
+			else if (input == 60201020) output = "REOP";
+			else if (input == 60201030) output = "REDV";
+			else if (input == 60201040) output = "RESV";
 			return output;
 		}
 
@@ -10868,14 +10961,18 @@ namespace ATMML
 			else if (input == 20202010) output = "Human Resource & Employment Services";
 			else if (input == 20202020) output = "Research & Consulting Services";
 			else if (input == 20202030) output = "Data Processing & Outsourced Services";
-			else if (input == 20301010) output = "Passenger Airlines";
-			else if (input == 20302010) output = "Marine Transportation";
-			else if (input == 20305010) output = "Air Freight & Logistics";
+			else if (input == 20301010) output = "Air Freight & Logistics";
+			else if (input == 20302010) output = "Passenger Airlines";
+			else if (input == 20303010) output = "Marine Transportation";
+			else if (input == 20304010) output = "Rail Transportation";
+			else if (input == 20304030) output = "Cargo Ground Transportation";
+			else if (input == 20304040) output = "Passenger Ground Transportation";
+			else if (input == 20305010) output = "Airport Services";
+			else if (input == 20305020) output = "Highways & Railtracks";
+			else if (input == 20305030) output = "Marine Ports & Services";
+			else if (input == 20305040) output = "Marine Ports & Services";
 			else if (input == 20306010) output = "Railroads";
 			else if (input == 20306020) output = "Trucking";
-			else if (input == 20305020) output = "Airport Services";
-			else if (input == 20305030) output = "Highways & Railtracks";
-			else if (input == 20305040) output = "Marine Ports & Services";
 			else if (input == 25101010) output = "Auto Parts & Equipment";
 			else if (input == 25101020) output = "Tires & Rubber";
 			else if (input == 25102010) output = "Automobile Manufacturers";
@@ -10889,6 +10986,10 @@ namespace ATMML
 			else if (input == 25201070) output = "Textiles";
 			else if (input == 25201080) output = "Apparel & Accessories";
 			else if (input == 25201090) output = "Footwear";
+			else if (input == 25202010) output = "Leisure Products";
+			else if (input == 25203010) output = "Apparel, Accessories & Luxury Goods";
+			else if (input == 25203020) output = "Footwear";
+			else if (input == 25203030) output = "Textiles";
 			else if (input == 25301010) output = "Casinos & Gaming";
 			else if (input == 25301020) output = "Hotels, Resorts & Cruise Lines";
 			else if (input == 25301030) output = "Leisure Facilities";
@@ -10896,43 +10997,61 @@ namespace ATMML
 			else if (input == 25302010) output = "Education Services";
 			else if (input == 25302020) output = "Other Consumer Services";
 			else if (input == 25401010) output = "Distributors";
-			else if (input == 25504010) output = "Broadline Retail";
+			else if (input == 25501010) output = "Distributors";
+			else if (input == 25502010) output = "Internet & Direct Marketing Retail (deprecated)";
 			else if (input == 25503010) output = "Automotive Retail";
 			else if (input == 25503020) output = "Home Improvement Retail";
-			else if (input == 25503030) output = "Specialty Stores";
-			else if (input == 30101010) output = "Agricultural Products";
+			else if (input == 25503030) output = "Broadline Retail";
+			else if (input == 25504010) output = "Apparel Retail";
+			else if (input == 25504020) output = "Computer & Electronics Retail";
+			else if (input == 25504030) output = "Home Improvement Retail";
+			else if (input == 25504040) output = "Other Specialty Retail";
+			else if (input == 25504050) output = "Automotive Retail";
+			else if (input == 25504060) output = "Homefurnishing Retail";
+			else if (input == 30101010) output = "Drug Retail";
+			else if (input == 30101020) output = "Food Distributors";
+			else if (input == 30101030) output = "Food Retail";
+			else if (input == 30101040) output = "Consumer Staples Merchandise Retail";
+			else if (input == 30101050) output = "Hypermarkets & Super Centers";
 			else if (input == 30201010) output = "Brewers";
 			else if (input == 30201020) output = "Distillers & Vintners";
 			else if (input == 30201030) output = "Soft Drinks";
-			else if (input == 30202010) output = "Packaged Foods & Meats";
+			else if (input == 30202010) output = "Agricultural Products & Services";
+			else if (input == 30202030) output = "Packaged Foods & Meats";
 			else if (input == 30203010) output = "Tobacco";
-			else if (input == 30101020) output = "Drug Retail";
-			else if (input == 30101030) output = "Food Distributors";
-			else if (input == 30101040) output = "Food Retail";
-			else if (input == 30101050) output = "Hypermarkets & Super Centers";
 			else if (input == 30301010) output = "Household Products";
 			else if (input == 30302010) output = "Personal Products";
-			else if (input == 40101010) output = "Diversified Banks";
-			else if (input == 40101015) output = "Regional Banks";
-			else if (input == 40102010) output = "Thrifts & Mortgage Finance";
-			else if (input == 40201020) output = "Investment Banking & Brokerage";
-			else if (input == 40201030) output = "Asset Management & Custody Banks";
-			else if (input == 40201040) output = "Insurance Brokers";
-			else if (input == 40202010) output = "Consumer Finance";
-			else if (input == 40201010) output = "Other Diversified Financial Services";
-			else if (input == 40201050) output = "Multi-Sector Holdings";
-			else if (input == 40201060) output = "Specialized Finance";
-			else if (input == 40301010) output = "Life & Health Insurance";
-			else if (input == 40301020) output = "Property & Casualty Insurance";
-			else if (input == 40301030) output = "Reinsurance";
 			else if (input == 35101010) output = "Health Care Equipment";
 			else if (input == 35101020) output = "Health Care Supplies";
 			else if (input == 35102010) output = "Health Care Distributors";
-			else if (input == 35102020) output = "Health Care Services";
-			else if (input == 35102030) output = "Health Care Facilities";
+			else if (input == 35102015) output = "Health Care Services";
+			else if (input == 35102020) output = "Health Care Facilities";
+			else if (input == 35102030) output = "Managed Health Care";
 			else if (input == 35102040) output = "Managed Health Care";
+			else if (input == 35103010) output = "Health Care Technology";
 			else if (input == 35201010) output = "Biotechnology";
 			else if (input == 35202010) output = "Pharmaceuticals";
+			else if (input == 35203010) output = "Life Sciences Tools & Services";
+			else if (input == 40101010) output = "Diversified Banks";
+			else if (input == 40101015) output = "Regional Banks";
+			else if (input == 40102010) output = "Thrifts & Mortgage Finance";
+			else if (input == 40201010) output = "Other Diversified Financial Services";
+			else if (input == 40201020) output = "Diversified Financial Services";
+			else if (input == 40201030) output = "Multi-Sector Holdings";
+			else if (input == 40201040) output = "Specialized Finance";
+			else if (input == 40201050) output = "Commercial & Residential Mortgage Finance";
+			else if (input == 40201060) output = "Transaction & Payment Processing Services";
+			else if (input == 40202010) output = "Consumer Finance";
+			else if (input == 40203010) output = "Asset Management & Custody Banks";
+			else if (input == 40203020) output = "Investment Banking & Brokerage";
+			else if (input == 40203030) output = "Diversified Capital Markets";
+			else if (input == 40203040) output = "Financial Exchanges & Data";
+			else if (input == 40204010) output = "Mortgage REITs";
+			else if (input == 40301010) output = "Insurance Brokers";
+			else if (input == 40301020) output = "Life & Health Insurance";
+			else if (input == 40301030) output = "Multi-line Insurance";
+			else if (input == 40301040) output = "Property & Casualty Insurance";
+			else if (input == 40301050) output = "Reinsurance";
 			else if (input == 45102010) output = "IT Consulting & Other Services";
 			else if (input == 45102020) output = "Data Processing & Outsourced Services";
 			else if (input == 45102030) output = "Internet Services & Infrastructure";
@@ -10940,21 +11059,27 @@ namespace ATMML
 			else if (input == 45103020) output = "Systems Software";
 			else if (input == 45201020) output = "Communications Equipment";
 			else if (input == 45202010) output = "Technology Hardware, Storage & Peripherals";
+			else if (input == 45202030) output = "Technology Hardware, Storage & Peripherals";
+			else if (input == 45202040) output = "Semiconductor Equipment";
 			else if (input == 45203010) output = "Electronic Equipment & Instruments";
 			else if (input == 45203015) output = "Electronic Components";
 			else if (input == 45203020) output = "Electronic Manufacturing Services";
 			else if (input == 45203030) output = "Technology Distributors";
-			else if (input == 45202030) output = "Semiconductors";
-			else if (input == 45202040) output = "Semiconductor Equipment";
+			else if (input == 45301010) output = "Semiconductor Materials & Equipment";
+			else if (input == 45301020) output = "Semiconductors";
+			else if (input == 50101010) output = "Alternative Carriers";
+			else if (input == 50101020) output = "Integrated Telecommunication Services";
+			else if (input == 50102010) output = "Wireless Telecommunication Services";
 			else if (input == 50201010) output = "Advertising";
-			else if (input == 50202010) output = "Broadcasting";
-			else if (input == 50202020) output = "Cable & Satellite";
+			else if (input == 50201020) output = "Broadcasting";
+			else if (input == 50201030) output = "Cable & Satellite";
+			else if (input == 50201040) output = "Publishing";
+			else if (input == 50202010) output = "Movies & Entertainment";
+			else if (input == 50202020) output = "Interactive Home Entertainment";
 			else if (input == 50202030) output = "Publishing";
-			else if (input == 50203010) output = "Movies & Entertainment";
+			else if (input == 50203010) output = "Interactive Media & Services";
 			else if (input == 50203020) output = "Interactive Home Entertainment";
 			else if (input == 50203030) output = "Interactive Media & Services";
-			else if (input == 50101010) output = "Integrated Telecommunication Services";
-			else if (input == 50101020) output = "Wireless Telecommunication Services";
 			else if (input == 55101010) output = "Electric Utilities";
 			else if (input == 55102010) output = "Gas Utilities";
 			else if (input == 55103010) output = "Multi-Utilities";
@@ -10972,24 +11097,22 @@ namespace ATMML
 			else if (input == 60102010) output = "Real Estate Operating Companies";
 			else if (input == 60102020) output = "Real Estate Development";
 			else if (input == 60102030) output = "Real Estate Services";
-			else if (input == 25201070) output = "Textiles";
-			else if (input == 25201080) output = "Apparel & Accessories";
-			else if (input == 25201090) output = "Footwear";
-			else if (input == 25301030) output = "Leisure Facilities";
-			else if (input == 25301040) output = "Restaurants";
-			else if (input == 25302010) output = "Education Services";
-			else if (input == 25302020) output = "Other Consumer Services";
-			else if (input == 25502010) output = "Internet & Direct Marketing Retail (deprecated)";
-			else if (input == 30101020) output = "Drug Retail";
-			else if (input == 30101030) output = "Food Distributors";
-			else if (input == 30101040) output = "Food Retail";
-			else if (input == 30101050) output = "Hypermarkets & Super Centers";
-			else if (input == 40301030) output = "Reinsurance";
-			else if (input == 45203015) output = "Electronic Components";
-			else if (input == 45203020) output = "Electronic Manufacturing Services";
-			else if (input == 45203030) output = "Technology Distributors";
-			else if (input == 60102020) output = "Real Estate Development";
-			else if (input == 60102030) output = "Real Estate Services";
+			else if (input == 60102510) output = "Industrial REITs";
+			else if (input == 60103010) output = "Hotel & Resort REITs";
+			else if (input == 60104010) output = "Office REITs";
+			else if (input == 60105010) output = "Health Care REITs";
+			else if (input == 60106010) output = "Multi-Family Residential REITs";
+			else if (input == 60106020) output = "Single-Family Residential REITs";
+			else if (input == 60107010) output = "Retail REITs";
+			else if (input == 60108010) output = "Other Specialized REITs";
+			else if (input == 60108020) output = "Self-Storage REITs";
+			else if (input == 60108030) output = "Telecom Tower REITs";
+			else if (input == 60108040) output = "Timber REITs";
+			else if (input == 60108050) output = "Data Center REITs";
+			else if (input == 60201010) output = "Diversified Real Estate Activities";
+			else if (input == 60201020) output = "Real Estate Operating Companies";
+			else if (input == 60201030) output = "Real Estate Development";
+			else if (input == 60201040) output = "Real Estate Services";
 			return output;
 		}
 

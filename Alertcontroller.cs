@@ -51,6 +51,7 @@ namespace ATMML
 		public Func<bool> CheckADV20         { get; set; } = () => true;
 		public Func<bool> CheckADV50         { get; set; } = () => true;
 		public Func<bool> CheckADV100        { get; set; } = () => true;
+		public Func<bool> CheckLiqVaR95      { get; set; } = () => true;
 		public Func<bool> CheckLargeCapGross { get; set; } = () => true;
 		public Func<bool> CheckLargeCapNet   { get; set; } = () => true;
 		public Func<bool> CheckMidCapGross   { get; set; } = () => true;
@@ -151,6 +152,7 @@ namespace ATMML
 			SetCircle("ADV20",         CheckADV20());
 			SetCircle("ADV50",         CheckADV50());
 			SetCircle("ADV100",        CheckADV100());
+			SetCircle("LiqVaR95",      CheckLiqVaR95());
 			SetCircle("LargeCapGross", CheckLargeCapGross());
 			SetCircle("LargeCapNet",   CheckLargeCapNet());
 			SetCircle("MidCapGross",   CheckMidCapGross());
