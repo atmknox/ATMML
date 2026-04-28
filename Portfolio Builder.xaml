@@ -8,11 +8,12 @@
                 x:Name="PortBuilder"
                 Background="{x:Null}"
                 mc:Ignorable="d"
+               xmlns:svg="clr-namespace:SharpVectors.Converters;assembly=SharpVectors.Converters.Wpf"           
                 xmlns:auth="clr-namespace:ATMML.Auth">
 
 
 
-    <ContentControl.Resources>
+    <!--<ContentControl.Resources>
         <Canvas x:Key="Logo" Width="162" Height="72" Margin="4,2,160,85">
             <Path Data="F1 M 152.368,56.080 L 142.873,69.656 L 161.778,69.656 L 152.368,56.080 L 152.368,56.080 Z" Fill="#FFBC0031" />
             <Path Data="F1 M 130.920,38.162 L 102.819,38.162 C 94.270,38.162 89.569,41.112 87.569,48.612 L 82.119,69.362 C 82.020,69.662 82.220,69.912 82.470,69.912 L 92.470,69.912 C 92.770,69.912 93.020,69.712 93.119,69.362 L 98.420,49.112 C 99.520,45.012 101.119,44.462 104.369,44.462 L 105.369,44.462 C 108.520,44.462 109.819,45.012 108.720,49.112 L 103.420,69.362 C 103.319,69.662 103.520,69.912 103.770,69.912 L 113.270,69.912 C 113.569,69.912 113.819,69.712 113.920,69.362 L 119.220,49.112 C 120.319,45.012 121.869,44.462 125.069,44.462 L 126.069,44.462 C 129.270,44.462 130.619,45.063 129.520,49.112 L 124.220,69.362 C 124.119,69.712 124.270,69.912 124.569,69.912 L 134.569,69.912 C 134.869,69.912 135.119,69.712 135.220,69.362 L 140.670,48.612 C 142.619,41.112 139.470,38.162 130.920,38.162 L 130.920,38.162 Z M 71.470,49.212 C 72.270,46.212 73.569,45.212 76.569,45.212 L 84.220,45.212 C 84.520,45.212 84.770,45.012 84.869,44.662 L 86.220,39.462 C 86.319,39.162 86.119,38.912 85.869,38.912 L 51.470,38.912 C 51.169,38.912 50.919,39.112 50.819,39.462 L 49.470,44.662 C 49.370,44.962 49.569,45.212 49.819,45.212 L 57.470,45.212 C 60.470,45.212 61.270,46.212 60.470,49.212 L 55.169,69.362 C 55.069,69.662 55.270,69.912 55.520,69.912 L 65.520,69.912 C 65.819,69.912 66.069,69.712 66.169,69.362 L 71.470,49.212 L 71.470,49.212 Z M 29.270,52.462 L 20.569,52.462 C 17.569,52.462 16.919,50.962 17.620,48.412 L 17.669,48.212 C 18.370,45.662 19.720,44.212 22.720,44.212 L 31.419,44.212 C 34.419,44.212 35.220,45.612 34.569,48.262 L 34.520,48.462 C 33.819,51.212 32.270,52.462 29.270,52.462 L 29.270,52.462 Z M 6.770,49.462 L 1.520,69.412 C 1.419,69.712 1.620,69.912 1.870,69.912 L 11.620,69.912 C 11.970,69.912 12.169,69.712 12.270,69.412 L 14.020,62.712 C 14.770,59.862 16.220,58.512 18.970,58.512 L 27.669,58.512 C 30.470,58.512 31.220,59.862 30.470,62.712 L 28.720,69.412 C 28.620,69.712 28.770,69.912 29.069,69.912 L 39.069,69.912 C 39.370,69.912 39.620,69.762 39.720,69.412 L 44.970,49.462 C 47.270,40.762 44.720,38.162 32.669,38.162 L 25.319,38.162 C 11.669,38.162 8.819,41.612 6.770,49.462 L 6.770,49.462 Z">
@@ -31,7 +32,7 @@
             <Setter Property="Background" Value="Black" />
             <Setter Property="Foreground" Value="WhiteSmoke" />
         </Style>
-    </ContentControl.Resources>
+    </ContentControl.Resources>-->
 
     <Viewbox Stretch="Fill">
 
@@ -48,7 +49,7 @@
                 <ColumnDefinition Width="5" />
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.Row="0" Grid.Column="0" Margin="40,0,0,0" Background="Black" Grid.ColumnSpan="3"
+            <!--<Grid Grid.Row="0" Grid.Column="0" Margin="40,0,0,0" Background="Black" Grid.ColumnSpan="3"
                   Visibility="Visible">
                 <Viewbox>
                     <StaticResource ResourceKey="Logo" />
@@ -56,11 +57,28 @@
                 <Label Grid.Row="0" Grid.Column="0" Margin="0,0,422,13" HorizontalAlignment="Right"
                        VerticalContentAlignment="Center" Background="Transparent" Content="ML" FontFamily="Helvetica Neue"
                        FontSize="12" FontStyle="Normal" FontWeight="Normal" Foreground="White" />
-                <!--<Label Grid.Row="1" Margin="0,0,445,12"  Content="Hedge Fund App"
+                --><!--<Label Grid.Row="1" Margin="0,0,445,12"  Content="Hedge Fund App"
                        HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Transparent" FontFamily="Helvetica Neue"
-                       FontSize="9" FontWeight="Normal" Foreground="White" />-->
-            </Grid>
+                       FontSize="9" FontWeight="Normal" Foreground="White" />--><!--
+            </Grid>-->
+            
+            <!--CMR Logo-->
+            <ContentControl Grid.Row="0"
+                Grid.Column="0" HorizontalAlignment="Center"
+                Grid.ColumnSpan="3">
+                <Grid Margin="0,0,0,20" Background="Black">
+                    <svg:SvgViewbox Source="pack://application:,,,/Images/CMR_Name_Blueeps.svg"
+                        Width="60"
+                        Height="30"/>
+                </Grid>
+            </ContentControl>
 
+            <Label Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3"
+                   Margin="8,0,0,4" Padding="0,1,0,0" HorizontalAlignment="LEFT" HorizontalContentAlignment="Center"
+                   VerticalContentAlignment="Center" Background="Transparent" Content="CAPITAL MARKET RESEARCH" Cursor="Hand"
+                   FontFamily="Helvetica Neue" FontSize="14" FontWeight="Normal" Foreground="#00ccff"
+                   MouseDown="Help_MouseDown">
+            </Label>
             <!-- ── Logged-in user display + settings gear ──────────────── -->
             <StackPanel Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
                         Orientation="Horizontal"
@@ -326,7 +344,7 @@
 
             <!--big background-->
             <Grid x:Name="UserFactorModelGrid" Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
-                  Grid.ColumnSpan="2" Margin="0,35,0,0" Background="Transparent" Visibility="Collapsed">
+                  Grid.ColumnSpan="2" Margin="0,35,0,0" Background="Transparent" Visibility="Visible">
 
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="80" />
@@ -379,19 +397,6 @@
                            Grid.ColumnSpan="2" Margin="2,0,0,0" Fill="Transparent" Stroke="#FF124B72"
                            StrokeThickness="1" Visibility="Visible" />
 
-                <Rectangle Grid.Row="2" Grid.RowSpan="2" Grid.Column="0" Height="1"
-                           Grid.ColumnSpan="2" Margin="10,18,10,0" Fill="Transparent" Stroke="#FF124B72"
-                           StrokeThickness="1" Visibility="Visible" />
-
-                <!--<Rectangle  Grid.Row="15" Grid.RowSpan="11" Grid.Column="0"
-                           Grid.ColumnSpan="2" Margin="2,0,0,0" Fill="Transparent" Stroke="#FF124B72"
-                           StrokeThickness="1" Visibility="Visible" />-->
-
-
-                <!--<Rectangle Grid.Row="15" Grid.RowSpan="2" Grid.Column="0" Height="1"
-                           Grid.ColumnSpan="2" Margin="10,5,10,0" Fill="Transparent" Stroke="#FF124B72"
-                           StrokeThickness="1" Visibility="Visible" />-->
-
                 <Rectangle Grid.Row="2" Grid.RowSpan="24" Grid.Column="15" Margin="0,0,0,0"
                            Fill="Black" Stroke="#FF124B72" StrokeThickness="1" />
 
@@ -434,14 +439,6 @@
                            Background="Transparent" Content="PORTFOLIO PERFORMANCE"  Cursor="Hand" FontFamily="Helvetica Neue"
                            FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="Performance_MouseDown"
                            MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" />
-                    <!--<Label Margin="10,0,10,1" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-                           Background="Transparent" Content="PORTFOLIO RESEARCH"  Cursor="Hand" FontFamily="Helvetica Neue"
-                           FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="RebalanceView_MouseDown"
-                           MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"  />-->
-                    <!--<Label Margin="10,0,10,1" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-                           Background="Transparent" Content="RESEARCH PERFORMANCE"  Cursor="Hand" FontFamily="Helvetica Neue"
-                           FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="Performance_MouseDown"
-                           MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" />-->
                 </StackPanel>
 
                 <StackPanel Name="TIAllocations" Grid.Row="0" Grid.ColumnSpan="11" Margin="140,0,0,0"
@@ -451,17 +448,9 @@
                            VerticalAlignment="Center" Background="Transparent" Content="PORTFOLIO SETUP"  FontFamily="Helvetica Neue"
                            FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="FundamentalML_MouseDown"
                            MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave" />
-                    <!--<Label Margin="10,0,10,1" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-                           Background="Transparent" Content="PORTFOLIO RESEARCH"  Cursor="Hand" FontFamily="Helvetica Neue"
-                           FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="RebalanceView_MouseDown"
-                           MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" />-->
-                    <!--<Label Margin="10,0,10,1" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-                           Background="Transparent" Content="RESEARCH PERFORMANCE"  Cursor="Hand" FontFamily="Helvetica Neue"
-                           FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="Performance_MouseDown"
-                           MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" />-->
                 </StackPanel>
 
-                <Label Grid.Row="2" Grid.ColumnSpan="2" Margin="10,0,0,0" Padding="0,9,0,0" HorizontalAlignment="Left" Grid.RowSpan="2"
+                <Label Grid.Row="2" Grid.ColumnSpan="2" Margin="8,0,0,0" Padding="0,9,0,0" HorizontalAlignment="Left" Grid.RowSpan="2"
                        VerticalAlignment="Top" Background="Transparent" Content="ADD PORTFOLIO" Cursor="Hand"
                        FontFamily="Helvetica Neue" FontSize="11" FontWeight="Normal" Foreground="White"
                        MouseDown="UserFactorModelName_MouseDown" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" />
@@ -472,7 +461,6 @@
 
                 <!--  PORTFOLIO SETUP  -->
                 <StackPanel Grid.Row="2" Grid.RowSpan="2" Grid.Column="2" Grid.ColumnSpan="13" Margin="15,0,10,0" Orientation="Horizontal" >
-
 
                     <Label HorizontalAlignment="Left" Background="Transparent" Content="ADD GROUPS" Margin="4,0,5,0" Padding="0,9,0,0"
                                 Cursor="Hand"  MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave" MouseDown="AODGroupsSetup_MouseDown"        
@@ -2394,7 +2382,7 @@
 
             <!--New Trades-->
             <Grid x:Name="RebalanceSideNav" Grid.Row="1" Grid.Column="0" Margin="1,1,0,0" Background="Transparent" 
-                  Visibility="Visible">
+                  Visibility="Collapsed">
 
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="130" />
@@ -2945,7 +2933,7 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="MktNeutral"/>
-                                            <TextBlock Grid.Column="1" Text="10"
+                                            <TextBlock x:Name="LblMktNeutralValue" Grid.Column="1" Text=""
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnMktNeutral" Grid.Column="2"
@@ -2982,7 +2970,7 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="VolNeutral"/>
-                                            <TextBlock Grid.Column="1" Text="12"
+                                            <TextBlock x:Name="LblVolNeutralValue" Grid.Column="1" Text=""
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnVolNeutral" Grid.Column="2"
@@ -3014,12 +3002,12 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblSectorGross" Grid.Column="0" Text="Sector Gross &#8804;200"
+                                            <TextBox x:Name="LblSectorGross" Grid.Column="0" Text="Sec Gross &#8804;200"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="SectorGross"/>
-                                            <TextBlock Grid.Column="1" Text="200"
+                                            <TextBlock x:Name="LblSectorGrossValue" Grid.Column="1" Text=""
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnSectorGross" Grid.Column="2"
@@ -3051,12 +3039,12 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblSectorNet" Grid.Column="0" Text="Sector Net &#8804;12"
+                                            <TextBox x:Name="LblSectorNet" Grid.Column="0" Text="Sec Net &#8804;12"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="SectorNet"/>
-                                            <TextBlock Grid.Column="1" Text="12"
+                                            <TextBlock x:Name="LblSectorNetValue" Grid.Column="1" Text=""
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnSectorNet" Grid.Column="2"
@@ -3088,12 +3076,12 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblIndustryGross" Grid.Column="0" Text="Industry Gross &#8804;200"
+                                            <TextBox x:Name="LblIndustryGross" Grid.Column="0" Text="Ind Gross &#8804;200"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="IndustryGross"/>
-                                            <TextBlock Grid.Column="1" Text="200"
+                                            <TextBlock x:Name="LblIndustryGrossValue" Grid.Column="1" Text=""
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnIndustryGross" Grid.Column="2"
@@ -3125,12 +3113,12 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblIndustryNet" Grid.Column="0" Text="Industry Net &#8804;12"
+                                            <TextBox x:Name="LblIndustryNet" Grid.Column="0" Text="Ind Net &#8804;12"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="IndustryNet"/>
-                                            <TextBlock Grid.Column="1" Text="12"
+                                            <TextBlock x:Name="LblIndustryNetValue" Grid.Column="1" Text=""
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnIndustryNet" Grid.Column="2"
@@ -3162,12 +3150,12 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblSubIndGross" Grid.Column="0" Text="SubInd Gross &#8804;150"
+                                            <TextBox x:Name="LblSubIndGross" Grid.Column="0" Text="SI Gross &#8804;150"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="SubIndGross"/>
-                                            <TextBlock Grid.Column="1" Text="150"
+                                            <TextBlock x:Name="LblSubIndGrossValue" Grid.Column="1" Text=""
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnSubIndGross" Grid.Column="2"
@@ -3199,12 +3187,12 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblSubIndNet" Grid.Column="0" Text="SubInd Net &#8804;12"
+                                            <TextBox x:Name="LblSubIndNet" Grid.Column="0" Text="SI Net &#8804;12"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="SubIndNet"/>
-                                            <TextBlock Grid.Column="1" Text="12"
+                                            <TextBlock x:Name="LblSubIndNetValue" Grid.Column="1" Text=""
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnSubIndNet" Grid.Column="2"
@@ -3312,7 +3300,7 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="MaxVaR95"/>
-                                            <TextBlock Grid.Column="1" Text="1"
+                                            <TextBlock x:Name="LblMaxVaR95Value" Grid.Column="1" Text=""
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnMaxVaR95" Grid.Column="2"
@@ -3350,7 +3338,7 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="CVaR95"/>
-                                            <TextBlock Grid.Column="1" Text="1.5"
+                                            <TextBlock x:Name="LblCVaR95Value" Grid.Column="1" Text=""
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnCVaR95" Grid.Column="2"
@@ -3387,7 +3375,7 @@
                                                     BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                                     VerticalAlignment="Center" Margin="3,0,0,0"
                                                     MouseDown="AlertLabel_MouseDown" Tag="MVaR95"/>
-                                            <TextBlock Grid.Column="1" Text="15"
+                                            <TextBlock x:Name="LblMVaR95Value" Grid.Column="1" Text=""
                                                     FontSize="9" Foreground="Silver"
                                                     VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnMVaR95" Grid.Column="2"
@@ -3424,7 +3412,7 @@
                                                  BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                                  VerticalAlignment="Center" Margin="3,0,0,0"
                                                  MouseDown="AlertLabel_MouseDown" Tag="IdioRisk"/>
-                                            <TextBlock Grid.Column="1" Text="70"
+                                            <TextBlock x:Name="LblIdioRiskValue" Grid.Column="1" Text=""
                                                  FontSize="9" Foreground="Silver"
                                                  VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnIdioRisk" Grid.Column="2"
@@ -3498,7 +3486,7 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="MaxPredVol"/>
-                                            <TextBlock Grid.Column="1" Text="12"
+                                            <TextBlock x:Name="LblMaxPredVolValue" Grid.Column="1" Text=""
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnMaxPredVol" Grid.Column="2"
@@ -3537,7 +3525,7 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="EqStress5"/>
-                                            <TextBlock Grid.Column="1" Text="2"
+                                            <TextBlock x:Name="LblEqStress5Value" Grid.Column="1" Text=""
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnEqStress5" Grid.Column="2"
@@ -3574,7 +3562,7 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="EqStress10"/>
-                                            <TextBlock Grid.Column="1" Text="3.5"
+                                            <TextBlock x:Name="LblEqStress10Value" Grid.Column="1" Text=""
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnEqStress10" Grid.Column="2"
@@ -3682,9 +3670,6 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="Top5Long"/>
-                                            <TextBlock Grid.Column="1" Text="40"
-                                            FontSize="9" Foreground="Silver"
-                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnTop5Long" Grid.Column="2"
                                                Content="●" FontSize="12" Foreground="Lime"
                                                Background="Transparent" BorderThickness="0"
@@ -3719,9 +3704,6 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="Top5Short"/>
-                                            <TextBlock Grid.Column="1" Text="35"
-                                            FontSize="9" Foreground="Silver"
-                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnTop5Short" Grid.Column="2"
                                                Content="●" FontSize="12" Foreground="Lime"
                                                Background="Transparent" BorderThickness="0"
@@ -3756,9 +3738,6 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="Top10Long"/>
-                                            <TextBlock Grid.Column="1" Text="75"
-                                            FontSize="9" Foreground="Silver"
-                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnTop10Long" Grid.Column="2"
                                                Content="●" FontSize="12" Foreground="Lime"
                                                Background="Transparent" BorderThickness="0"
@@ -3793,9 +3772,6 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="Top10Short"/>
-                                            <TextBlock Grid.Column="1" Text="65"
-                                            FontSize="9" Foreground="Silver"
-                                            VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnTop10Short" Grid.Column="2"
                                                Content="●" FontSize="12" Foreground="Lime"
                                                Background="Transparent" BorderThickness="0"
@@ -4003,7 +3979,7 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="LiqVaR95"/>
-                                            <TextBlock Grid.Column="1" Text="0.00"
+                                            <TextBlock x:Name="LblLiqVaR95Value" Grid.Column="1" Text=""
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnLiqVaR95" Grid.Column="2"
@@ -4566,7 +4542,7 @@
 
             </Grid>
 
-            <Grid x:Name="RebalanceChartGrid" Grid.Row="1" Grid.Column="1" Visibility="Visible">
+            <Grid x:Name="RebalanceChartGrid" Grid.Row="1" Grid.Column="1" Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="37*"/>
                     <ColumnDefinition Width="363*"/>
@@ -5262,10 +5238,10 @@
                        Background="Transparent" Content="Portfolios" FontFamily="Helvetica Neue" FontSize="10"
                        Foreground="PaleGreen" />
 
-                <ListBox x:Name="UserFactorModelPanel2" Grid.Row="1" Grid.RowSpan="12" Grid.Column="0"
+                <ListBox x:Name="UserFactorModelPanel2" Grid.Row="1" Grid.RowSpan="14" Grid.Column="0"
                          Margin="4,3,1,1" Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
                          FontFamily="Helvetica Neue" FontSize="11" Foreground="White" SelectionChanged="UserFactorModel_SelectionChanged"
-                         Visibility="Visible" />
+                         Visibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
 
                 <ListBox x:Name="UserFactorModelPanelCompare" Grid.Row="7" Grid.RowSpan="3" Grid.Column="0"
                          Margin="0,1,0,0" Background="#000000" BorderBrush="Transparent" BorderThickness="2"
@@ -5673,6 +5649,11 @@
                 <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="9" HorizontalAlignment="Center" Margin="0,0,135,0" Padding="0,3,0,0"
                        VerticalAlignment="Top" Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
                        Content="Returns" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal"
+                       Foreground="PaleGreen" />
+
+                <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="9" HorizontalAlignment="Right" Margin="0,0,99,0" Padding="0,3,0,0"
+                       VerticalAlignment="Top" Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
+                       Content="Campaigns" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal"
                        Foreground="PaleGreen" />
 
                 <Grid Grid.Row="1" Grid.Column="2">

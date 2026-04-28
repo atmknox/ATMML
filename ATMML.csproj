@@ -65,6 +65,9 @@
     <Compile Remove="RiskEngineMN.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Images\CMR_Name_Blueeps.svg" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="FlexOneAPI">
       <HintPath>..\..\OneDrive - Capital Markets Research\Documents\Greenland Capital\Flex One C sharp\API\obj\Debug\netcoreapp3.1\FlexOneAPI.dll</HintPath>
     </Reference>
@@ -113,6 +116,7 @@
     <PackageReference Include="pythonnet" Version="3.0.5" />
     <PackageReference Include="QuestPDF" Version="2026.2.4" />
     <PackageReference Include="SampleDependency" Version="1.0.0" />
+    <PackageReference Include="SharpVectors.Wpf" Version="1.8.5" />
     <PackageReference Include="SharpZipLib" Version="1.4.0" />
     <PackageReference Include="Skater.exe" Version="7.5.0" />
     <PackageReference Include="System.CodeDom" Version="8.0.0" />
@@ -158,6 +162,7 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\A1a.png" />
+    <Resource Include="Images\CMR_Name_Blueeps.svg" />
     <Resource Include="Images\Left Arrow.png" />
     <Resource Include="Images\printer icon1.png" />
     <Resource Include="Images\printer icon2.png" />

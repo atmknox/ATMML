@@ -183,10 +183,10 @@
                                    Fill="#FFBC0031" RenderTransformOrigin="0.487,0.678" Stretch="Fill" />
                         </Canvas>
                     </Viewbox>
-                    <TextBlock Text="CMR User Management" Foreground="White" Margin="35,0,0,0"
-                               FontSize="11" VerticalAlignment="Center"/>
+                    <TextBlock Text="CMR User Management" Foreground="White" Margin="40,0,0,0" FontWeight="SemiBold"
+                               FontSize="14" VerticalAlignment="Center"/>
                     <Button x:Name="BtnClose" DockPanel.Dock="Right"
-                            Content="✕" Foreground="#ffffff" FontWeight="ExtraBold"
+                            Content="CLOSE" Foreground="#ffffff" 
                             Background="Transparent" BorderThickness="0"
                             FontSize="12" Cursor="Hand"
                             Click="BtnClose_Click"/>

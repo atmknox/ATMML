@@ -103,14 +103,14 @@
                                    Fill="#FFBC0031" RenderTransformOrigin="0.487,0.678" Stretch="Fill" />
                         </Canvas>
                     </Viewbox>
-                    <TextBlock Text="Capital Markets Research" Margin="30,0,0,5"
+                    <TextBlock Text="CMR" Margin="40,0,0,5" 
                                Foreground="White" FontSize="14" FontWeight="SemiBold"
                                VerticalAlignment="Center"/>
                     <Button DockPanel.Dock="Right"
-                            Content="✕"
+                            Content="Close" Margin="0,0,20,5"
                             Foreground="#ffffff" Background="Transparent"
                             BorderThickness="0" FontSize="13"
-                            Width="28" Height="28"
+                            Width="35" Height="28"
                             Cursor="Hand" VerticalAlignment="Center"
                             HorizontalAlignment="Right"
                             Click="BtnClose_Click">
@@ -143,10 +143,10 @@
             <StackPanel Grid.Row="1" Margin="36,24,36,28">
 
                 <!-- Logo / title -->
-                <TextBlock Text="Sign In"
+                <TextBlock Text="Log In"
                            Foreground="#F9FAFB" FontSize="22"
                            FontWeight="Bold" Margin="0,0,0,4"/>
-                <TextBlock Text="ATMML Portfolio"
+                <TextBlock Text="Capital Markets Research"
                            Foreground="White" FontSize="16"
                            Margin="0,0,0,20"/>
 
