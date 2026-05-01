@@ -61,7 +61,6 @@ namespace ATMML
 	/// </summary>
 	public partial class FlexOneOrderBridge : IFlexOneOrderBridge
 		{
-    	private readonly bool useMock = true;
 		private readonly FlexOneSession _session;
 		private readonly FlexOneConfig _cfg;
 
@@ -97,6 +96,17 @@ namespace ATMML
 						throw new InvalidOperationException("[FlexOne] Null response from CreateOrders.");
 
 					ProcessCreateResponse(response, tradeList, result);
+					// Populate the blotter — symmetric with FlexOneMockBridge so the OrderBlotter
+					// window shows submitted orders identically in mock and live mode.
+					foreach (var detail in result.Details.Where(d => d.Success))
+					{
+						var trade = tradeList.FirstOrDefault(t => t.Ticker == detail.Ticker);
+						if (trade != null)
+						{
+							var wo = WorkingOrderFactory.Build(trade, detail, trade.OriginId);
+							RegisterWorkingOrder(wo);
+						}
+					}
 				}
 			}
 			catch (Exception ex)

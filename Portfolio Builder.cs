@@ -1697,6 +1697,46 @@ namespace ATMML
 						_flexTradesTime2 = tradesTime2;
 						_flexShares = new Dictionary<string, double>(shares);
 						_flexPrice = new Dictionary<string, double>(price);
+
+						// Stage these trades in the blotter so the user can review pre-submission.
+						// Re-running the model overwrites the previous staged set for this strategy.
+						// Test/backtest portfolios are skipped — only live-mode portfolios produce real orders.
+						try
+						{
+							var m = getModel();
+							if (m != null && m.IsLiveMode)
+							{
+								var bridge = GetOrCreateFlexBridge(useMock: true);
+								var trades = FlexOneTradeAdapter.BuildFlexOneTrades(
+									_flexEnteredTrades, _flexExitedTrades, _flexAddTrades, _flexReduceTrades,
+									_flexTradesTime1, _flexTradesTime2, _flexShares, _flexPrice);
+
+								// Diagnostic: dump exactly what came out of the adapter
+								Console.WriteLine($"[BLOTTER] Source counts: entered={_flexEnteredTrades.Count} " +
+												  $"exited={_flexExitedTrades.Count} add={_flexAddTrades.Count} " +
+												  $"reduce={_flexReduceTrades.Count}");
+								Console.WriteLine($"[BLOTTER] Adapter returned {trades.Count} trades:");
+								foreach (var t in trades)
+									Console.WriteLine($"[BLOTTER]   {t.Ticker,-6} {t.Action,-12} {t.Shares,6}");
+
+								var dedup = trades
+									.GroupBy(t => t.Ticker, StringComparer.OrdinalIgnoreCase)
+									.Select(g => g.Last())
+									.ToList();
+
+								Console.WriteLine($"[BLOTTER] After dedup: {dedup.Count} trades:");
+								foreach (var t in dedup)
+									Console.WriteLine($"[BLOTTER]   {t.Ticker,-6} {t.Action,-12} {t.Shares,6}");
+
+								bridge.StageOrders(dedup, m.Name);
+
+								Console.WriteLine($"[BLOTTER] Bridge.Orders.Count after StageOrders = {bridge.Orders.Count}");
+							}
+						}
+						catch (Exception ex)
+						{
+							Console.Error.WriteLine($"[OrderBlotter] StageOrders failed: {ex.Message}");
+						}
 					}
 					// ─────────────────────────────────────────────────────────────────────────
 
@@ -6814,156 +6854,59 @@ namespace ATMML
 				label.Foreground = new SolidColorBrush(Color.FromRgb(0xff, 0xff, 0xff));
 		}
 
-		private void SendOrders_MouseDown(object sender, MouseButtonEventArgs e)
+		// ── Order Blotter wiring ──────────────────────────────────────────────────
+		// Single shared bridge for the lifetime of this PortfolioBuilder instance.
+		// The model's trade-build path stages orders into this bridge; the user
+		// reviews and submits via the blotter's SEND ORDERS button.
+		private IFlexOneOrderBridge _flexBridge;
+		private OrderBlotter _blotterWindow;
+
+		private IFlexOneOrderBridge GetOrCreateFlexBridge(bool useMock)
 		{
-			// ── Single flag controls: time lock, factory mode, and UI flip ───────────
-			// useMock = true  → works any time of day, no real orders sent, grid unchanged
-			// useMock = false → time lock enforced, live FlexOne orders, grid flips
-			// TODO: set to false when FlexOne credentials are provided
-			const bool useMock = true;
-			// ─────────────────────────────────────────────────────────────────────────
+			if (_flexBridge != null) return _flexBridge;
 
-			var now = DateTime.Now.TimeOfDay;
-			if (!useMock && now < TimeSpan.FromHours(15))
+			var cfg = new FlexOneConfig
 			{
-				var label = sender as Label;
-				if (label != null)
-					label.Content = "\u23F3 Send Orders to FlexOne";
-				MessageBox.Show(
-					$"Current time:  {DateTime.Now:HH:mm}\n\n" +
-					 "Orders cannot be placed before 3:00 PM.\n" +
-					 "The 3:00 PM signal run is the authoritative trade list.\n\n" +
-					 "Run the model again at or after 3:00 PM to send final orders.",
-					"\u26A0  Cannot Place Trades Before 3:00 PM",
-					MessageBoxButton.OK,
-					MessageBoxImage.Warning);
-				return;
-			}
+				Host = "your-flexone-host",
+				Port = 8080,
+				User = "PFA",
+				Password = "your-password"
+			};
+			_flexBridge = FlexOneBridgeFactory.Create(cfg, useMock: useMock);
+			return _flexBridge;
+		}
 
-			// ── FlexOne order submission ──────────────────────────────────────────────
-			FlexOneRebalanceResult result = null;
-			try
+		private void OrderBlotter_MouseDown(object sender, MouseButtonEventArgs e)
+		{
+			var bridge = GetOrCreateFlexBridge(useMock: true);
+
+			if (_blotterWindow == null || !_blotterWindow.IsLoaded)
 			{
-				var trades = FlexOneTradeAdapter.BuildFlexOneTrades(
-					_flexEnteredTrades,
-					_flexExitedTrades,
-					_flexAddTrades,
-					_flexReduceTrades,
-					_flexTradesTime1,
-					_flexTradesTime2,
-					_flexShares,
-					_flexPrice);
-
-				if (trades.Count == 0)
-				{
-					MessageBox.Show(
-						"No orders were generated from the current rebalance.\n\n" +
-						"Verify the model has run and trade lists are populated.",
-						"\u26A0  No Orders to Send",
-						MessageBoxButton.OK,
-						MessageBoxImage.Warning);
-					return;
-				}
-
-				var flexOneConfig = new FlexOneConfig
-				{
-					Host = "your-flexone-host",   // TODO: move to app config / settings file
-					Port = 8080,
-					User = "PFA",
-					Password = "your-password"        // TODO: move to app config / settings file
-				};
-
-				var bridge = FlexOneBridgeFactory.Create(flexOneConfig, useMock: useMock);
-				result = bridge.SubmitRebalance(trades);
-
-				if (!result.Success || result.OrdersFailed > 0)
-				{
-					var failures = string.Join("\n", result.Details
-						.Where(d => !d.Success)
-						.Select(d => $"  • {d.Ticker}: {d.Message}"));
-
-					var msg = $"Orders placed:  {result.OrdersPlaced}\n" +
-							  $"Orders failed:  {result.OrdersFailed}\n\n" +
-							  (string.IsNullOrEmpty(failures) ? "" : $"Failed orders:\n{failures}\n\n") +
-							  "Do you want to continue and update the portfolio grid?";
-
-					var proceed = MessageBox.Show(msg,
-						"\u26A0  FlexOne Submission Warnings",
-						MessageBoxButton.YesNo,
-						MessageBoxImage.Warning);
-
-					if (proceed == MessageBoxResult.No)
-						return;
-				}
-				else
-				{
-					//Console.WriteLine($"[FlexOne] All {result.OrdersPlaced} orders submitted successfully.");
-
-					// Log each submitted trade to the blotter
-					foreach (var detail in result.Details.Where(d => d.Success))
-					{
-						AuditService.LogTradeSubmitted(
-							portfolioId: _clientPortfolioName,
-							ticker: detail.Ticker,
-							side: detail.Message ?? "Unknown",
-							shares: 0,
-							price: null,
-							orderState: "Submitted",
-							modelVersion: getModel()?.Name,
-							isOverride: false
-						);
-					}
-
-					AuditService.LogAction("FLEXONE_SUBMISSION_SUCCESS",
-						objectType: "Portfolio",
-						objectId: _clientPortfolioName,
-						after: $"OrdersPlaced={result.OrdersPlaced}");
-				}
-			}
-			catch (Exception ex)
-			{
-				AuditService.LogAction("FLEXONE_SUBMISSION_FAILED",
-					objectType: "Portfolio",
-					objectId: _clientPortfolioName,
-					after: ex.Message);
-
-				MessageBox.Show(
-					$"FlexOne submission failed:\n\n{ex.Message}\n\n" +
-								 "Orders were NOT sent.\nThe portfolio grid has not been updated.",
-					"\u274C  FlexOne Error",
-					MessageBoxButton.OK,
-					MessageBoxImage.Error);
-				return;   // do NOT flip UI — nothing went out
-			}
-			// ─────────────────────────────────────────────────────────────────────────
-
-			// Live only: lock in the rebalance and flip the UI to the new portfolio.
-			if (!useMock)
-			{
-				_liveOrdersSent = true;
-				SaveOrdersSentFlag();
-				drawPortfolioGrid();
-				updateStatistics();
+				_blotterWindow = new OrderBlotter(bridge) { Owner = Window.GetWindow(this) };
+				_blotterWindow.Closed += (_, __) => _blotterWindow = null;
+				_blotterWindow.Show();
 			}
 			else
 			{
-				// result.Details contains one entry per order with Ticker + Message.
-				// Message from FlexOneMockBridge: "[Mock] Accepted — {Action} {Shares} {Ticker}"
-				var summary = string.Join("\n", result.Details
-					.Select(d => $"  {(d.Success ? "\u2713" : "\u2717")} {d.Message}"));
-
-				MessageBox.Show(
-					$"Mock test complete.\n\n" +
-					$"Orders built:   {result.OrdersPlaced + result.OrdersFailed}\n" +
-					$"Orders passed:  {result.OrdersPlaced}\n" +
-					$"Orders failed:  {result.OrdersFailed}\n\n" +
-					$"{summary}\n\n" +
-					 "No real orders were placed. ATM SP 1 is unchanged.",
-					"\u2705  FlexOne Mock Test",
-					MessageBoxButton.OK,
-					MessageBoxImage.Information);
+				_blotterWindow.Activate();
 			}
 		}
+
+		private void OrderBlotter_MouseEnter(object sender, MouseEventArgs e)
+		{
+			if (sender is Label lbl)
+				lbl.Foreground = (System.Windows.Media.Brush)
+					new System.Windows.Media.BrushConverter().ConvertFrom("#00CCFF");
+		}
+
+		private void OrderBlotter_MouseLeave(object sender, MouseEventArgs e)
+		{
+			if (sender is Label lbl) lbl.Foreground = System.Windows.Media.Brushes.White;
+		}
+
+		// Compatibility stubs — XAML still references SendOrders_* on hover effects.
+		// Remove these once Portfolio Builder.xaml's SendOrders Label has been deleted (Step 4).
+
 		private void highlightButton(StackPanel panel, string selectedButton, bool foregroundHighlight = true)
 		{
 			//if (panel == Level1Panel)
@@ -10575,7 +10518,7 @@ namespace ATMML
 				if (PortPerf3  != null) { PortPerf3.Visibility = V; PortPerf3.Margin = tightMargin; }
 				// Read-only ring-fence: Compliance must not trigger runs or submit orders.
 				if (RunPortfolio != null) RunPortfolio.Visibility = C;
-				if (SendOrders   != null) SendOrders.Visibility   = C;
+				if (OrderBlotterLink != null) OrderBlotterLink.Visibility = C;
 				return;
 			}
 

@@ -299,7 +299,7 @@
                                MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"/>
                     </Grid>
 
-                    <Grid Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Collapsed" >
+                    <Grid Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Visible" >
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="40" />
@@ -414,7 +414,7 @@
                            FontWeight="Normal" Foreground="#00ccff"
                            Visibility="{Binding CanAccessPortfolioSetup, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
                     <Label x:Name="OrderMgm1"  Margin="10,-0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-                           Background="Transparent" Content="ORDER MANAGEMENT"  Cursor="Hand" FontFamily="Helvetica Neue"
+                           Background="Transparent" Content="PORTFOLIO MANAGEMENT"  Cursor="Hand" FontFamily="Helvetica Neue"
                            FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="RebalanceView_MouseDown"
                            MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
                            Visibility="{Binding CanAccessOrderManagement, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
@@ -2438,9 +2438,17 @@
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                          ScrollViewer.VerticalScrollBarVisibility="Auto"
                          Visibility="Visible" />
+                
+                <Rectangle Grid.Row="15" Grid.RowSpan="10" Width="128" Margin="0,12,0,0" Fill="Transparent"
+                           Stroke="#FF124b72" StrokeThickness="1" />
 
-                <Grid x:Name="PbAlertsPanel" Grid.Row="15" Grid.Column="0" Margin="1,10,0,0" Background="Black" Grid.RowSpan="12"
-                        Width="128" Height="240"
+                
+                <Label Grid.Row="15" Grid.Column="0" Grid.ColumnSpan="2" Margin="1,4,0,2" Grid.RowSpan="2"
+                       HorizontalAlignment="Left" VerticalAlignment="Center" Content="Risk Monitor" FontFamily="Helvetica Neue"
+                       FontSize="10" FontWeight="Normal" Foreground="PaleGreen" />
+
+                <Grid x:Name="PbAlertsPanel" Grid.Row="16" Grid.Column="0" Margin="2,15,0,0" Background="Black" Grid.RowSpan="8"
+                        Width="126" 
                         HorizontalAlignment="Left" VerticalAlignment="Top"
                         Panel.ZIndex="10"
                         Visibility="Visible">
@@ -4632,7 +4640,7 @@
                            MouseDown="FundamentalML_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave" />
 
                         <Label x:Name="OrderMgm2" Margin="10,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Visible"
-                           Background="Transparent" Content="ORDER MANAGEMENT"  FontFamily="Helvetica Neue" FontSize="12"
+                           Background="Transparent" Content="PORTFOLIO MANAGEMENT"  FontFamily="Helvetica Neue" FontSize="12"
                            FontWeight="Normal" Foreground="#00ccff" />
                         <Label x:Name="PortPerf2" Margin="10,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Visible"
                            Background="Transparent" Content="PORTFOLIO PERFORMANCE"  Cursor="Hand" FontFamily="Helvetica Neue"
@@ -4640,7 +4648,7 @@
                            MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" />
                     </StackPanel>
 
-                    <Label x:Name="RunPortfolio" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="7" Margin="0,0,22,0"  FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Top" Content="RUN SELECTED LIVE PORTFOLIO" Foreground="White"
+                    <Label x:Name="RunPortfolio" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="7" Margin="0,0,22,0"  FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Top" Content="RUN PORTFOLIO" Foreground="White"
                            MouseEnter="SendOrders_MouseEnter" MouseLeave="SendOrders_MouseLeave" MouseDown="RunPortfolio_MouseDown" Cursor="Hand"
                            Visibility="{Binding CanRunPortfolio, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
 
@@ -4651,7 +4659,7 @@
                                Foreground="#00ccff" />
                         <Label x:Name="Returns" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="12"
                                Margin="0,0,0,0" Padding="0,4,0,0" HorizontalAlignment="Center" VerticalAlignment="Top" Background="Transparent"
-                               Content="Open Positions" FontFamily="Helvetica Neue" FontSize="10" Foreground="PaleGreen" />
+                               Content="Portfolio Holdings" FontFamily="Helvetica Neue" FontSize="10" Foreground="PaleGreen" />
                     </StackPanel>
 
                     <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Margin="8,25,0,0" Grid.RowSpan="3" 
@@ -5006,15 +5014,19 @@
                         <Label x:Name="ModelName4" Margin="0,0,0,0" Padding="0,6,0,0"  HorizontalAlignment="Center" VerticalAlignment="Top"
                                Background="Transparent" Content="" FontFamily="Helvetica Neue" FontSize="10" Foreground="#00ccff" />
                         <Label Margin="0,0,0,0" HorizontalAlignment="Right" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="Transparent"
-                               Content="New Orders for:" FontFamily="Helvetica Neue" FontSize="10" Foreground="PaleGreen" />
+                               Content="Rebalance  Orders for:" FontFamily="Helvetica Neue" FontSize="10" Foreground="PaleGreen" />
                         <Label x:Name="DateRebalance4" HorizontalAlignment="Left" VerticalAlignment="Center" Background="Transparent"
                                Content="" FontFamily="Helvetica Neue" FontSize="10" Foreground="PaleGreen" />
                     </StackPanel>
 
-                    <Label x:Name="SendOrders" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="6" Margin="0,5,27,0" Padding="0,6,0,0" HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent"
-       Content="SEND ORDERS TO FLEXONE" FontFamily="Helvetica Neue" FontSize="10" Foreground="White"
-       MouseEnter="SendOrders_MouseEnter" MouseLeave="SendOrders_MouseLeave" MouseDown="SendOrders_MouseDown" Cursor="Hand"
+                    <Label x:Name="OrderBlotterLink" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="6" Margin="0,5,27,0" Padding="0,6,0,0" HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent"
+       Content="ORDER BLOTTER" FontFamily="Helvetica Neue" FontSize="10" Foreground="White"
+       MouseEnter="OrderBlotter_MouseEnter" MouseLeave="OrderBlotter_MouseLeave" MouseDown="OrderBlotter_MouseDown" Cursor="Hand"
        Visibility="{Binding CanSendOrdersToFlexOne, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
+                    <!--<Label x:Name="OrderBlotterLink" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="6" Margin="0,5,200,0" Padding="0,6,0,0" HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent"
+       Content="ORDER BLOTTER" FontFamily="Helvetica Neue" FontSize="10" Foreground="#00CCFF"
+       MouseEnter="OrderBlotter_MouseEnter" MouseLeave="OrderBlotter_MouseLeave" MouseDown="OrderBlotter_MouseDown" Cursor="Hand"
+       Visibility="{Binding CanSendOrdersToFlexOne, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />-->
 
                     <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="8,12,0,0"
                                 HorizontalAlignment="Left" Orientation="Horizontal">
@@ -5629,7 +5641,7 @@
                                FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="FundamentalML_MouseDown" 
                                MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"   />
                         <Label x:Name="OrderMgm3" Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-                                Background="Transparent" Content="ORDER MANAGEMENT"  Cursor="Hand" FontFamily="Helvetica Neue"
+                                Background="Transparent" Content="PORTFOLIO MANAGEMENT"  Cursor="Hand" FontFamily="Helvetica Neue"
                                 FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="RebalanceView_MouseDown" Visibility="Visible"
                                 MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"  />
                         <Label x:Name="PortPerf3" Margin="10,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"

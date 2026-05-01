@@ -7,6 +7,7 @@ namespace ATMML
     public enum OrderType { Market, Limit, MarketOnClose, LimitOnClose }
     public enum OrderStatus
     {
+        Staged,            // produced by model, not yet submitted to OMS
         PendingNew,
         New,
         PartiallyFilled,
@@ -19,9 +20,9 @@ namespace ATMML
     }
 
     /// <summary>
-    /// Represents a single order routed to FlexOne. The blotter binds to a
-    /// collection of these and the bridge mutates them in place as
-    /// execution reports arrive (in live mode) or as the mock simulates them.
+    /// Represents a single order — staged (pre-submission) or working (post-submission).
+    /// The blotter binds to a collection of these and the bridge mutates them in place
+    /// as state transitions occur (model produces → user sends → OMS acks → fills).
     /// </summary>
     public class WorkingOrder : INotifyPropertyChanged
     {
@@ -34,14 +35,18 @@ namespace ATMML
         private decimal? _limitPrice;
 
         // Identity
-        public string ClOrdId { get; set; }       // our id
-        public string OrderId { get; set; }       // venue/OMS id
+        public string ClOrdId { get; set; }
+        public string OrderId { get; set; }
         public string Symbol { get; set; }
         public OrderSide Side { get; set; }
         public OrderType Type { get; set; }
         public DateTime SubmittedAt { get; set; }
-        public string Strategy { get; set; }      // e.g. "OEX V2", "CMR US LG CAP"
-        public string Destination { get; set; }   // broker/venue tag
+        public string Strategy { get; set; }
+        public string Destination { get; set; }
+
+        // Optional reference to source FlexOneTrade — set when staging so that
+        // SubmitStagedAsync can convert back without recomputing.
+        public FlexOneTrade SourceTrade { get; set; }
 
         // Mutable
         public int Qty
@@ -65,6 +70,7 @@ namespace ATMML
                 _status = value;
                 OnChanged(nameof(Status));
                 OnChanged(nameof(IsActive));
+                OnChanged(nameof(IsStaged));
             }
         }
 
@@ -92,12 +98,24 @@ namespace ATMML
             set { if (_lastMessage != value) { _lastMessage = value; OnChanged(nameof(LastMessage)); } }
         }
 
+        /// <summary>
+        /// True when this order is showing in the blotter as something the user can
+        /// act on — staged (pre-submission), working, or in-flight state changes.
+        /// </summary>
         public bool IsActive =>
+            Status == nameof(OrderStatus.Staged) ||
             Status == nameof(OrderStatus.PendingNew) ||
             Status == nameof(OrderStatus.New) ||
             Status == nameof(OrderStatus.PartiallyFilled) ||
             Status == nameof(OrderStatus.PendingCancel) ||
             Status == nameof(OrderStatus.PendingReplace);
+
+        /// <summary>
+        /// True if the order has not yet been submitted to the OMS. Cancel and modify
+        /// behave differently for staged orders — they are mutated locally without
+        /// any OMS round-trip.
+        /// </summary>
+        public bool IsStaged => Status == nameof(OrderStatus.Staged);
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnChanged(string n) =>

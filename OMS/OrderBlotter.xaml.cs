@@ -13,19 +13,19 @@ namespace ATMML
 {
     public partial class OrderBlotter : Window
     {
-        private readonly FlexOneOrderBridge _bridge;
+        private readonly IFlexOneOrderBridge _bridge;
         private readonly DispatcherTimer _refreshTimer;
         private ICollectionView _view;
 
-        public OrderBlotter(FlexOneOrderBridge bridge)
+        public OrderBlotter(IFlexOneOrderBridge bridge)
         {
             InitializeComponent();
             _bridge = bridge ?? throw new ArgumentNullException(nameof(bridge));
 
             TxtMode.Text = _bridge.IsMock() ? "MOCK" : "LIVE";
             TxtMode.Foreground = _bridge.IsMock()
-                ? System.Windows.Media.Brushes.Goldenrod
-                : System.Windows.Media.Brushes.LimeGreen;
+                ? System.Windows.Media.Brushes.Yellow
+                : System.Windows.Media.Brushes.PaleGreen;
 
             _view = CollectionViewSource.GetDefaultView(_bridge.Orders);
             _view.Filter = OrderFilter;
@@ -69,7 +69,6 @@ namespace ATMML
 
         private void RefreshView()
         {
-            // Refresh strategy list if new strategies appeared
             var current = CmbStrategy.SelectedItem as string;
             var known = (CmbStrategy.ItemsSource as IEnumerable<string>) ?? new List<string>();
             var actual = new HashSet<string>(_bridge.Orders.Select(o => o.Strategy)
@@ -82,14 +81,145 @@ namespace ATMML
             }
 
             _view.Refresh();
-            TxtActiveCount.Text = _bridge.GetWorkingOrders().Count().ToString();
+
+            int staged = _bridge.StagedCount;
+            int working = _bridge.GetWorkingOrders().Count() - staged;
+            TxtStagedCount.Text = staged.ToString();
+            TxtActiveCount.Text = working.ToString();
+
+            // Submit-bar state
+            BtnSendOrders.IsEnabled = staged > 0;
+            BtnDiscardStaged.IsEnabled = staged > 0;
+            UpdateSubmitStatus(staged);
+        }
+
+        private void UpdateSubmitStatus(int staged)
+        {
+            if (staged == 0)
+            {
+                TxtSubmitStatus.Text = "Run a model to stage orders.";
+                TxtSubmitStatus.Foreground = System.Windows.Media.Brushes.Gray;
+                return;
+            }
+
+            // Time-lock applies in LIVE mode only. Mock allows any-time submission.
+            if (!_bridge.IsMock() && DateTime.Now.TimeOfDay < TimeSpan.FromHours(15))
+            {
+                TxtSubmitStatus.Text = $"{staged} order(s) staged. Submission gated until 3:00 PM " +
+                                       $"(current: {DateTime.Now:HH:mm}).";
+                TxtSubmitStatus.Foreground = System.Windows.Media.Brushes.Yellow;
+                BtnSendOrders.IsEnabled = false;
+            }
+            else
+            {
+                TxtSubmitStatus.Text = $"{staged} order(s) ready to submit.";
+                TxtSubmitStatus.Foreground = System.Windows.Media.Brushes.PaleGreen;
+            }
         }
 
         private List<WorkingOrder> SelectedOrders() =>
             OrderGrid.SelectedItems.OfType<WorkingOrder>().ToList();
 
         // ---------------------------------------------------------------
-        // Cancel
+        // SEND ORDERS — submits all Staged orders
+        // ---------------------------------------------------------------
+        private async void BtnSendOrders_Click(object sender, RoutedEventArgs e)
+        {
+            int staged = _bridge.StagedCount;
+            if (staged == 0) return;
+
+            // Time-lock guard (live only)
+            if (!_bridge.IsMock() && DateTime.Now.TimeOfDay < TimeSpan.FromHours(15))
+            {
+                MessageBox.Show(
+                    $"Current time: {DateTime.Now:HH:mm}\n\n" +
+                    "Orders cannot be placed before 3:00 PM.\n" +
+                    "The 3:00 PM signal run is the authoritative trade list.\n\n" +
+                    "Run the model again at or after 3:00 PM to send final orders.",
+                    "⚠ Cannot Place Trades Before 3:00 PM",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Build a summary of what's about to be sent
+            var stagedList = _bridge.Orders.Where(o => o.IsStaged).ToList();
+            var summary = string.Join("\n",
+                stagedList
+                    .GroupBy(o => o.Side)
+                    .OrderBy(g => g.Key.ToString())
+                    .Select(g => $"  {g.Key}: {g.Count()} order(s), {g.Sum(o => o.Qty):N0} shares"));
+
+            var modeTag = _bridge.IsMock() ? "[MOCK]" : "[LIVE]";
+            var confirm = MessageBox.Show(
+                $"Submit {staged} staged order(s) to FlexOne?\n\n" +
+                $"Mode: {modeTag}\n\n" +
+                $"{summary}\n\n" +
+                "After submission, individual orders can still be modified or cancelled " +
+                "from the blotter.",
+                "Confirm Submission",
+                MessageBoxButton.YesNo,
+                _bridge.IsMock() ? MessageBoxImage.Question : MessageBoxImage.Warning);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            BtnSendOrders.IsEnabled = false;
+            TxtSubmitStatus.Text = "Submitting…";
+            TxtSubmitStatus.Foreground = System.Windows.Media.Brushes.PaleGreen;
+
+            try
+            {
+                var result = await _bridge.SubmitStagedAsync();
+                TxtStatus.Text = $"Submitted: {result.OrdersPlaced} ok, {result.OrdersFailed} failed.";
+
+                if (!result.Success || result.OrdersFailed > 0)
+                {
+                    var failures = string.Join("\n",
+                        result.Details.Where(d => !d.Success)
+                                      .Select(d => $"  • {d.Ticker}: {d.Message}"));
+                    MessageBox.Show(
+                        $"Orders placed: {result.OrdersPlaced}\n" +
+                        $"Orders failed: {result.OrdersFailed}\n\n" +
+                        (string.IsNullOrEmpty(failures) ? "" : $"Failed:\n{failures}"),
+                        "Submission Warnings",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                else
+                {
+                    MessageBox.Show(
+                        $"{result.OrdersPlaced} order(s) submitted successfully.",
+                        modeTag + " Submission Complete",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                TxtStatus.Text = $"Submit error: {ex.Message}";
+                MessageBox.Show($"Submission failed:\n\n{ex.Message}",
+                                "❌ FlexOne Error",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            RefreshView();
+        }
+
+        private void BtnDiscardStaged_Click(object sender, RoutedEventArgs e)
+        {
+            int staged = _bridge.StagedCount;
+            if (staged == 0) return;
+
+            if (MessageBox.Show(
+                    $"Discard {staged} staged order(s)?\n\n" +
+                    "Nothing has been submitted yet — this just clears the staged list.",
+                    "Discard Staged",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                return;
+
+            int n = _bridge.DiscardAllStaged();
+            TxtStatus.Text = $"Discarded {n} staged order(s).";
+            RefreshView();
+        }
+
+        // ---------------------------------------------------------------
+        // Cancel — works for both Staged (discard) and working (OMS cancel)
         // ---------------------------------------------------------------
         private async void BtnCancelSelected_Click(object sender, RoutedEventArgs e)
         {
@@ -124,7 +254,9 @@ namespace ATMML
             var n = _bridge.GetWorkingOrders().Count();
             if (n == 0) { TxtStatus.Text = "No active orders."; return; }
 
-            var msg = $"Cancel ALL {n} working order(s)?\n\nThis cannot be undone.";
+            var msg = $"Cancel ALL {n} active order(s)?\n\n" +
+                      "Staged orders will be discarded; working orders will be cancelled at the OMS.\n" +
+                      "This cannot be undone.";
             if (MessageBox.Show(msg, "Confirm Cancel ALL",
                                 MessageBoxButton.YesNo,
                                 MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
@@ -151,39 +283,38 @@ namespace ATMML
             if (sel.Count != 1)
             {
                 TxtStatus.Text = "Select exactly one active order to modify.";
-                return;
+				TxtStatus.Foreground = System.Windows.Media.Brushes.Yellow;
+				return;
             }
             await ModifyOne(sel[0]);
         }
 
-        private async Task ModifyOne(WorkingOrder ord)
-        {
-            var dlg = new ModifyOrderDialog(ord) { Owner = this };
-            if (dlg.ShowDialog() != true) return;
+		private async Task ModifyOne(WorkingOrder ord)
+		{
+			var dlg = new ModifyOrderDialog(ord) { Owner = this };
+			if (dlg.ShowDialog() != true) return;
 
-            try
-            {
-                var r = await _bridge.ModifyOrderAsync(ord.ClOrdId, dlg.NewQty, dlg.NewLimit);
-                TxtStatus.Text = r.Success
-                    ? $"Modified {ord.ClOrdId}: {r.Message}"
-                    : $"Modify failed: {r.Message}";
-                if (!r.Success)
-                    MessageBox.Show(r.Message, "Modify Failed",
-                                    MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
-            catch (Exception ex)
-            {
-                TxtStatus.Text = $"Modify error: {ex.Message}";
-                MessageBox.Show(ex.Message, "Modify Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            RefreshView();
-        }
-
-        // ---------------------------------------------------------------
-        // Misc handlers
-        // ---------------------------------------------------------------
-        private void BtnRefresh_Click(object sender, RoutedEventArgs e) => RefreshView();
+			try
+			{
+				var r = await _bridge.ModifyOrderAsync(ord.ClOrdId, dlg.NewQty, dlg.NewLimit);
+				TxtStatus.Text = r.Success
+					? $"Modified {ord.ClOrdId}: {r.Message}"
+					: $"Modify failed: {r.Message}";
+				if (!r.Success)
+					MessageBox.Show(r.Message, "Modify Failed",
+									MessageBoxButton.OK, MessageBoxImage.Warning);
+			}
+			catch (Exception ex)
+			{
+				TxtStatus.Text = $"Modify error: {ex.Message}";
+				MessageBox.Show(ex.Message, "Modify Error",
+								MessageBoxButton.OK, MessageBoxImage.Error);
+			}
+			RefreshView();
+		}// ---------------------------------------------------------------
+		 // Misc handlers
+		 // ---------------------------------------------------------------
+		private void BtnRefresh_Click(object sender, RoutedEventArgs e) => RefreshView();
         private void BtnClose_Click(object sender, RoutedEventArgs e) => Close();
         private void ChkShowAll_Click(object sender, RoutedEventArgs e) => RefreshView();
         private void CmbStrategy_SelectionChanged(object sender, SelectionChangedEventArgs e) => RefreshView();
