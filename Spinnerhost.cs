@@ -79,16 +79,25 @@ namespace ATMML
 	}
 
 	/// <summary>
-	/// Full-screen black borderless form with centred "Loading ATMML..."
-	/// text. Painted once, never updated. Cannot freeze because there's
-	/// nothing to animate.
+	/// Small centred black borderless form with "Loading..." text in PaleGreen
+	/// and a close [✕] button in the top-right corner. Painted once, never
+	/// updated. Cannot freeze because there's nothing to animate.
+	///
+	/// The close button is an escape hatch: if MainView/PortfolioBuilder
+	/// construction throws or hangs and SpinnerHost.Hide() never fires, the
+	/// user can dismiss the loading screen manually and exit the app rather
+	/// than being stuck staring at a frozen overlay.
 	/// </summary>
 	internal sealed class LoadingForm : WinForms.Form
 	{
 		public LoadingForm()
 		{
 			FormBorderStyle = WinForms.FormBorderStyle.None;
-			WindowState = WinForms.FormWindowState.Maximized;
+			// Fixed compact size, centred on the primary screen. Sized to comfortably
+			// fit the 28pt "Loading..." text with breathing room. Looks like a small
+			// modal indicator rather than blanking the whole screen.
+			Size = new Size(360, 120);
+			StartPosition = WinForms.FormStartPosition.CenterScreen;
 			BackColor = Color.Black;
 			TopMost = true;
 			ShowInTaskbar = false;
@@ -96,15 +105,44 @@ namespace ATMML
 
 			var label = new WinForms.Label
 			{
-				Text = "Loading ATMML...",
+				Text = "Loading...",
 				Font = new Font("Segoe UI Light", 28f, FontStyle.Regular),
-				ForeColor = Color.FromArgb(0, 0xCC, 0xFF),  // CMR brand cyan
+				ForeColor = Color.FromArgb(152, 251, 152),  // PaleGreen
 				BackColor = Color.Transparent,
 				AutoSize = true,
 				TextAlign = System.Drawing.ContentAlignment.MiddleCenter
 			};
 
 			Controls.Add(label);
+
+			// Close button — top-right corner. Escape hatch in case MainView
+			// construction throws or hangs and SpinnerHost.Hide() never gets
+			// called from PortfolioBuilder_Loaded. Clicking exits the entire
+			// process; recovering from a half-constructed MainView is not
+			// reasonable in a borderless static overlay.
+			var closeBtn = new WinForms.Button
+			{
+				Text = "✕",
+				Font = new Font("Segoe UI", 12f, FontStyle.Bold),
+				ForeColor = Color.Silver,
+				BackColor = Color.Black,
+				FlatStyle = WinForms.FlatStyle.Flat,
+				Size = new Size(28, 24),
+				Location = new Point(Size.Width - 32, 4),
+				TabStop = false,
+				Cursor = WinForms.Cursors.Hand
+			};
+			closeBtn.FlatAppearance.BorderSize = 0;
+			closeBtn.FlatAppearance.MouseOverBackColor = Color.FromArgb(80, 0, 0);
+			closeBtn.Click += (_, __) =>
+			{
+				try { Close(); } catch { }
+				// Exit the entire process — there's no graceful path back from a
+				// half-constructed MainView, and leaving the user staring at the
+				// app's main thread spinning is worse than just exiting.
+				System.Environment.Exit(0);
+			};
+			Controls.Add(closeBtn);
 
 			// Centre the label after the form is shown so ClientSize is final.
 			Shown += (_, __) =>

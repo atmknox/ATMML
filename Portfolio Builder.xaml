@@ -74,7 +74,7 @@
             </ContentControl>
 
             <Label Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3"
-                   Margin="8,0,0,4" Padding="0,1,0,0" HorizontalAlignment="LEFT" HorizontalContentAlignment="Center"
+                   Margin="8,0,0,14" Padding="0,1,0,0" HorizontalAlignment="LEFT" HorizontalContentAlignment="Center"
                    VerticalContentAlignment="Center" Background="Transparent" Content="CAPITAL MARKET RESEARCH" Cursor="Hand"
                    FontFamily="Helvetica Neue" FontSize="14" FontWeight="Normal" Foreground="#00ccff"
                    MouseDown="Help_MouseDown">
@@ -2294,7 +2294,7 @@
                            Foreground="#FF00CCFF" />
                 </Grid>
 
-                <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="5,0,0,0"
+                <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="2,0,0,0"
                        HorizontalAlignment="Left" VerticalAlignment="Center" Background="Transparent" Content="Portfolios"
                        FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="PaleGreen" />
 
@@ -2428,7 +2428,7 @@
                              Cursor="Hand" FontFamily="Helvetica Neue" FontSize="11" FontWeight="Normal"
                              Foreground="White" GroupName="RebalanceList" IsChecked="True" Visibility="Collapsed" />
 
-                <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Margin="4,0,0,2"
+                <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Margin="1,0,0,2"
                        HorizontalAlignment="Left" VerticalAlignment="Center" Content="Portfolios" FontFamily="Helvetica Neue"
                        FontSize="10" FontWeight="Normal" Foreground="PaleGreen" />
 
@@ -2676,7 +2676,7 @@
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="IntradayDD"/>
-                                            <TextBlock Grid.Column="1" Text="3"
+                                            <TextBlock x:Name="LblIntradayDDValue" Grid.Column="1" Text=""
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnIntradayDD" Grid.Column="2"
@@ -2746,12 +2746,12 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblGrossBook" Grid.Column="0" Text="Gross Book &#8804;200"
+                                            <TextBox x:Name="LblGrossBook" Grid.Column="0" Text="Gross &#8804;200"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="GrossBook"/>
-                                            <TextBlock Grid.Column="1" Text="200"
+                                            <TextBlock x:Name="LblGrossBookValue" Grid.Column="1" Text=""
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnGrossBook" Grid.Column="2"
@@ -2783,12 +2783,12 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblNetExposure" Grid.Column="0" Text="Net Exposure &#8804;10"
+                                            <TextBox x:Name="LblNetExposure" Grid.Column="0" Text="Net Exp &#8804;10"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="NetExposure"/>
-                                            <TextBlock Grid.Column="1" Text="10"
+                                            <TextBlock x:Name="LblNetExposureValue" Grid.Column="1" Text=""
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnNetExposure" Grid.Column="2"
@@ -2820,12 +2820,12 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblMaxPosition" Grid.Column="0" Text="Max Position &#8804;10"
+                                            <TextBox x:Name="LblMaxPosition" Grid.Column="0" Text="Max Pos &#8804;10"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
                                             MouseDown="AlertLabel_MouseDown" Tag="MaxPosition"/>
-                                            <TextBlock Grid.Column="1" Text="10"
+                                            <TextBlock x:Name="LblMaxPositionValue" Grid.Column="1" Text=""
                                             FontSize="9" Foreground="Silver"
                                             VerticalAlignment="Center" Margin="0,0,2,0"/>
                                             <Button x:Name="BtnMaxPosition" Grid.Column="2"
@@ -3839,7 +3839,7 @@
                                             </Grid.ColumnDefinitions>
                                             <TextBlock Grid.Column="0" Text="▾" FontSize="12" Foreground="#FFFFFF"
                                                        VerticalAlignment="Center" Margin="3,0,0,0"/>
-                                            <TextBlock Grid.Column="1" Text="LIQUIDITY" FontFamily="Helvetica Neue"
+                                            <TextBlock Grid.Column="1" Text="LIQUIDITY RISK" FontFamily="Helvetica Neue"
                                                FontSize="10" Foreground="White" VerticalAlignment="Center" Margin="2,2,0,0"/>
                                             <Button x:Name="BtnCatLiquidity" Grid.Column="2"
                                                        Content="●" FontSize="12" Foreground="Lime"
@@ -3974,7 +3974,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="15"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="LblLiqVaR95" Grid.Column="0" Text="Liquidation Risk &#8804;2"
+                                            <TextBox x:Name="LblLiqVaR95" Grid.Column="0" Text="Liquidation &#8804;2"
                                             FontSize="9" Foreground="Silver" Background="Transparent"
                                             BorderThickness="0" IsReadOnly="True" Cursor="Hand"
                                             VerticalAlignment="Center" Margin="3,0,0,0"
@@ -4825,12 +4825,12 @@
                                             <Border Background="Transparent"  Padding="0,4" Margin="0" BorderBrush="Black" BorderThickness="0 0 0 0">
                                                 <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                                                     <TextBlock Text="{Binding Name}"
-                                                         Foreground="White"
+                                                         Foreground="Silver"
                                                          FontFamily="Helvetica Neue"
                                                          FontSize="10"
                                                          TextAlignment="Center"/>
                                                     <TextBlock Text="{Binding Value}"
-                                                         Foreground="White"
+                                                         Foreground="{Binding ValueForeground}"
                                                          FontFamily="Helvetica Neue"
                                                          FontSize="10"
                                                          Opacity="0.9"
@@ -4870,59 +4870,54 @@
 
                             <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Grid.ColumnSpan="13" >
                                 <Label Grid.Row="2" Grid.Column="0"  HorizontalContentAlignment="Left" Grid.ColumnSpan="2" 
-                                    Margin="10,0,0,0" Padding="0,6,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
-                                    Content="Bal" FontFamily="Helvetica Neue" FontSize="10" Foreground="Silver" />
+                                    Margin="10,0,0,0" Padding="0,7,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
+                                    Content="Port Bal" FontFamily="Helvetica Neue" FontSize="10" Foreground="Silver" />
                                 <Label x:Name="Balance2"   HorizontalContentAlignment="Left" 
-                                    Margin="5,0,0,0" Padding="5,7,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
-                                    Content="" FontFamily="Helvetica Neue" FontSize="9" Foreground="PaleGreen" />
-                                <!--Portfolio Beta-->
-                                <Label   HorizontalContentAlignment="Left" 
-                                    Margin="10,0,0,0" Padding="0,6,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
-                                    Content="Vol Neutral" FontFamily="Helvetica Neue" FontSize="10" Foreground="Silver" />
-                                <Label Name="BetaValue" HorizontalContentAlignment="Left"  Grid.ColumnSpan="2" 
-                                    Margin="15,0,0,0" Padding="0,7,0,0" Background="Transparent" FontFamily="Helvetica Neue" Content="8.45%"
-                                    FontSize="9" Foreground="White" />
+                                    Margin="5,0,0,0" Padding="0,7,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
+                                    Content="" FontFamily="Helvetica Neue" FontSize="10" Foreground="PaleGreen" />
                                 <!--Portfolio Volatility-->
-                                <Label Grid.Row="0" Grid.Column="10"  HorizontalContentAlignment="Left" 
-                                   Margin="15,0,0,0" Padding="0,7,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
-                                   Content="Vol" FontFamily="Helvetica Neue" FontSize="10" Foreground="Silver" />
+                                <Label Grid.Row="0" Grid.Column="11"  HorizontalContentAlignment="Left" 
+                                    Margin="15,0,0,0" Padding="0,7,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
+                                    Content="Port Volatility" FontFamily="Helvetica Neue" FontSize="10" Foreground="Silver" />
                                 <Label Name="PortfolioVOL" Grid.Row="0"  Grid.Column="9"  HorizontalContentAlignment="Left" Grid.ColumnSpan="2" 
-                                   Margin="15,0,0,0" Padding="0,7,0,0" Background="Transparent" FontFamily="Helvetica Neue" Content="8.45%"
-                                   FontSize="9" Foreground="White" />
+                                    Margin="15,0,0,0" Padding="0,7,0,0" Background="Transparent" FontFamily="Helvetica Neue" Content="8.45%"
+                                    FontSize="10" Foreground="White" />
+                                <!--Portfolio Vol Drift-->
+                                <Label   HorizontalContentAlignment="Left" 
+                                    Margin="10,0,0,0" Padding="0,7,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
+                                    Content="Vol Drift" FontFamily="Helvetica Neue" FontSize="10" Foreground="Silver" />
+                                <Label Name="BetaValue" HorizontalContentAlignment="Left"  Grid.ColumnSpan="2" 
+                                    Margin="10,0,0,0" Padding="0,7,0,0" Background="Transparent" FontFamily="Helvetica Neue" Content="8.45%"
+                                    FontSize="10" Foreground="White" />
+              
                                 <!--Total Book-->
                                 <Label  HorizontalContentAlignment="Left" Grid.ColumnSpan="2" 
                                     Margin="15,0,0,0" Padding="0,7,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
-                                    Content="Gross" FontFamily="Helvetica Neue" FontSize="9" Foreground="Silver" />
+                                    Content="Gross" FontFamily="Helvetica Neue" FontSize="10" Foreground="Silver" />
                                 <Label Name="GrossInvestment"   HorizontalContentAlignment="Left" 
                                     Margin="15,0,0,0" Padding="0,7,0,0" Background="Transparent" Content="32,500,000" FontFamily="Helvetica Neue"
-                                    FontSize="9" Foreground="White" />
-                                <!--<Label HorizontalContentAlignment="Left" Grid.ColumnSpan="2" 
-                                    Margin="15,0,0,0" Padding="0,7,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
-                                    Content="Gross" FontFamily="Helvetica Neue" FontSize="9" Foreground="Silver" />
-                                <Label Name="GrossExposure"  HorizontalContentAlignment="Left" Grid.ColumnSpan="2" 
-                                    Margin="15,0,0,0" Padding="0,7,0,0" Background="Transparent" FontFamily="Helvetica Neue" Content="32.43%"
-                                    FontSize="9" Foreground="PaleGreen" />-->
+                                    FontSize="10" Foreground="White" />
                                 <!--Portfolio Exposure-->
                                 <Label Grid.Row="0" Grid.Column="4"  HorizontalContentAlignment="Left" Grid.ColumnSpan="2" 
-                                   Margin="15,0,0,0" Padding="0,6,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
+                                   Margin="15,0,0,0" Padding="0,7,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
                                    Content="Net" FontFamily="Helvetica Neue" FontSize="10" Foreground="Silver" />
                                 <Label Name="NetExposure" Grid.Row="0"  Grid.Column="5"  HorizontalContentAlignment="Left"  Grid.ColumnSpan="2" 
                                    Margin="15,0,0,0" Padding="0,7,0,0" Background="Transparent" FontFamily="Helvetica Neue" Content="32.43%"
-                                   FontSize="9" Foreground="White" />
+                                   FontSize="10" Foreground="White" />
                                 <!--Long Exposure-->
                                 <Label Grid.Row="0" Grid.Column="6"  HorizontalContentAlignment="Left" Grid.ColumnSpan="2" 
-                                   Margin="15,0,0,0" Padding="0,6,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
+                                   Margin="15,0,0,0" Padding="0,7,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
                                    Content="Longs" FontFamily="Helvetica Neue" FontSize="10" Foreground="Silver" />
                                 <Label Name="TotalLongs" Grid.Row="0"  Grid.Column="6"  HorizontalContentAlignment="Left" Grid.ColumnSpan="2" 
                                    Margin="15,0,0,0" Padding="0,7,0,0" Background="Transparent" FontFamily="Helvetica Neue" Content="32.43%"
-                                   FontSize="9" Foreground="White" />
+                                   FontSize="10" Foreground="PaleGreen" />
                                 <!--Short Exposure-->
                                 <Label Grid.Row="0" Grid.Column="8"  HorizontalContentAlignment="Left" Grid.ColumnSpan="2" 
-                                   Margin="15,0,0,0" Padding="0,6,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
+                                   Margin="15,0,0,0" Padding="0,7,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
                                    Content="Shorts" FontFamily="Helvetica Neue" FontSize="10" Foreground="Silver" />
                                 <Label Name="TotalShorts" Grid.Row="0"  Grid.Column="9"  HorizontalContentAlignment="Left" Grid.ColumnSpan="2" 
                                    Margin="15,0,0,0" Padding="0,7,0,0" Background="Transparent" FontFamily="Helvetica Neue" Content="32.43%"
-                                   FontSize="9" Foreground="White" />
+                                   FontSize="10" Foreground="Red" />
                             </StackPanel>
                         </Grid>
 
@@ -5234,7 +5229,7 @@
                              Cursor="Hand" FontFamily="Helvetica Neue" FontSize="11" FontWeight="Normal"
                              Foreground="White" GroupName="PerformanceList" IsChecked="True" Visibility="Collapsed" />
 
-                <Label Grid.Row="0" Margin="5,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                <Label Grid.Row="0" Margin="2,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
                        Background="Transparent" Content="Portfolios" FontFamily="Helvetica Neue" FontSize="10"
                        Foreground="PaleGreen" />
 

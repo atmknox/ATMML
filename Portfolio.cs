@@ -9128,18 +9128,6 @@ namespace ATMML
 
 				//Debug.WriteLine($"[Portfolio] === FINAL TICKER COUNT: {_tickerInfos?.Count ?? 0} ===");
 
-				if (_tickerInfos?.Count > 0)
-				{
-					Debug.WriteLine($"[Portfolio] First 5 tickers:");
-					foreach (var t in _tickerInfos.Take(5))
-					{
-						Debug.WriteLine($"[Portfolio]   - {t.Ticker} | {t.StartDate:yyyy-MM-dd} to {t.EndDate:yyyy-MM-dd}");
-					}
-				}
-				else
-				{
-					Debug.WriteLine($"[Portfolio] WARNING: No tickers loaded from any path!");
-				}
 			}
 
 			if (_thread == null)
@@ -9180,8 +9168,6 @@ namespace ATMML
 		{
 			var result = new List<TickerInfo>();
 
-			Debug.WriteLine($"[Portfolio] ReadTickerInfo looking for: {filePath}");
-			Debug.WriteLine($"[Portfolio] File exists: {File.Exists(filePath)}");
 
 			if (File.Exists(filePath))
 			{
@@ -9191,10 +9177,6 @@ namespace ATMML
 					lineNumber++;
 
 					// Debug first 5 lines
-					if (lineNumber <= 5)
-					{
-						Debug.WriteLine($"[Portfolio] Line {lineNumber}: [{line}]");
-					}
 
 					if (string.IsNullOrWhiteSpace(line))
 						continue;
@@ -9207,19 +9189,9 @@ namespace ATMML
 					}
 
 					// Debug field count for first 5 lines
-					if (lineNumber <= 5)
-					{
-						Debug.WriteLine($"[Portfolio] Line {lineNumber} has {fields.Length} fields");
-						for (int i = 0; i < Math.Min(fields.Length, 5); i++)
-						{
-							Debug.WriteLine($"[Portfolio]   Field[{i}]: [{fields[i]}]");
-						}
-					}
 
 					if (fields.Length < 5)
 					{
-						if (lineNumber <= 5)
-							Debug.WriteLine($"[Portfolio] Line {lineNumber} SKIPPED: only {fields.Length} fields");
 						continue;
 					}
 
@@ -9232,7 +9204,6 @@ namespace ATMML
 					if (ticker.Equals("Ticker", StringComparison.OrdinalIgnoreCase) ||
 						ticker.Equals("Symbol", StringComparison.OrdinalIgnoreCase))
 					{
-						Debug.WriteLine($"[Portfolio] Line {lineNumber} SKIPPED: header row");
 						continue;
 					}
 
@@ -9242,8 +9213,6 @@ namespace ATMML
 						if (!DateTime.TryParseExact(startDateStr, new[] { "M/d/yyyy", "MM/dd/yyyy", "yyyy-MM-dd" },
 							CultureInfo.InvariantCulture, DateTimeStyles.None, out startDate))
 						{
-							if (lineNumber <= 5)
-								Debug.WriteLine($"[Portfolio] Line {lineNumber} SKIPPED: Invalid StartDate [{startDateStr}]");
 							continue;
 						}
 					}
@@ -9269,16 +9238,8 @@ namespace ATMML
 						SectorTicker = sectorTicker
 					});
 
-					if (lineNumber <= 5)
-						Debug.WriteLine($"[Portfolio] Line {lineNumber} PARSED: {ticker}");
 				}
 
-				Debug.WriteLine($"[Portfolio] Total lines read: {lineNumber}");
-				Debug.WriteLine($"[Portfolio] Parsed {result.Count} tickers from {filePath}");
-			}
-			else
-			{
-				Debug.WriteLine($"[Portfolio] File not found: {filePath}");
 			}
 
 			return result;
@@ -9994,9 +9955,6 @@ namespace ATMML
 
 		private bool requestSymbols(SymbolRequest request)
 		{
-			Debug.WriteLine($"[Portfolio] === requestSymbols ===");
-			Debug.WriteLine($"[Portfolio] Request.Name: {request.Name}");
-			Debug.WriteLine($"[Portfolio] Request.Type: {request.Type}");
 
 			bool ok = true;
 
@@ -10126,7 +10084,6 @@ namespace ATMML
 				else
 				{
 					_requestExtraInfo = request.RequestSymbolInfo;
-					Debug.WriteLine($"[Portfolio] Calling requestBloombergSymbols for: {request.Name}");
 					ok = requestBloombergSymbols(request.Name, request.Type);
 				}
 			}
@@ -39268,16 +39225,13 @@ namespace ATMML
 				}
 				catch (InvalidRequestException ex)
 				{
-					Debug.WriteLine($"[Portfolio] Bloomberg InvalidRequestException for {name}: {ex.Message}");
 				}
 				catch (Exception ex)
 				{
-					Debug.WriteLine($"[Portfolio] Bloomberg exception for {name}: {ex.Message}");
 				}
 			}
 			else
 			{
-				Debug.WriteLine($"[Portfolio] Bloomberg session not available, using local fallback for {name}");
 
 				// Session failed to open - use local fallback for Index type
 				if (type == PortfolioType.Index)
@@ -39312,7 +39266,6 @@ namespace ATMML
 
 				if (!Directory.Exists(folderPath))
 				{
-					Debug.WriteLine($"[Portfolio] Local folder not found for {ticker}, using defaults");
 
 					// Provide default values so we don't block
 					foreach (var field in dataFieldNames)
@@ -39370,7 +39323,6 @@ namespace ATMML
 			}
 			catch (Exception ex)
 			{
-				Debug.WriteLine($"[Portfolio] Error loading local reference data for {ticker}: {ex.Message}");
 			}
 
 			return data;
@@ -40190,14 +40142,11 @@ namespace ATMML
 
 		private bool sendIndexDataRequest(string name)
 		{
-			Debug.WriteLine($"[Portfolio] === sendIndexDataRequest ===");
-			Debug.WriteLine($"[Portfolio] Index name: {name}");
 
 			bool ok = false;
 			if (name.Length > 0)
 			{
 				// Query Bloomberg first for live current membership — no manual CSV maintenance needed.
-				Debug.WriteLine($"[Portfolio] Trying Bloomberg for index members");
 				try
 				{
 					Service refDataService = _session.GetService("//blp/refdata");
@@ -40215,13 +40164,11 @@ namespace ATMML
 				}
 				catch (Exception ex)
 				{
-					Debug.WriteLine($"[Portfolio] Bloomberg request failed: {ex.Message}");
 				}
 
 				// Fall back to local CSV data if Bloomberg fails or is unavailable.
 				if (!ok)
 				{
-					Debug.WriteLine($"[Portfolio] Falling back to local data for index members");
 					ok = loadIndexMembersFromLocal(name);
 					//if (ok) Debug.WriteLine($"[Portfolio] Loaded index members from local CSV fallback");
 				}
@@ -40259,14 +40206,9 @@ namespace ATMML
 					onPortfolioChanged(new PortfolioEventArgs(PortfolioEventType.Symbol));
 					ok = true;
 				}
-				else
-				{
-					Debug.WriteLine($"[Portfolio] No local data found for {name}");
-				}
 			}
 			catch (Exception ex)
 			{
-				Debug.WriteLine($"[Portfolio] Local fallback failed for {name}: {ex.Message}");
 			}
 			return ok;
 		}
@@ -40307,7 +40249,6 @@ namespace ATMML
 				var filePath = Path.Combine(localDataPath, fileName);
 				if (File.Exists(filePath))
 				{
-					Debug.WriteLine($"[Portfolio] Found local index file: {filePath}");
 
 					foreach (var line in File.ReadLines(filePath))
 					{
@@ -40354,14 +40295,11 @@ namespace ATMML
 
 		private static List<string> getTickerInfos(string indexTicker)
 		{
-			Debug.WriteLine($"[Portfolio] getTickerInfos called for: {indexTicker}");
-			Debug.WriteLine($"[Portfolio] _tickerInfos count: {_tickerInfos?.Count ?? 0}");
 
 			List<string> output = new List<string>();
 
 			if (_tickerInfos == null || _tickerInfos.Count == 0)
 			{
-				Debug.WriteLine($"[Portfolio] _tickerInfos is empty!");
 				return output;
 			}
 
@@ -40377,7 +40315,6 @@ namespace ATMML
 					.Select(x => x.Ticker)
 					.ToList();
 
-				Debug.WriteLine($"[Portfolio] Returning {output.Count} current tickers for {indexTicker}");
 			}
 			else
 			{
@@ -40387,7 +40324,6 @@ namespace ATMML
 					.Select(x => x.Ticker)
 					.ToList();
 
-				Debug.WriteLine($"[Portfolio] Returning {output.Count} sector tickers for {indexTicker}");
 			}
 
 			return output;
@@ -40883,10 +40819,6 @@ namespace ATMML
 				}
 			}
 
-			else
-			{
-
-			}
 		}
 
 		private void processBulkField(string ticker, Element refBulkField, Dictionary<string, object> referenceData, Dictionary<string, object> historicalReferenceData)

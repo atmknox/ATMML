@@ -121,6 +121,120 @@ namespace ATMML
 		DispatcherTimer _portfolioTimer = new DispatcherTimer();
 		DispatcherTimer _testTimer = new DispatcherTimer();
 
+		// ── Diagnostic logger ──────────────────────────────────────────────────
+		// File-based logging that ALWAYS writes regardless of Debug/Release build.
+		// System.Diagnostics.Debug.WriteLine is stripped at compile time in Release
+		// (the [Conditional("DEBUG")] attribute removes the call entirely), which is
+		// why prior diagnostic output was invisible to DebugView when running the
+		// deployed build. This logger appends to a file that can be opened with any
+		// text viewer while the app is running.
+		//
+		// Path: NEXT TO THE EXE — uses AppDomain.CurrentDomain.BaseDirectory which
+		// always returns the directory the running .exe was loaded from. For Rick's
+		// deployed build that resolves to:
+		//   C:\Users\Admin\Documents\ATMML\bin\Debug\net8.0-windows\PBDiagnostic.log
+		// We use the exe folder rather than Documents\ATMML because GetFolderPath()
+		// can be redirected (OneDrive, roaming profiles) to a path that may not be
+		// the same as where the project source actually lives. The exe folder is
+		// guaranteed writable because the build system literally just wrote the exe
+		// there. Multiple fallbacks in case BaseDirectory itself is unavailable.
+		// Concurrency: file write is mutex-locked. Failures swallowed.
+		private const string DIAG_BUILD_MARKER = "build=2026-04-30-T20-clean10-fileonly";
+		private static readonly object _diagLogLock = new object();
+		private static readonly string _diagLogPath = ResolveDiagLogPath();
+
+		// RT subscription diagnostics — tracks the lifecycle of the PRICE_LAST stream
+		// so we can see whether Bloomberg is delivering ongoing ticks or just initial
+		// snapshots. Counters are atomic (Interlocked) because Bloomberg events arrive
+		// on background threads. Per-ticker first/last tick timestamps would be more
+		// detail than we need right now — aggregate counts + time-since-last is enough
+		// to distinguish "stream is dead" from "stream is alive but quiet."
+		//
+		// Two parallel counter sets because PRICE_LAST events can arrive on EITHER
+		// _livePortfolio (the dedicated RT instance — fed by RequestReferenceData
+		// PRICE_LAST subscribe=true) OR _portfolio1 (the main instance — fed as a
+		// side effect of _barCache.RequestBars subscribe=true bar-tick delivery).
+		// We need to know which path is actually carrying the live data so we
+		// instrument them separately. The "p1" suffix = portfolio1 path.
+		private static long _diagSymbolEventCount = 0;     // PortfolioEventType.Symbol callbacks received on _livePortfolio
+		private static long _diagReqRefSentCount = 0;      // RequestReferenceData(PRICE_LAST) calls issued on _livePortfolio
+		private static long _diagPriceLastCount = 0;       // PRICE_LAST tick events received on _livePortfolio
+		private static long _diagCurMktCapCount = 0;       // CUR_MKT_CAP events received on _livePortfolio
+		private static DateTime _diagLastPriceLast = DateTime.MinValue;
+
+		private static long _diagP1PriceLastCount = 0;     // PRICE_LAST tick events received on _portfolio1
+		private static DateTime _diagP1LastPriceLast = DateTime.MinValue;
+		private static string _diagP1LastTicker = "";      // most recent ticker that delivered a PRICE_LAST on _portfolio1
+
+		// barChanged is the actual price-tick delivery path for live bars. Bloomberg
+		// streams trade ticks via BarCache subscriptions (not via PortfolioChanged
+		// events). Neither _livePortfolio.PortfolioChanged nor _portfolio1.PortfolioChanged
+		// PRICE_LAST handlers fire from this path. drawPortfolioGrid reads the latest
+		// bar Close via _barCache.GetBars and writes _lastKnownPrices, which getCurrentPrice
+		// then returns. If barChanged stops firing, _lastKnownPrices stops updating, livePnL
+		// freezes — exactly the observed symptom.
+		private static long _diagBarChangedCount = 0;      // total barChanged callbacks (any ticker, any interval)
+		private static long _diagBarChangedLiveCount = 0;  // BarsReceived events specifically while in live mode
+		private static DateTime _diagLastBarChanged = DateTime.MinValue;
+		private static string _diagLastBarTicker = "";
+		private static string _diagLastBarInterval = "";
+
+		// Per-(ticker:interval) last-tick timestamp. Drives the re-arm logic in
+		// Timer_tick: any subscription whose last tick is > 30s old gets dropped
+		// from _subscribedBarTickers and re-issued via _barCache.RequestBars.
+		// Bloomberg's bar-tick subscriptions can silently die on this session
+		// (we observed initial deliveries for ~10 sec, then permanent silence
+		// for the same ticker even though the ticker is actively trading), and
+		// the existing _subscribedBarTickers gate prevented any retry. This
+		// dictionary + the re-arm loop converts a one-shot subscribe into a
+		// self-healing one. Cost: a quiet ticker (no trades in 30s during
+		// market hours) triggers one redundant resubscribe — bounded by the
+		// 10-sec Timer_tick cycle, so worst case ~6 resubs/min across all
+		// quiet tickers, well under quota concern.
+		private static Dictionary<string, DateTime> _lastBarTickPerKey = new Dictionary<string, DateTime>();
+		private static long _diagBarRearmCount = 0;
+		private const double BAR_REARM_STALE_SECS = 60.0;
+
+		private static string ResolveDiagLogPath()
+		{
+			// Primary: directly next to the running .exe. Always writable, always
+			// findable, no folder-redirection surprises.
+			try
+			{
+				var baseDir = System.AppDomain.CurrentDomain.BaseDirectory;
+				if (!string.IsNullOrEmpty(baseDir))
+					return System.IO.Path.Combine(baseDir, "PBDiagnostic.log");
+			}
+			catch { }
+			// Secondary fallback: temp dir.
+			try { return System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ATMML_PBDiagnostic.log"); }
+			catch { }
+			// Last resort: current working directory.
+			return "PBDiagnostic.log";
+		}
+
+		private static void LogDiag(string message)
+		{
+			try
+			{
+				var line = DateTime.Now.ToString("HH:mm:ss.fff") + " " + message + System.Environment.NewLine;
+				lock (_diagLogLock)
+				{
+					System.IO.File.AppendAllText(_diagLogPath, line);
+				}
+				// File-only: deliberately NOT writing to System.Diagnostics.Debug.WriteLine
+				// so our diagnostic stream doesn't appear in Visual Studio's Output window
+				// alongside other unrelated debug output. PBDiagnostic.log is the single
+				// authoritative destination — anyone wanting to view our diagnostics opens
+				// that file directly.
+			}
+			catch
+			{
+				// Never let logging crash anything. Silent failure is the right
+				// trade-off here — no log line is strictly better than a tick crash.
+			}
+		}
+
 		private Stopwatch _doubleClickStopwatch = null;
 
 		Portfolio _portfolio1 = new Portfolio(7);
@@ -147,6 +261,12 @@ namespace ATMML
 		private Dictionary<string, string> sectorPercents;
 		private Dictionary<string, string> industryPercents;
 		private Dictionary<string, string> subIndustryPercents;
+		// Signed net per group (longs - shorts) / NAV. Parallel to the magnitude string
+		// dicts above — kept separate so the existing display strings and SetInfo export
+		// to MainView stay backward-compatible while LoadTiles can color tiles by sign.
+		private Dictionary<string, double> _sectorNet      = new Dictionary<string, double>();
+		private Dictionary<string, double> _industryNet    = new Dictionary<string, double>();
+		private Dictionary<string, double> _subIndustryNet = new Dictionary<string, double>();
 		private string _activeLabel = "Sector";
 		private double _lastGrossExposure = 0;
 		private double _lastNetExposure = 0;
@@ -342,11 +462,47 @@ namespace ATMML
 			_portfolioTimer.Tick += new EventHandler(Timer_tick);
 			_portfolioTimer.Start();
 
+			// Startup marker — fires exactly once when PB initializes. If this line
+			// appears in PBDiagnostic.log, the deployed build IS the diagnostic build.
+			// If the file exists but has no startup line, an older build is running
+			// (deploy didn't take effect). If the file doesn't exist at all, either
+			// the new build never reached PB init or the log path isn't writable.
+			LogDiag("[PB.Init] Portfolio Builder constructor reached, timer started, " + DIAG_BUILD_MARKER + ", logPath=" + _diagLogPath);
+
 			_MLFactorModels = new Dictionary<string, Model>();
 			_userFactorModels = new Dictionary<string, Model>();
 
 			initFactorTree(UserFactorInputTree);
 			loadUserFactorModels();
+
+			// Force the startup portfolio to ATM SP SECT LIVE (the production live
+			// model) regardless of what was last selected.
+			//
+			// Placement is critical: this MUST run AFTER loadUserFactorModels()
+			// because that's where _userFactorModels gets populated from disk. An
+			// override placed earlier (before line ~379) would be silently skipped
+			// because _userFactorModels.ContainsKey(LIVE_MODEL) returns false on
+			// an empty dictionary, and we'd also be running before the role-based
+			// fallback at line 11182 which itself overrides _selectedUserFactorModel.
+			//
+			// loadModel() at line 388 below reads _selectedUserFactorModel via
+			// getModel(), so setting it here makes the live model the one that
+			// actually loads on startup.
+			//
+			// Guarded by ContainsKey so missing/renamed live model falls through
+			// to whatever loadUserFactorModels already selected.
+			const string LIVE_MODEL = "ATM SP SECT LIVE";
+			if (_userFactorModels != null && _userFactorModels.ContainsKey(LIVE_MODEL))
+			{
+				_useUserFactorModel = true;
+				_selectedUserFactorModel = LIVE_MODEL;
+				_selectedMLFactorModel = LIVE_MODEL;
+				_modelName = LIVE_MODEL;
+				ScenarioModel.Content = LIVE_MODEL;
+				var liveModel = _userFactorModels[LIVE_MODEL];
+				if (liveModel != null)
+					ScenarioName.Content = MainView.GetSenarioLabel(liveModel.Scenario);
+			}
 
 			if (_selectedUserFactorModel == "")
 			{
@@ -1549,6 +1705,27 @@ namespace ATMML
 					industryPercents = percents[1];
 					subIndustryPercents = percents[2];
 
+					// Backfill any group that has positions in this portfolio but isn't in
+					// the predefined initPercents list. initPercents returns a fixed list
+					// of sector/industry/sub-industry labels established at app build time;
+					// when GICS classifications are updated (new sub-industries split off,
+					// reclassifications, etc.) tickers can correctly resolve via
+					// GetSubIndustryLabel and aggregate into *Investments dicts, but the
+					// percent dicts that drive the tile display would silently drop them
+					// because their keys never got refreshed. Symptom: a ticker shows the
+					// right sub-industry in DataGrid1 but its position never appears in any
+					// sub-industry tile, and the tile-net total no longer reconciles to the
+					// portfolio net.
+					foreach (var k in sectorInvestments.Keys)
+						if (!string.IsNullOrEmpty(k) && !sectorPercents.ContainsKey(k))
+							sectorPercents[k] = "";
+					foreach (var k in industryInvestments.Keys)
+						if (!string.IsNullOrEmpty(k) && !industryPercents.ContainsKey(k))
+							industryPercents[k] = "";
+					foreach (var k in subIndustryInvestments.Keys)
+						if (!string.IsNullOrEmpty(k) && !subIndustryPercents.ContainsKey(k))
+							subIndustryPercents[k] = "";
+
 					if (totalInvestment != 0)
 					{
 						// Try loading optimizer-saved sector fractions (exact values from PHASE 1b/1c).
@@ -1595,6 +1772,30 @@ namespace ATMML
 							industryPercents.Keys.ToList().ForEach(k => industryPercents[k] = industryInvestments.ContainsKey(k) && !double.IsNaN(industryInvestments[k]) ? Math.Abs(industryInvestments[k] / portfolioBalance).ToString(".00%") : "");
 							subIndustryPercents.Keys.ToList().ForEach(k => subIndustryPercents[k] = subIndustryInvestments.ContainsKey(k) && !double.IsNaN(subIndustryInvestments[k]) ? Math.Abs(subIndustryInvestments[k] / portfolioBalance).ToString(".00%") : "");
 						}
+
+						// Capture the SIGNED net per group (longs - shorts) / NAV in parallel to
+						// the magnitude strings above. LoadTiles uses these to color each tile
+						// PaleGreen for net-long, Red for net-short. Math.Abs in the strings
+						// preserves the existing display contract (and the SetInfo export to
+						// MainView consumed by Timing); the sign info just travels alongside.
+						_sectorNet.Clear();
+						foreach (var k in sectorPercents.Keys)
+						{
+							if (sectorInvestments.ContainsKey(k) && !double.IsNaN(sectorInvestments[k]))
+								_sectorNet[k] = sectorInvestments[k] / portfolioBalance;
+						}
+						_industryNet.Clear();
+						foreach (var k in industryPercents.Keys)
+						{
+							if (industryInvestments.ContainsKey(k) && !double.IsNaN(industryInvestments[k]))
+								_industryNet[k] = industryInvestments[k] / portfolioBalance;
+						}
+						_subIndustryNet.Clear();
+						foreach (var k in subIndustryPercents.Keys)
+						{
+							if (subIndustryInvestments.ContainsKey(k) && !double.IsNaN(subIndustryInvestments[k]))
+								_subIndustryNet[k] = subIndustryInvestments[k] / portfolioBalance;
+						}
 					}
 
 					//var beta = getPortfolioBeta(time2);
@@ -1611,9 +1812,9 @@ namespace ATMML
 
 					// Update GROSS / NET cells to the left of the tiles based on active view.
 
-					if (_activeLabel == "Industry") LoadTiles(industryPercents);
-					else if (_activeLabel == "SubIndustry") LoadTiles(subIndustryPercents);
-					else LoadTiles(sectorPercents);
+					if (_activeLabel == "Industry") LoadTiles(industryPercents, _industryNet);
+					else if (_activeLabel == "SubIndustry") LoadTiles(subIndustryPercents, _subIndustryNet);
+					else LoadTiles(sectorPercents, _sectorNet);
 
 					// Push sector percents + alert max values to shared info so Timing reads
 					// PB's live-price calculations instead of recalculating from stale bar closes.
@@ -1657,6 +1858,17 @@ namespace ATMML
 						// Calculate dollar amount for this position
 						// shares[ticker] is already signed (+ for long, - for short)
 						var amount = price[ticker] * Math.Abs(shares[ticker]);
+
+						// Skip exited positions for exposure totals — Direction ±3 = Exit.
+						// These rows are kept in `portfolio` for display (showing exit rows
+						// in the grid) but represent closed positions with no current
+						// exposure. Without this filter the header counts an exited long
+						// (Direction -3) as a short with the wrong sign, inflating the
+						// gross book and pushing Net Exposure away from its true value.
+						// Mirrors the !isExitedForSector filter in the sector accumulator
+						// at line 1446 so header net == sum of sector-tile nets (modulo
+						// unclassified tickers, which are a separate concern).
+						if (Math.Abs(side) == 3) continue;
 
 						// Accumulate to correct side based on direction
 						if (side > 0)
@@ -2205,6 +2417,9 @@ namespace ATMML
 					PortfolioVOL.Content = double.IsNaN(annVol) ? "" : $"{annVol:0.00}";
 					GrossInvestment.Content = grossInvestment.ToString("P2", CultureInfo.InvariantCulture); // → "12.34%"
 					NetExposure.Content = netExposure.ToString("P2", CultureInfo.InvariantCulture); // → "12.34%"
+					// Color by sign: long-biased (≥0) book displays in PaleGreen to match
+					// the TotalLongs label styling; short-biased book displays in Red.
+					NetExposure.Foreground = netExposure >= 0 ? Brushes.PaleGreen : Brushes.Red;
 					TotalLongs.Content = longExposure.ToString("P2", CultureInfo.InvariantCulture); // → "12.34%"
 					TotalShorts.Content = shortExposure.ToString("P2", CultureInfo.InvariantCulture); // → "12.34%"
 
@@ -3067,10 +3282,14 @@ namespace ATMML
 
 		private void barChanged(object sender, BarEventArgs e)
 		{
+			System.Threading.Interlocked.Increment(ref _diagBarChangedCount);
 			if (e.Type == BarEventArgs.EventType.BarsReceived)
 			{
 				string ticker = e.Ticker;
 				string interval = e.Interval;
+				_diagLastBarChanged = DateTime.Now;
+				_diagLastBarTicker = ticker;
+				_diagLastBarInterval = interval;
 
 				if (_indexBarRequestCount > 0)
 				{
@@ -3100,6 +3319,12 @@ namespace ATMML
 							// from bar dates; rebalance dates are loaded from saved data in loadModel()
 							// and must not be replaced with daily/weekly bar timestamps
 							_update = 500;
+							System.Threading.Interlocked.Increment(ref _diagBarChangedLiveCount);
+							// Record this tick against the (ticker:interval) key so the
+							// Timer_tick re-arm loop can detect when a subscription has
+							// gone stale. Lock matches the lock in the re-arm loop.
+							string tickKey = ticker + ":" + interval;
+							lock (_lastBarTickPerKey) { _lastBarTickPerKey[tickKey] = DateTime.Now; }
 						}
 					}
 
@@ -3832,19 +4057,28 @@ namespace ATMML
 					// Store live RT price for portfolio balance calculation
 					if (name == "PRICE_LAST")
 					{
+						double rtPxResolved = double.NaN;
 						if (kvp.Value is double rtPx && rtPx > 0)
 						{
 							lock (_rtPrices) { _rtPrices[e.Ticker] = (rtPx, DateTime.Now); }
 							_update = 500; // trigger grid redraw
+							rtPxResolved = rtPx;
 						}
 						else if (double.TryParse(value, System.Globalization.NumberStyles.Any,
 							System.Globalization.CultureInfo.InvariantCulture, out double parsed) && parsed > 0)
 						{
 							lock (_rtPrices) { _rtPrices[e.Ticker] = (parsed, DateTime.Now); }
 							_update = 500;
+							rtPxResolved = parsed;
 						}
 						else
 						{
+						}
+						if (!double.IsNaN(rtPxResolved))
+						{
+							System.Threading.Interlocked.Increment(ref _diagP1PriceLastCount);
+							_diagP1LastPriceLast = DateTime.Now;
+							_diagP1LastTicker = e.Ticker;
 						}
 					}
 					else if (name == "REL_INDEX")
@@ -3930,6 +4164,8 @@ namespace ATMML
 		{
 			if (e.Type == PortfolioEventType.Symbol)
 			{
+				System.Threading.Interlocked.Increment(ref _diagSymbolEventCount);
+
 				// Symbol registered — now safe to subscribe RT reference data
 				bool pending = false;
 				lock (_pendingRtTickers)
@@ -3943,9 +4179,30 @@ namespace ATMML
 					// entitlements, so a delayed-feed terminal never populated _rtPrices and
 					// getCurrentPrice silently fell through to static weekly/daily bar closes,
 					// making Cur Px appear frozen intraday.
-					// CUR_MKT_CAP is a one-shot reference field that fires once and populates
-					// _marketCapCache for cap-tier alert aggregation.
-					_livePortfolio.RequestReferenceData(e.Ticker, new[] { "PRICE_LAST", "CUR_MKT_CAP" }, true);
+					//
+					// CUR_MKT_CAP is a one-shot reference field. CRITICAL: do NOT bundle it
+					// with PRICE_LAST under subscribe=true. Bloomberg's BLPAPI handles a
+					// mixed streamable/non-streamable field list inconsistently — in many
+					// configurations it returns a single snapshot frame containing both
+					// fields and then never establishes the persistent PRICE_LAST stream.
+					// Symptom: balance updates once or twice per ticker as initial snapshots
+					// arrive, then freezes (no further ticks). Split into two distinct calls:
+					//   1) PRICE_LAST  with subscribe=true   → persistent intraday stream
+					//   2) CUR_MKT_CAP with subscribe=false  → one-shot snapshot
+					// Each call is isolated in try/catch so a single bad ticker (delisted,
+					// invalid in this Bloomberg session, etc.) cannot poison the queue or
+					// silently kill subsequent subscriptions.
+					try
+					{
+						_livePortfolio.RequestReferenceData(e.Ticker, new[] { "PRICE_LAST" }, true);
+						System.Threading.Interlocked.Increment(ref _diagReqRefSentCount);
+					}
+					catch (Exception ex) { LogDiag("[livePortfolioChanged] RequestReferenceData PRICE_LAST FAILED for " + e.Ticker + ": " + ex.Message); }
+					try
+					{
+						_livePortfolio.RequestReferenceData(e.Ticker, new[] { "CUR_MKT_CAP" }, false);
+					}
+					catch (Exception ex) { LogDiag("[livePortfolioChanged] RequestReferenceData CUR_MKT_CAP FAILED for " + e.Ticker + ": " + ex.Message); }
 				}
 			}
 			else if (e.Type == PortfolioEventType.ReferenceData)
@@ -3963,6 +4220,8 @@ namespace ATMML
 						{
 							lock (_rtPrices) { _rtPrices[e.Ticker] = (px, DateTime.Now); }
 							_update = 500;
+							System.Threading.Interlocked.Increment(ref _diagPriceLastCount);
+							_diagLastPriceLast = DateTime.Now;
 						}
 					}
 					else if (kvp.Key == "CUR_MKT_CAP")
@@ -3980,6 +4239,7 @@ namespace ATMML
 								out double capM) && capM > 0)
 						{
 							lock (_marketCapCache) { _marketCapCache[e.Ticker] = capM; }
+							System.Threading.Interlocked.Increment(ref _diagCurMktCapCount);
 						}
 					}
 				}
@@ -3996,8 +4256,10 @@ namespace ATMML
 		private void refreshLiveBalance()
 		{
 			var model = getModel();
-			if (model == null || !model.IsLiveMode) return;
-			if (_portfolioTimes == null || _portfolioTimes.Count == 0) return;
+			if (model == null) return;
+			if (!model.IsLiveMode) return;
+			if (_portfolioTimes == null) return;
+			if (_portfolioTimes.Count == 0) return;
 
 			// Bloomberg disconnected: do NOT compute live PnL from stale bar-cache closes.
 			// Instead, read the last settled Friday's NAV directly from portfolioValues on disk
@@ -4467,6 +4729,13 @@ namespace ATMML
 			SetAlertValueLabel(LblSubIndGrossValue,   v.MaxSubIndGross,   h.SubIndGross);
 			SetAlertValueLabel(LblSubIndNetValue,     v.MaxSubIndNet,     h.SubIndNet);
 
+			// Exposure
+			SetAlertValueLabel(LblGrossBookValue,     v.GrossBook,        h.GrossBook);
+			SetAlertValueLabel(LblNetExposureValue,   v.NetExposure,      h.NetExposure);
+			SetAlertValueLabel(LblMaxPositionValue,   v.MaxPositionWeight,h.MaxPosition);
+			SetAlertValueLabel(LblIntradayDDValue,    v.IntradayDD,       h.IntradayDD);
+			SetAlertValueLabel(LblUtilizationValue,   v.Utilization,      h.Utilization);
+
 			// Statistical risk
 			SetAlertValueLabel(LblMaxVaR95Value,      v.PortfolioVaR95,   h.MaxVaR95);
 			SetAlertValueLabel(LblCVaR95Value,        v.CVaR95,           h.CVaR95);
@@ -4478,15 +4747,16 @@ namespace ATMML
 
 			// Liquidity
 			SetAlertValueLabel(LblLiqVaR95Value,      v.LiqVaR95,         h.LiqVaR95);
-
-			// Pre-existing dynamic label — wire alongside the new ones so it tracks too.
-			SetAlertValueLabel(LblUtilizationValue,   v.Utilization,      h.Utilization);
 		}
 
 		private void SetAlertValueLabel(TextBlock lbl, double value, bool healthy)
 		{
 			if (lbl == null) return;
-			lbl.Text = value.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+			// AlertValues fields are stored as fractions (0.45 = 45%); the AlertHealth
+			// engine compares them against fractional thresholds internally, but the UI
+			// displays whole-percent units (the row labels read "≤10", "≤200" etc.). Scale
+			// for display only — Health.* booleans already came from the engine pre-scale.
+			lbl.Text = (value * 100.0).ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
 			lbl.Foreground = healthy ? Brushes.Lime : Brushes.Red;
 		}
 
@@ -4937,7 +5207,14 @@ namespace ATMML
 						bool liveSubscribe = model.IsLiveMode && interval == "Daily";
 						var tKey = ticker + ":" + interval;
 						if (_subscribedBarTickers.Add(tKey))
+						{
 							_barCache.RequestBars(ticker, interval, liveSubscribe);
+							// Seed the re-arm timestamp so Timer_tick can detect a dead
+							// subscription. Only seed for live subscriptions — non-live
+							// requests are one-shot and won't be re-armed.
+							if (liveSubscribe)
+								lock (_lastBarTickPerKey) { _lastBarTickPerKey[tKey] = DateTime.Now; }
+						}
 					}
 					// Weekly live subscription for intraday prices — the current week's
 					// incomplete bar updates its Close with the latest trade throughout the day
@@ -4946,7 +5223,10 @@ namespace ATMML
 						_barRequests.Add(ticker + ":Weekly");
 						var wKey = ticker + ":Weekly";
 						if (_subscribedBarTickers.Add(wKey))
+						{
 							_barCache.RequestBars(ticker, "Weekly", true);
+							lock (_lastBarTickPerKey) { _lastBarTickPerKey[wKey] = DateTime.Now; }
+						}
 						// RequestSymbols establishes Bloomberg session; once Symbol event fires,
 						// livePortfolioChanged calls RequestReferenceData for PRICE_LAST.
 						// Gate: register each ticker with the session ONCE. The RT stream
@@ -4954,10 +5234,32 @@ namespace ATMML
 						// in livePortfolioChanged ensure downstream RequestReferenceData also
 						// fires only once. Skipping this re-registration saves ~1 call per
 						// (already-subscribed ticker × portfolio switch).
+						//
+						// CRITICAL: try/catch isolation matches Timing.xaml.cs line 1135-1140.
+						// Without it, a single ticker that throws on RequestSymbols (delisted,
+						// not in Bloomberg session, invalid security identifier, etc.) breaks
+						// the foreach loop INSIDE lock(_barRequests). Every ticker after the
+						// failing one then never gets bar requests sent and never gets RT
+						// registered — symptom: balance updates only for tickers BEFORE the
+						// bad one, then freezes. Also remove from _pendingRtTickers on failure
+						// so we don't leave stale entries that block later retries.
 						if (_rtSubscribedTickers.Add(ticker))
 						{
-							lock (_pendingRtTickers) { _pendingRtTickers.Add(ticker); }
-							_livePortfolio.RequestSymbols(ticker, Portfolio.PortfolioType.Single, false);
+							try
+							{
+								lock (_pendingRtTickers) { _pendingRtTickers.Add(ticker); }
+								_livePortfolio.RequestSymbols(ticker, Portfolio.PortfolioType.Single, false);
+							}
+							catch
+							{
+								// Roll back the pending entry so the ticker can be retried later
+								// (e.g. by the periodic refresh in Timer_tick) without being stuck
+								// in the pending queue forever.
+								lock (_pendingRtTickers) { _pendingRtTickers.Remove(ticker); }
+								// Also drop the rtSubscribed gate so a future loadModel/refresh
+								// cycle gets a chance to retry this ticker.
+								_rtSubscribedTickers.Remove(ticker);
+							}
 						}
 					}
 				}
@@ -4999,78 +5301,213 @@ namespace ATMML
 
 		void Timer_tick(object sender, EventArgs e)
 		{
-			if (_run)
+			// Top-level safety net: an unhandled exception inside any tick path
+			// will keep firing on subsequent ticks (the timer doesn't stop), but
+			// every tick will throw before reaching the live-refresh chain — symptom
+			// is a frozen Balance/Cur Px even though the timer is "running". This
+			// outer catch ensures one bad call site can never starve the whole tick
+			// path. Each individual section below is also independently isolated so
+			// a failure in one (e.g. drawPortfolioGrid throwing on a malformed trade)
+			// doesn't prevent refreshLiveBalance from still pushing a fresh NAV.
+			try
 			{
-				_run = false;
-				run();
-			}
-
-			if (_update != 0) // && _progressState == ProgressState.Complete)
-			{
-				update();
-				_update = 0;
-			}
-
-			// Periodic live balance refresh every 10 seconds during market hours
-			if ((DateTime.Now - _lastGridRefreshTime).TotalSeconds >= 10)
-			{
-				_lastGridRefreshTime = DateTime.Now;
-				var m = getModel();
-				if (m != null && m.IsLiveMode && BarServer.ConnectedToBloomberg())
+				if (_run)
 				{
-					// Idempotent subscription: each (ticker, interval) subscribes ONCE
-					// per PB session. Without this gate, a 100-ticker portfolio burned
-					// 100 × 2 × 360 = ~72k Bloomberg bar requests/hour from this block
-					// alone, exhausting the daily quota in a few hours. Matches the
-					// Timing pattern at line 1117-1120 of Timing.xaml.cs.
-					// BarCache.RequestBars performs its own retrieval internally, so
-					// skipping re-requests here does NOT starve the cache — the cache
-					// refreshes on its own subscription lifecycle.
-					var liveTrades = _portfolio1.GetTrades(m.Name);
-					foreach (var t in liveTrades.Select(x => x.Ticker).Distinct())
+					_run = false;
+					try { run(); }
+					catch (Exception ex) { LogDiag("[Timer_tick] run() threw: " + ex.Message); }
+				}
+
+				if (_update != 0) // && _progressState == ProgressState.Complete)
+				{
+					try { update(); }
+					catch (Exception ex) { LogDiag("[Timer_tick] update() threw: " + ex.Message); }
+					_update = 0;
+				}
+
+				// Periodic live balance refresh every 10 seconds during market hours
+				if ((DateTime.Now - _lastGridRefreshTime).TotalSeconds >= 10)
+				{
+					_lastGridRefreshTime = DateTime.Now;
+					var m = getModel();
+
+					// CRITICAL: cache BarServer.ConnectedToBloomberg() once per 10-second
+					// cycle. Calling it inline at multiple gate sites is non-idempotent —
+					// the call is reading a session heartbeat that can flicker, and it
+					// can throw under transient session conditions. When the bar-resubscribe
+					// gate sees true but the liveModeActive gate sees false (or throws into
+					// the outer catch), the refresh chain silently skips and Balance
+					// freezes. One call, one cached value, both gates see the same answer.
+					bool bbgConn = false;
+					try { bbgConn = BarServer.ConnectedToBloomberg(); }
+					catch { /* treat throw as disconnected for this cycle */ }
+
+					LogDiag(string.Format(
+						"[Timer_tick] tick: model={0}, isLive={1}, bbg={2}, liveMtM={3}, _showHoldingsTime={4}, _portfolioTimes.Count={5}, livePort[symEvt={6} reqRef={7} priceLast={8} mktCap={9} secsSince={10}], port1[priceLast={11} secsSince={12} lastTk={13}], bars[total={14} live={15} secsSince={16} lastTk={17} lastInt={18} rearm={19}]",
+						m?.Name ?? "<null>",
+						m?.IsLiveMode.ToString() ?? "<null>",
+						bbgConn,
+						_liveMtMBalance.ToString("0.##"),
+						_showHoldingsTime == default(DateTime) ? "<default>" : _showHoldingsTime.ToString("yyyy-MM-dd"),
+						_portfolioTimes?.Count.ToString() ?? "<null>",
+						_diagSymbolEventCount,
+						_diagReqRefSentCount,
+						_diagPriceLastCount,
+						_diagCurMktCapCount,
+						_diagLastPriceLast == DateTime.MinValue ? "never" : ((DateTime.Now - _diagLastPriceLast).TotalSeconds.ToString("0")),
+						_diagP1PriceLastCount,
+						_diagP1LastPriceLast == DateTime.MinValue ? "never" : ((DateTime.Now - _diagP1LastPriceLast).TotalSeconds.ToString("0")),
+						string.IsNullOrEmpty(_diagP1LastTicker) ? "<none>" : _diagP1LastTicker,
+						_diagBarChangedCount,
+						_diagBarChangedLiveCount,
+						_diagLastBarChanged == DateTime.MinValue ? "never" : ((DateTime.Now - _diagLastBarChanged).TotalSeconds.ToString("0")),
+						string.IsNullOrEmpty(_diagLastBarTicker) ? "<none>" : _diagLastBarTicker,
+						string.IsNullOrEmpty(_diagLastBarInterval) ? "<none>" : _diagLastBarInterval,
+						_diagBarRearmCount));
+
+					if (m != null && m.IsLiveMode && bbgConn)
 					{
-						var dKey = t + ":Daily";
-						var wKey = t + ":Weekly";
-						if (_subscribedBarTickers.Add(dKey)) _barCache.RequestBars(t, "Daily", true);
-						if (_subscribedBarTickers.Add(wKey)) _barCache.RequestBars(t, "Weekly", true);
+						// Idempotent subscription + self-healing re-arm.
+						//
+						// FIRST PASS: any (ticker:interval) NOT already in _subscribedBarTickers
+						// gets subscribed once. This is the existing idempotent gate that prevents
+						// quota burn from re-running model loads. We also stamp the per-key
+						// last-tick timestamp at subscribe time so the re-arm loop has a baseline
+						// (the 30-second staleness clock starts when we subscribe, not when the
+						// first tick arrives — otherwise a never-firing subscription could never
+						// be detected as stale).
+						//
+						// SECOND PASS: any subscribed key whose last tick is more than
+						// BAR_REARM_STALE_SECS ago gets dropped from the gate and re-subscribed.
+						// Bloomberg's bar-tick subscriptions can silently die on this session;
+						// this loop is the only thing that resurrects them. Each re-arm logs.
+						//
+						// Each ticker iteration is wrapped in try/catch so a single bad ticker
+						// (delisted, network blip, invalid security identifier) cannot break the
+						// foreach mid-loop and starve the rest of the list. Without this, the
+						// post-load periodic refresh was the silent failure point: one bad
+						// RequestBars call would terminate the loop AND propagate out of
+						// Timer_tick (no outer catch), leaving Balance frozen permanently.
+						try
+						{
+							var liveTrades = _portfolio1.GetTrades(m.Name);
+							var tickerList = liveTrades.Select(x => x.Ticker).Distinct().ToList();
+
+							// PASS 1: initial subscribe with timestamp seed
+							foreach (var t in tickerList)
+							{
+								try
+								{
+									var dKey = t + ":Daily";
+									var wKey = t + ":Weekly";
+									if (_subscribedBarTickers.Add(dKey))
+									{
+										_barCache.RequestBars(t, "Daily", true);
+										lock (_lastBarTickPerKey) { _lastBarTickPerKey[dKey] = DateTime.Now; }
+									}
+									if (_subscribedBarTickers.Add(wKey))
+									{
+										_barCache.RequestBars(t, "Weekly", true);
+										lock (_lastBarTickPerKey) { _lastBarTickPerKey[wKey] = DateTime.Now; }
+									}
+								}
+								catch (Exception exTk) { LogDiag("[Timer_tick] RequestBars failed for '" + t + "': " + exTk.Message); }
+							}
+
+							// PASS 2: self-healing re-arm for stale subscriptions
+							var now = DateTime.Now;
+							foreach (var t in tickerList)
+							{
+								foreach (var interval in new[] { "Daily", "Weekly" })
+								{
+									try
+									{
+										var key = t + ":" + interval;
+										DateTime lastTick;
+										bool hasEntry;
+										lock (_lastBarTickPerKey) { hasEntry = _lastBarTickPerKey.TryGetValue(key, out lastTick); }
+										if (!hasEntry) continue; // never subscribed — pass 1 will handle on next cycle
+
+										double staleSecs = (now - lastTick).TotalSeconds;
+										if (staleSecs <= BAR_REARM_STALE_SECS) continue;
+
+										// Stale. Drop the gate so RequestBars will fire, then re-issue.
+										// The seed-timestamp afterward gives the re-armed subscription
+										// a fresh 30-second window to deliver before being re-armed again.
+										_subscribedBarTickers.Remove(key);
+										_barCache.RequestBars(t, interval, true);
+										_subscribedBarTickers.Add(key); // restore gate
+										lock (_lastBarTickPerKey) { _lastBarTickPerKey[key] = DateTime.Now; }
+										System.Threading.Interlocked.Increment(ref _diagBarRearmCount);
+										LogDiag("[Timer_tick] re-armed " + key + " (was stale " + staleSecs.ToString("0") + "s) rearmTotal=" + _diagBarRearmCount);
+									}
+									catch (Exception exRearm) { LogDiag("[Timer_tick] re-arm failed for " + t + " " + interval + ": " + exRearm.Message); }
+								}
+							}
+						}
+						catch (Exception exLoop) { LogDiag("[Timer_tick] bar-resubscribe loop threw: " + exLoop.Message); }
 					}
+					// Determine which cursor time is active based on which grid is visible
+					var activeCursor = (PerformanceGrid.Visibility == Visibility.Visible)
+						? _lastPerfCursorTime
+						: _showHoldingsTime;
+					// Live-refresh gate: in live mode with Bloomberg connected, keep updating
+					// _liveMtMBalance and the position grid every tick regardless of where the
+					// cursor sits. The cursor only affects what gets DISPLAYED — drawPortfolioGrid
+					// and refreshLiveBalance contain their own cursor-aware display gates
+					// (IsViewingLive checks at line ~828 and ~4148). Without this, when
+					// _lastPerfCursorTime sits on the latest settled Friday (which is no longer
+					// "live" after the IsViewingLive fix), Balance and Cur Px freeze even though
+					// the user expected live updates while browsing the chart.
+					var liveModel = getModel();
+					bool liveModeActive = liveModel != null && liveModel.IsLiveMode && bbgConn;
+					if (liveModeActive)
+					{
+						// CRITICAL: Each call below must be independently isolated.
+						// Previously these were called in sequence with no try/catch, so
+						// if drawPortfolioGrid threw on a malformed trade for one ticker
+						// (e.g. one with sparse Closes/AvgPrice dictionaries from a recent
+						// inclusion), the exception propagated out of Timer_tick and the
+						// dispatcher fired again 500 ms later — into the SAME crash. End
+						// result: Balance, Cur Px, return chart all frozen indefinitely
+						// even though the timer is still ticking. The symptom of "updates
+						// stop after the first few tickers load and never resume" is the
+						// signature of this exact failure mode.
+						//
+						// Order matters: refreshLiveBalance is called FIRST so that even
+						// if drawPortfolioGrid throws, the Balance label still gets the
+						// freshest live MtM written by refreshLiveBalance. Then drawPortfolioGrid
+						// for the position grid, then the alert engine, then the return chart.
+						try { refreshLiveBalance(); }
+						catch (Exception ex) { LogDiag("[Timer_tick] refreshLiveBalance threw: " + ex.Message); }
+
+						try { drawPortfolioGrid(); }
+						catch (Exception ex) { LogDiag("[Timer_tick] drawPortfolioGrid threw: " + ex.Message); }
+						try { updateAlerts(); }
+						catch (Exception ex) { LogDiag("[Timer_tick] updateAlerts threw: " + ex.Message); }
+						try { drawReturnChart(); }
+						catch (Exception ex) { LogDiag("[Timer_tick] drawReturnChart threw: " + ex.Message); }
+					}
+					// When not in live mode or Bloomberg disconnected: skip all live updates entirely
 				}
-				// Determine which cursor time is active based on which grid is visible
-				var activeCursor = (PerformanceGrid.Visibility == Visibility.Visible)
-					? _lastPerfCursorTime
-					: _showHoldingsTime;
-				// Live-refresh gate: in live mode with Bloomberg connected, keep updating
-				// _liveMtMBalance and the position grid every tick regardless of where the
-				// cursor sits. The cursor only affects what gets DISPLAYED — drawPortfolioGrid
-				// and refreshLiveBalance contain their own cursor-aware display gates
-				// (IsViewingLive checks at line ~828 and ~4148). Without this, when
-				// _lastPerfCursorTime sits on the latest settled Friday (which is no longer
-				// "live" after the IsViewingLive fix), Balance and Cur Px freeze even though
-				// the user expected live updates while browsing the chart.
-				var liveModel = getModel();
-				bool liveModeActive = liveModel != null && liveModel.IsLiveMode && BarServer.ConnectedToBloomberg();
-				if (liveModeActive)
+
+				if (_addFlash)
 				{
-					drawPortfolioGrid();
-					refreshLiveBalance();
-					updateAlerts();
-					drawReturnChart();
+					_addFlash = false;
+					Brush alertColor = Brushes.Red;
+					//Flash.Manager.AddFlash(new Flash(AlertButton, AlertButton.Foreground, alertColor, 10, false));
 				}
-				// When not in live mode or Bloomberg disconnected: skip all live updates entirely
-			}
 
-			if (_addFlash)
-			{
-				_addFlash = false;
-				Brush alertColor = Brushes.Red;
-				//Flash.Manager.AddFlash(new Flash(AlertButton, AlertButton.Foreground, alertColor, 10, false));
+				//// progress bar
+				if (_ic != null)
+				{
+					var modelName = _ic.ModelName;
+					//updateProgress(modelName);
+				}
 			}
-
-			//// progress bar
-			if (_ic != null)
+			catch (Exception exOuter)
 			{
-				var modelName = _ic.ModelName;
-				//updateProgress(modelName);
+				LogDiag("[Timer_tick] OUTER catch: " + exOuter.GetType().Name + ": " + exOuter.Message);
 			}
 		}
 
@@ -9994,7 +10431,7 @@ namespace ATMML
 		{
 			_activeLabel = "Sector";
 			HighlightActiveLabel(LabelSectors);
-			LoadTiles(sectorPercents);
+			LoadTiles(sectorPercents, _sectorNet);
 			LblColumnSectorHeader.Content = "SECTOR";
 			drawPortfolioGrid();
 		}
@@ -10003,7 +10440,7 @@ namespace ATMML
 		{
 			_activeLabel = "Industry";
 			HighlightActiveLabel(LabelIndustry);
-			LoadTiles(industryPercents);
+			LoadTiles(industryPercents, _industryNet);
 			LblColumnSectorHeader.Content = "INDUSTRY";
 			drawPortfolioGrid();
 		}
@@ -10012,7 +10449,7 @@ namespace ATMML
 		{
 			_activeLabel = "SubIndustry";
 			HighlightActiveLabel(LabelSubIndustry);
-			LoadTiles(subIndustryPercents);
+			LoadTiles(subIndustryPercents, _subIndustryNet);
 			LblColumnSectorHeader.Content = "SUB-IND";
 			drawPortfolioGrid();
 		}
@@ -10040,7 +10477,7 @@ namespace ATMML
 		private void PortfolioBuilder_Loaded(object sender, RoutedEventArgs e)
 		{
 			HighlightActiveLabel(LabelSectors);
-			LoadTiles(sectorPercents);
+			LoadTiles(sectorPercents, _sectorNet);
 			ApplyEntitlementMargins();
 			InitializeAlertController();
 
@@ -10062,6 +10499,14 @@ namespace ATMML
 			{
 				GoToPerformance();
 			}
+
+			// Hide the loading screen *after* the role view has had a chance to
+			// paint. Dispatcher.BeginInvoke at Background priority ensures all
+			// pending render-tree updates (the GoToXxx call queues several) run
+			// before we close the overlay form, so the user sees the role view
+			// rather than a black flash.
+			Dispatcher.BeginInvoke(new Action(() => SpinnerHost.Hide()),
+				System.Windows.Threading.DispatcherPriority.Background);
 		}
 
 		private void ApplyEntitlementMargins()
@@ -10175,14 +10620,29 @@ namespace ATMML
 		#endregion
 
 		// Tile loader
-		private void LoadTiles(Dictionary<string, string> data)
+		private void LoadTiles(Dictionary<string, string> data, Dictionary<string, double> signs = null)
 		{
 			if (TilesList == null || data == null) return;
 
-			var rows = data.OrderByDescending(x => x.Value.Length > 0 ? double.Parse(x.Value.Replace("%", "")) : 0).Select(kv => new NameValueRow
+			// Sort by magnitude (string parses to whole percent points: "12.34%" → 12.34).
+			// Then per row look up the SIGN from the parallel signed-net dict (passed in by
+			// caller) — positive net (long-biased bucket) renders the value in PaleGreen,
+			// negative net (short-biased) in Red. Falls back to default white when no signs
+			// are supplied (e.g. legacy LoadGrid wrappers).
+			var rows = data.OrderByDescending(x => x.Value.Length > 0 ? double.Parse(x.Value.Replace("%", "")) : 0).Select(kv =>
 			{
-				Name = kv.Key,
-				Value = kv.Value
+				var fg = "#FFFFFF";
+				if (signs != null && signs.TryGetValue(kv.Key, out double net))
+				{
+					if (net > 0) fg = "#98FB98";      // PaleGreen
+					else if (net < 0) fg = "#FF0000"; // Red
+				}
+				return new NameValueRow
+				{
+					Name = kv.Key,
+					Value = kv.Value,
+					ValueForeground = fg
+				};
 			}).ToList();
 
 			TilesList.ItemsSource = rows;
@@ -10656,7 +11116,17 @@ namespace ATMML
 			if (_portfolioTimes.Count > 0)
 			{
 				var model = getModel();
-				var date = _portfolioTimes.Last();
+				// For live models, land the cursor on TODAY rather than the last
+				// settled rebalance date in _portfolioTimes. Today is intentionally
+				// NOT in _portfolioTimes (would break index-paired arrays
+				// _portfolioValues / _portfolioNavs / _benchmarkValues), but the
+				// cursor landing on today is recognised as "live" by IsViewingLive,
+				// which routes UI through refreshLiveBalance for live MtM updates.
+				// For backtest/historical models, fall back to the last entry in
+				// _portfolioTimes (the existing behaviour).
+				var date = (model?.IsLiveMode == true)
+					? DateTime.Today
+					: _portfolioTimes.Last();
 				setHoldingsCursorTime(date);
 			}
 		}
@@ -12240,7 +12710,7 @@ namespace ATMML
 			header.PreviewMouseDown += (s, e) => e.Handled = true;
 			var tb = new TextBlock();
 			tb.Text = text;
-			tb.Foreground = Brushes.Silver;
+			tb.Foreground = Brushes.PaleGreen;
 			tb.FontFamily = new FontFamily("Helvetica Neue");
 			tb.FontSize = 11;
 			tb.FontWeight = FontWeights.Normal;
@@ -12269,7 +12739,7 @@ namespace ATMML
 		private void updateModelList(string selectedModel, List<string> liveNames, List<string> testNames, ListBox input, bool readOnly)
 		{
 			input.Items.Clear();
-			var groups = new (string Label, List<string> Names)[] { ("LIVE", liveNames), ("TEST", testNames) };
+			var groups = new (string Label, List<string> Names)[] { ("Live", liveNames), ("Test", testNames) };
 			foreach (var (groupLabel, modelNames) in groups)
 			{
 				if (modelNames.Count == 0) continue;
@@ -12364,7 +12834,7 @@ namespace ATMML
 		{
 
 			input.Items.Clear();
-			var groups = new (string Label, List<string> Names)[] { ("LIVE", liveNames), ("TEST", testNames) };
+			var groups = new (string Label, List<string> Names)[] { ("Live", liveNames), ("Test", testNames) };
 			foreach (var (groupLabel, modelNames) in groups)
 			{
 				if (modelNames.Count == 0) continue;
@@ -14323,17 +14793,6 @@ namespace ATMML
 					var spyKey = "SPY US Equity:Daily";
 					if (_subscribedBarTickers.Add(spyKey))
 						_barCache.RequestBars("SPY US Equity", "Daily");
-
-					// Trading models (live or backtest) need REL_INDEX → requestIndexBars
-					// → requestSymbolBars → PRICE_LAST chain to populate _rtPrices for live
-					// quote display. Catches the live-model load path where symbols
-					// deserialize from disk (no Bloomberg Symbol round-trip). Once per model
-					// per session is sufficient.
-					if (model.Symbols != null && model.Symbols.Count > 0
-						&& _refDataSubscribedModels.Add(model.Name))
-					{
-						requestReferenceData(model.Symbols);
-					}
 				}
 
 				model.SetTimeRanges();

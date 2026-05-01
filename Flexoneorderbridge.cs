@@ -59,8 +59,9 @@ namespace ATMML
 	/// them via gRPC.  Designed for Friday MOC execution:
 	///   Ft.OrderType.Market + Ft.TimeInForce.Close
 	/// </summary>
-	public class FlexOneOrderBridge : IFlexOneOrderBridge
-	{
+	public partial class FlexOneOrderBridge : IFlexOneOrderBridge
+		{
+    	private readonly bool useMock = true;
 		private readonly FlexOneSession _session;
 		private readonly FlexOneConfig _cfg;
 

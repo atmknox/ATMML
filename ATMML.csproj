@@ -59,6 +59,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="LoginWindow.xaml.cs" />
     <Compile Remove="PerformanceReporting.cs" />
     <Compile Remove="PerformanceReportingTests.cs" />
     <Compile Remove="RiskEngine2old.cs" />

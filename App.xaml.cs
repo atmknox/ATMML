@@ -44,6 +44,25 @@ namespace ATMML
 
 				// Restore normal shutdown behaviour before showing main window
 				ShutdownMode = ShutdownMode.OnLastWindowClose;
+
+				// Show the loading overlay BEFORE MainView construction begins.
+				// SpinnerHost.Show() runs the WinForms LoadingForm on its own STA
+				// thread and only returns once the form's Shown event has fired —
+				// but "Shown" only means Windows has dispatched WM_SHOWWINDOW, not
+				// that the form has actually painted to screen. Without a brief
+				// pump, the WPF main thread immediately enters new MainView()
+				// (heavy XAML parse for PortfolioBuilder) and the spinner thread
+				// can't get a paint cycle in until construction is done — which
+				// is exactly the freeze the SpinnerHost.cs comments warn about.
+				//
+				// Dispatcher.Invoke at ApplicationIdle priority lets pending
+				// foreground render messages (including the spinner thread's
+				// initial paint) drain before we block the main thread on
+				// MainView's synchronous construction.
+				SpinnerHost.Show();
+				Dispatcher.Invoke(new Action(() => { }),
+					System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+
 				new MainView().Show();
 			}
 			catch (Exception ex)
