@@ -8,9 +8,8 @@
                 x:Name="PortBuilder"
                 Background="{x:Null}"
                 mc:Ignorable="d"
-               xmlns:svg="clr-namespace:SharpVectors.Converters;assembly=SharpVectors.Converters.Wpf"           
+                xmlns:svg="clr-namespace:SharpVectors.Converters;assembly=SharpVectors.Converters.Wpf"           
                 xmlns:auth="clr-namespace:ATMML.Auth">
-
 
 
     <!--<ContentControl.Resources>
@@ -299,7 +298,7 @@
                                MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"/>
                     </Grid>
 
-                    <Grid Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Visible" >
+                    <Grid Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Collapsed" >
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="40" />
@@ -418,11 +417,16 @@
                            FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="RebalanceView_MouseDown"
                            MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
                            Visibility="{Binding CanAccessOrderManagement, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
+                    <Label x:Name="PortSur1" Margin="10,0,10,4"  Padding="0,0,0,0"  HorizontalAlignment="Left" VerticalAlignment="Center"
+                           Content="PORTFOLIO SURVEILLANCE" FontFamily="Helvetica Neue" FontSize="12"
+                           Foreground="White" MouseDown="Server_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"
+                           Visibility="{Binding CanAccessSurveillance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
                     <Label x:Name="PortPerf1"  Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
                            Background="Transparent" Content="PORTFOLIO PERFORMANCE"  Cursor="Hand" FontFamily="Helvetica Neue"
                            FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="Performance_MouseDown"
                            MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
                            Visibility="{Binding CanAccessPortfolioPerformance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                    
                 </StackPanel>
 
                 <StackPanel Name="TIOpenPL" Grid.Row="0" Grid.ColumnSpan="11" Margin="140,0,0,0"
@@ -439,6 +443,10 @@
                            Background="Transparent" Content="PORTFOLIO PERFORMANCE"  Cursor="Hand" FontFamily="Helvetica Neue"
                            FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="Performance_MouseDown"
                            MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" />
+                    <Label Margin="10,0,10,1" Padding="0,0,0,0"   HorizontalAlignment="Left" VerticalAlignment="Center"
+                           Content="PORTFOLIO SURVEILLANCE" FontFamily="Helvetica Neue" FontSize="12"
+       Foreground="White" MouseDown="Server_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"
+       Visibility="{Binding CanAccessSurveillance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
                 </StackPanel>
 
                 <StackPanel Name="TIAllocations" Grid.Row="0" Grid.ColumnSpan="11" Margin="140,0,0,0"
@@ -4638,14 +4646,17 @@
                            VerticalAlignment="Center" Background="Transparent" Content="PORTFOLIO SETUP"  Cursor="Hand" Visibility="Visible"
                            FontFamily="Helvetica Neue" FontSize="12" FontWeight="Normal" Foreground="White"
                            MouseDown="FundamentalML_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave" />
-
                         <Label x:Name="OrderMgm2" Margin="10,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Visible"
                            Background="Transparent" Content="PORTFOLIO MANAGEMENT"  FontFamily="Helvetica Neue" FontSize="12"
                            FontWeight="Normal" Foreground="#00ccff" />
+                        <Label x:Name="PortSur2" Margin="10,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"  Content="PORTFOLIO SURVEILLANCE" FontFamily="Helvetica Neue" FontSize="12"
+                           Foreground="White" MouseDown="Server_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"
+                           Visibility="{Binding CanAccessSurveillance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
                         <Label x:Name="PortPerf2" Margin="10,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Visible"
                            Background="Transparent" Content="PORTFOLIO PERFORMANCE"  Cursor="Hand" FontFamily="Helvetica Neue"
                            FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="Performance_MouseDown"
                            MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" />
+                       
                     </StackPanel>
 
                     <Label x:Name="RunPortfolio" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="7" Margin="0,0,22,0"  FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Top" Content="RUN PORTFOLIO" Foreground="White"
@@ -5644,9 +5655,14 @@
                                 Background="Transparent" Content="PORTFOLIO MANAGEMENT"  Cursor="Hand" FontFamily="Helvetica Neue"
                                 FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="RebalanceView_MouseDown" Visibility="Visible"
                                 MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"  />
+                        <Label x:Name="PortSur3"  Margin="10,-50,10,4" Padding="0,0,0,0"  HorizontalAlignment="Left" VerticalAlignment="Center"
+                                 Content="PORTFOLIO SURVEILLANCE" FontFamily="Helvetica Neue" FontSize="12"
+                                Foreground="White" MouseDown="Server_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"
+                                Visibility="{Binding CanAccessSurveillance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
                         <Label x:Name="PortPerf3" Margin="10,-50,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
                                 Background="Transparent" Content="PORTFOLIO PERFORMANCE"  FontFamily="Helvetica Neue" FontSize="12" Visibility="Visible"
                                 FontWeight="Normal" Foreground="#00ccff"  />
+                        
                     </StackPanel>
 
                 </Grid>

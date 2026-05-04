@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Threading;
+using System.Windows.Forms;
 using WinForms = System.Windows.Forms;
 
 namespace ATMML
@@ -103,14 +104,20 @@ namespace ATMML
 			ShowInTaskbar = false;
 			DoubleBuffered = true;
 
+			var text = "Loading CMR Portfolios...";
+			var font = new Font("Segoe UI Light", 18f, FontStyle.Bold);
+			var textSize = TextRenderer.MeasureText(text, font);
+
 			var label = new WinForms.Label
 			{
-				Text = "Loading...",
-				Font = new Font("Segoe UI Light", 28f, FontStyle.Regular),
-				ForeColor = Color.FromArgb(152, 251, 152),  // PaleGreen
+				Text = text,
+				Font = font,
+				ForeColor = Color.FromArgb(152, 251, 152),
 				BackColor = Color.Transparent,
-				AutoSize = true,
-				TextAlign = System.Drawing.ContentAlignment.MiddleCenter
+				AutoSize = false,
+				Size = new Size(textSize.Width + 40, textSize.Height + 20),
+				TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
+				Padding = new Padding(0)
 			};
 
 			Controls.Add(label);

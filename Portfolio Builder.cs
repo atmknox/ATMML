@@ -66,6 +66,15 @@ namespace ATMML
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 		}
+		public enum InitialView
+		{
+			Default,                 // role-based routing (existing behavior)
+			PortfolioSetup,
+			PortfolioManagement,
+			PortfolioPerformance
+		}
+
+		private readonly InitialView _initialView = InitialView.Default;
 
 		static IdeaCalculator _ic = null;
 
@@ -332,10 +341,17 @@ namespace ATMML
 
 		bool _initializing = false;
 
-		public PortfolioBuilder(MainView mainView, string portfolioName = "")
+		public PortfolioBuilder(MainView mainView, string portfolioName = "",
+								InitialView initialView = InitialView.Default)
 		{
 			InitializeComponent();
+
+			System.IO.File.AppendAllText(
+				@"C:\Users\Admin\Documents\ATMML\refresh_trace.log",
+				$"{DateTime.Now:HH:mm:ss.fff}  CTOR FIRED\r\n");
+
 			DataContext = this;
+			_initialView = initialView;
 			// Strict role gate: if TISetup ever becomes visible for non-Admin, snap it back to Collapsed
 			TISetup.IsVisibleChanged += (s, e) => {
 				if ((bool)e.NewValue && !ATMML.Auth.AuthContext.Current.IsAdmin)
@@ -4295,6 +4311,13 @@ namespace ATMML
 		/// </summary>
 		private void refreshLiveBalance()
 		{
+			try
+			{
+				System.IO.File.AppendAllText(
+					@"C:\Users\Admin\Documents\ATMML\refresh_trace.log",
+					$"{DateTime.Now:HH:mm:ss}  [refreshLiveBalance]  _showHoldingsTime={(_showHoldingsTime == default ? "<default>" : _showHoldingsTime.ToString("yyyy-MM-dd"))}  cursorTime={(_mainReturnGraph?.CursorTime == default ? "<default>" : _mainReturnGraph.CursorTime.ToString("yyyy-MM-dd"))}  isViewingLive={IsViewingLive(_showHoldingsTime)}  liveMtM={_liveMtMBalance:F0}\r\n");
+			}
+			catch { }
 			var model = getModel();
 			if (model == null) return;
 			if (!model.IsLiveMode) return;
@@ -5860,49 +5883,54 @@ namespace ATMML
 
 			var portfolioTimes = new List<DateTime>(_portfolioTimes);
 
-			// For live portfolios intra-week: insert today's live MtM as a chart point.
-			// Even when a projected future rebalance date sits in _portfolioTimes (added
-			// by the cursor handlers), today should still appear as a plot point —
-			// otherwise the chart shows a flat horizontal segment from the last settled
-			// Friday out to the projected rebalance, with no live MtM point in between.
-			// Insert today in its sorted position (between last settled date and any
-			// projected future date). graphData and benchmark/etc arrays are kept aligned.
+			// Strip any future-dated entries (projected rebalance date) from the chart inputs.
+			// _portfolioTimes carries projD past today for cursor-handler use (line 3769),
+			// but the chart must never plot a date we have no settled value for.
+			// Keep portfolioTimes and graphData length-matched by trimming both at the same point.
+			if (graphData != null)
+			{
+				int trimmedCount = Math.Min(portfolioTimes.Count, graphData.Count);
+				int futureStart = portfolioTimes.FindIndex(t => t.Date > DateTime.Today);
+				if (futureStart >= 0 && futureStart < trimmedCount) trimmedCount = futureStart;
+				if (trimmedCount < portfolioTimes.Count)
+					portfolioTimes = portfolioTimes.GetRange(0, trimmedCount);
+				if (trimmedCount < graphData.Count)
+					graphData = graphData.GetRange(0, trimmedCount);
+			}
+
+			// For live portfolios intra-week: append today's live MtM as the rightmost chart point.
+			// portfolioTimes and graphData are now both trimmed to settled-only, so today is
+			// strictly an APPEND (no insert-in-the-middle). This prevents the array-misalignment
+			// that otherwise caused the May-1 point to track live MtM.
 			var liveChartModel = getModel();
-			var lastSettledDate = portfolioTimes.Where(t => t.Date <= DateTime.Today).OrderByDescending(t => t).FirstOrDefault();
 			var alreadyHasToday = portfolioTimes.Any(t => t.Date == DateTime.Today);
+			var lastSettledDate = portfolioTimes.LastOrDefault();
 			if (liveChartModel != null && liveChartModel.IsLiveMode
-				&& BarServer.ConnectedToBloomberg()   // no today-point when disconnected
+				&& BarServer.ConnectedToBloomberg()
 				&& _liveMtMBalance > 0 && liveChartModel.InitialPortfolioBalance > 0
 				&& graphData != null && graphData.Count > 0
 				&& portfolioTimes.Count > 0
-				&& !alreadyHasToday     // today not already a settled rebalance date
+				&& !alreadyHasToday
 				&& lastSettledDate != default(DateTime)
 				&& lastSettledDate.Date < DateTime.Today
 				&& (DateTime.Today - lastSettledDate.Date).TotalDays <= 7)
 			{
 				var liveReturn = (_liveMtMBalance / liveChartModel.InitialPortfolioBalance - 1.0) * 100.0;
 
-				// Find sorted insertion index: first position where time > today.
-				// If no such position exists, this becomes the end (Count == append).
-				int insertAt = portfolioTimes.FindIndex(t => t.Date > DateTime.Today);
-				if (insertAt < 0) insertAt = portfolioTimes.Count;
+				portfolioTimes.Add(DateTime.Today);
+				graphData = new List<double>(graphData) { liveReturn };
+			
 
-				portfolioTimes = new List<DateTime>(portfolioTimes);
-				portfolioTimes.Insert(insertAt, DateTime.Today);
-
-				graphData = new List<double>(graphData);
-				graphData.Insert(insertAt, liveReturn);
-
-				// Keep parallel arrays aligned. Inserting at the same index preserves the
-				// time → value mapping. For arrays that may not span the projected future
-				// date (e.g. the projected rebalance date hasn't been backfilled with a
-				// real settled value yet), only insert if the array length already covers
-				// the insertion point. This protects getCompareToValues / benchmark from
-				// length mismatch with portfolioTimes.
-				// NOTE: drawChart only requires `times` and the curves we're plotting to
-				// agree in length; benchmark/compareTo are independently sized, so we leave
-				// them alone.
-			}
+			// Keep parallel arrays aligned. Inserting at the same index preserves the
+			// time → value mapping. For arrays that may not span the projected future
+			// date (e.g. the projected rebalance date hasn't been backfilled with a
+			// real settled value yet), only insert if the array length already covers
+			// the insertion point. This protects getCompareToValues / benchmark from
+			// length mismatch with portfolioTimes.
+			// NOTE: drawChart only requires `times` and the curves we're plotting to
+			// agree in length; benchmark/compareTo are independently sized, so we leave
+			// them alone.
+		}
 
 			List<double> secondPortfolioValues = null;
 			//if (_selectedUserFactorModel2 != _selectedUserFactorModel)
@@ -10429,18 +10457,38 @@ namespace ATMML
 			// runs when the user clicks the menu item. Prevents the layout drift
 			// where ApplyEntitlementMargins set grid visibility directly but
 			// skipped the cursor-time/chart init sequence.
-			var role = ATMML.Auth.AuthContext.Current.IsAuthenticated
-				? ATMML.Auth.AuthContext.Current.User?.Role ?? ATMML.Auth.UserRole.Viewer
-				: ATMML.Auth.UserRole.Viewer;
-			if (role == ATMML.Auth.UserRole.PortfolioManager
-				|| role == ATMML.Auth.UserRole.Trader
-				|| role == ATMML.Auth.UserRole.Compliance)
+			// Explicit caller request takes priority (e.g. user clicked a nav
+			// label in Timing). Falls back to role-based default routing.
+			if (_initialView != InitialView.Default)
 			{
-				GoToOrderManagement();
+				switch (_initialView)
+				{
+					case InitialView.PortfolioSetup:
+						showPortfolioSetup();   // already redirects non-Admin to rebalance grid
+						break;
+					case InitialView.PortfolioManagement:
+						GoToOrderManagement();
+						break;
+					case InitialView.PortfolioPerformance:
+						GoToPerformance();
+						break;
+				}
 			}
-			else if (role == ATMML.Auth.UserRole.Viewer)
+			else
 			{
-				GoToPerformance();
+				var role = ATMML.Auth.AuthContext.Current.IsAuthenticated
+					? ATMML.Auth.AuthContext.Current.User?.Role ?? ATMML.Auth.UserRole.Viewer
+					: ATMML.Auth.UserRole.Viewer;
+				if (role == ATMML.Auth.UserRole.PortfolioManager
+					|| role == ATMML.Auth.UserRole.Trader
+					|| role == ATMML.Auth.UserRole.Compliance)
+				{
+					GoToOrderManagement();
+				}
+				else if (role == ATMML.Auth.UserRole.Viewer)
+				{
+					GoToPerformance();
+				}
 			}
 
 			// Hide the loading screen *after* the role view has had a chance to
@@ -16752,6 +16800,10 @@ namespace ATMML
 
 		private void setHoldingsCursorTime(DateTime time)
 		{
+			// Chart redraw can transiently fire CursorTime=default through PropertyChanged.
+			// Treat that as "no change" rather than wiping the user's cursor — otherwise
+			// refreshLiveBalance sees default and writes live MtM to Balance, briefly
+			// overwriting the locked historical value the user was looking at.
 			var model = getModel();
 
 			if (model != null && time != _showHoldingsTime)

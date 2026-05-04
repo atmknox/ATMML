@@ -1959,59 +1959,6 @@ namespace ATMML
 			if (sender is Label label && label.Tag?.ToString() != _activeLabel)
 				label.Foreground = Brushes.White;
 		}
-		private void Performance_MouseDown(object sender, MouseEventArgs e)
-		{
-			hideNavigation();
-
-			//PositionsChartBorder.Visibility = Visibility.Visible;
-			//TotalReturnChartBorder.Visibility = Visibility.Visible;
-
-			//TISetup.Visibility = Visibility.Collapsed;
-
-			//TIOpenPL.Visibility = Visibility.Collapsed;
-			//TIAllocations.Visibility = Visibility.Collapsed;
-
-			//RiskTable.Visibility = Visibility.Collapsed;
-			//RecoveryTable.Visibility = Visibility.Collapsed;
-
-			//UserFactorModelGrid.Visibility = Visibility.Collapsed;
-
-			//PerformanceGrid.Visibility = Visibility.Visible;
-			//ReturnTable.Visibility = Visibility.Visible;
-			//PerformanceSideNav.Visibility = Visibility.Visible;
-
-			//ATMStrategyOverlay.Visibility = Visibility.Collapsed;
-
-			//RebalanceChartGrid.Visibility = Visibility.Collapsed;
-			//RebalanceGrid.Visibility = Visibility.Collapsed;
-			//RebalanceSideNav.Visibility = Visibility.Collapsed;
-
-			//AllocationGrid.Visibility = Visibility.Collapsed;
-			//AllocationSideNav.Visibility = Visibility.Collapsed;
-
-			//UserFactorModelPanel2.Visibility = _useUserFactorModel ? Visibility.Visible : Visibility.Collapsed;
-			//updateUserFactorModelList();
-		}
-		private void RebalanceView_MouseDown(object sender, MouseEventArgs e)
-		{
-			//hideNavigation();
-
-			//showRebalanceGrid();
-
-			//setModelRadioButtons();
-
-			//updateUserFactorModelList();
-
-			////saveUserFactorModels();
-
-			//if (_portfolioTimes.Count > 0)
-			//{
-			//	var model = getModel();
-			//	var date = _portfolioTimes.Last();
-			//	setHoldingsCursorTime(date);
-			//}
-		}
-
 
 		private void LabelSectors_MouseDown(object sender, MouseButtonEventArgs e)
 		{
@@ -3481,7 +3428,22 @@ namespace ATMML
 		private void FundamentalML_MouseDown(object sender, MouseButtonEventArgs e)
 		{
 			Close();
-			_mainView.Content = new PortfolioBuilder(_mainView);
+			_mainView.Content = new PortfolioBuilder(
+				_mainView, "", PortfolioBuilder.InitialView.PortfolioSetup);
+		}
+
+		private void RebalanceView_MouseDown(object sender, MouseEventArgs e)
+		{
+			Close();
+			_mainView.Content = new PortfolioBuilder(
+				_mainView, "", PortfolioBuilder.InitialView.PortfolioManagement);
+		}
+
+		private void Performance_MouseDown(object sender, MouseEventArgs e)
+		{
+			Close();
+			_mainView.Content = new PortfolioBuilder(
+				_mainView, "", PortfolioBuilder.InitialView.PortfolioPerformance);
 		}
 
 		private void Country_MouseEnter(object sender, MouseEventArgs e)
