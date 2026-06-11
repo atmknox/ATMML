@@ -66,7 +66,7 @@
     <Viewbox Stretch="Fill">
         <Grid x:Name="MainGrid" Background="Black">
             <Grid.RowDefinitions>
-                <RowDefinition Height="90" />
+                <RowDefinition Height="60" />
                 <RowDefinition Height="276.504" />
                 <RowDefinition Height="323.496"/>
                 <RowDefinition Height="10" />
@@ -79,18 +79,18 @@
             </Grid.ColumnDefinitions>
 
             <Label Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3"
-                   Margin="8,0,0,41" Padding="0,1,0,0" HorizontalAlignment="LEFT" HorizontalContentAlignment="Center"
-                   VerticalContentAlignment="Center" Background="Transparent" Content="CAPITAL MARKET RESEARCH" Cursor="Hand"
-                   FontFamily="Helvetica Neue" FontSize="14" FontWeight="Normal" Foreground="#00ccff"
+                   Margin="9,43,0,0" Padding="0,1,0,0" HorizontalAlignment="LEFT" HorizontalContentAlignment="Center"
+                   VerticalContentAlignment="Top" Background="Transparent" Content="CAPITAL MARKET RESEARCH" Cursor="Hand"
+                   FontFamily="Helvetica Neue" FontSize="8" FontWeight="Normal" Foreground="#00ccff"
                    MouseDown="Help_MouseDown">
             </Label>
 
             <!--CMR Logo-->
             <ContentControl Grid.Row="0"
-                Grid.Column="0" HorizontalAlignment="Center" 
+                Grid.Column="0" HorizontalAlignment="Left" 
                 Grid.ColumnSpan="3">
-                <Grid Margin="0,0,0,48" Background="Transparent">
-                    <svg:SvgViewbox Source="pack://application:,,,/Images/CMR_Name_Blueeps.svg"
+                <Grid Margin="9,0,0,7" Background="Transparent">
+                    <svg:SvgViewbox Source="pack://application:,,,/Images/CMR_ATM_BlueAlpha7.svg"
                         Width="60"
                         Height="30"/>
                 </Grid>
@@ -100,7 +100,7 @@
             <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4"
                         Orientation="Horizontal" 
                         HorizontalAlignment="Right" VerticalAlignment="Top"
-                        Margin="0,13,10,0">
+                        Margin="0,14,10,0">
 
                 <TextBlock Text="{Binding DisplayName, Source={x:Static auth:AuthContext.Current}}"
                            Foreground="#00ccff" FontSize="12" FontFamily="Helvetica Neue"
@@ -173,12 +173,12 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <Rectangle Grid.Row="0" Grid.RowSpan="2" Width="130" Margin="0,0,0,0"
-                           Fill="Transparent" Stroke="#FF124b72" StrokeThickness="1" />
-                <Rectangle Grid.Row="3" Grid.RowSpan="3" Width="130" Margin="0,0,0,0" Visibility="Hidden"
-                           Fill="Transparent" Stroke="#FF124b72" StrokeThickness="1" />
-                <Rectangle Grid.Row="0" Height="1" Margin="5,0,5,0" VerticalAlignment="Bottom"
-                           Fill="Transparent" Stroke="#FF124B72" StrokeThickness="1" />
+                <!--<Rectangle Grid.Row="0" Grid.RowSpan="2" Width="130" Margin="0,0,0,0"
+                           Fill="Transparent" Stroke="#FF124b72" StrokeThickness="1" />-->
+                <!--<Rectangle Grid.Row="3" Grid.RowSpan="3" Width="130" Margin="0,0,0,0" Visibility="Hidden"
+                           Fill="Transparent" Stroke="#FF124b72" StrokeThickness="1" />-->
+                <!--<Rectangle Grid.Row="0" Height="1" Margin="5,0,5,0" VerticalAlignment="Bottom"
+                           Fill="Transparent" Stroke="#FF124B72" StrokeThickness="1" />-->
 
                 <Label Name="Portfolios" Grid.Row="0" Margin="4,0,0,0" HorizontalAlignment="Left"
                        VerticalAlignment="Center" Background="Transparent" Content="PORTFOLIO" Cursor="Hand"
@@ -206,7 +206,7 @@
 
                 <Label Grid.Row="2" Grid.Column="0" Margin="4,0,0,0" />
 
-                <Grid Name="CustomAdvice" Grid.Row="3" Grid.RowSpan="3" Width="130"
+                <Grid Name="CustomAdvice" Grid.Row="0" Grid.RowSpan="3" Width="130"
                       Visibility="Collapsed">
 
                     <Grid.ColumnDefinitions>
@@ -291,8 +291,8 @@
                         <RowDefinition Height="25" />
                     </Grid.RowDefinitions>
 
-                    <Rectangle Grid.Row="0" Grid.RowSpan="3" Grid.ColumnSpan="2" Width="130"
-                               Margin="0,0,0,0" Fill="Transparent" Stroke="#FF124b72" StrokeThickness="1" />
+                    <!--<Rectangle Grid.Row="0" Grid.RowSpan="3" Grid.ColumnSpan="2" Width="130"
+                               Margin="0,0,0,0" Fill="Transparent" Stroke="#FF124b72" StrokeThickness="1" />-->
 
                     <!--<Label Name="JustOneTitle" Grid.Row="0" Grid.ColumnSpan="2" Margin="4,0,0,0"
                            HorizontalAlignment="Left" VerticalAlignment="Center" Background="Transparent" Content="Time"
@@ -352,12 +352,13 @@
 
                 <Label Name="Calculate" Grid.Row="3" Margin="5,2,0,0" HorizontalAlignment="Left" Grid.RowSpan="2"
                        VerticalAlignment="Top" Background="Transparent" Content="REFRESH" Cursor="Hand"
-                       FontFamily="Helvetica Neue" FontSize="9" Foreground="White" MouseEnter="Country_MouseEnter"
+                       FontFamily="Helvetica Neue" FontSize="12" Foreground="White" MouseEnter="Country_MouseEnter"
                        MouseLeave="Country_MouseLeave" MouseLeftButtonDown="REFRESH_MouseLeftButtonDown" ToolTip="Click to Calculate Spreadsheet"  />
 
                 <!--<Label Name="ProgressTitle" Grid.Row="4" Grid.Column="0" Margin="4,0,0,0"
                        HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent" Content="Calculating"
                        FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#FFFF8C00" />-->
+
                 <TextBlock Name="ProgressBarLabel" Grid.Row="4" Grid.Column="1" Margin="10,0,0,0"
                            HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="10" Foreground="#FF00ccff" />
 
@@ -1712,7 +1713,7 @@
                                             </Button>
                                         </Grid>
                                     </Border>
-<Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
+                                    <Border Height="21" BorderBrush="#FF124B72" BorderThickness="1" Margin="1,0,1,0">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
@@ -2681,7 +2682,7 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
- 
+
                 <Grid Grid.Row="0" Grid.RowSpan="3" Margin="0,7,12,0" HorizontalAlignment="Right"  Visibility="Collapsed"
                       Background="Transparent">
                     <Grid.ColumnDefinitions>
@@ -2938,14 +2939,16 @@
                     </Grid>
 
                     <!--<StackPanel Grid.Row="0" Margin="0,0,0,0" Background="Transparent" Orientation="Horizontal">
-                        --><!--<Label Margin="0,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                        -->
+                    <!--<Label Margin="0,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
                            Background="Transparent" Content="PORTFOLIO MANAGEMENT"  Cursor="Hand" FontFamily="Helvetica Neue"
                            FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="RebalanceView_MouseDown"
                            MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" />-->
-                        <!--<Label Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Visible"
+                    <!--<Label Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Visible"
                            Background="Transparent" Content="PERFORMANCE"  Cursor="Hand" FontFamily="Helvetica Neue"
                            FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="Performance_MouseDown"
-                           MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"/>--><!--
+                           MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"/>-->
+                    <!--
                         <Label Grid.Row="0" Margin="0,0,0,4" Padding="2" VerticalAlignment="Center"
                                Content="RISK | EXPOSURE" FontFamily="Helvetica Neue" FontSize="12" Foreground="#00ccff" />
                     </StackPanel>-->
@@ -2973,31 +2976,148 @@
                     </Grid>
                 </StackPanel>
 
-                <StackPanel Grid.Row="2" Margin="57,0,0,10" Grid.RowSpan="3" Grid.ColumnSpan="11" Background="Transparent" Orientation="Horizontal" HorizontalAlignment="Center"  Visibility="Visible">
-    
-
+                <StackPanel Grid.Row="1" Margin="145,0,0,10" Grid.RowSpan="3" Grid.ColumnSpan="11" Background="Transparent" Orientation="Horizontal" HorizontalAlignment="Left"  Visibility="Visible">
                     <Label x:Name="PortSetup4"  Grid.RowSpan="2" Margin="2,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" 
                                 Background="Transparent" Content="PORTFOLIO SETUP"  FontFamily="Helvetica Neue" FontSize="12" MouseDown="FundamentalML_MouseDown"
                                 MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
                                 FontWeight="Normal" Foreground="White"
                                 Visibility="{Binding CanAccessPortfolioSetup, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
-                    <Label x:Name="OrderMgm4"    Margin="10,-0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                    <Label x:Name="OrderMgm4"    Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
                                 Background="Transparent" Content="PORTFOLIO MANAGEMENT"  Cursor="Hand" FontFamily="Helvetica Neue"
                                 FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="RebalanceView_MouseDown"
                                 MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
                                 Visibility="{Binding CanAccessOrderManagement, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
-                    <Label x:Name="PortSur4"   Margin="10,0,10,4"  Padding="0,0,0,0"  HorizontalAlignment="Left" VerticalAlignment="Center"
-                                Content="PORTFOLIO SURVEILLANCE" FontFamily="Helvetica Neue" FontSize="12"
-                                Foreground="#00ccff" 
-                                Visibility="{Binding CanAccessSurveillance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
                     <Label x:Name="PortPerf4"   Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
                                 Background="Transparent" Content="PORTFOLIO PERFORMANCE"  Cursor="Hand" FontFamily="Helvetica Neue"
                                 FontSize="12" FontWeight="Normal" Foreground="White" MouseDown="Performance_MouseDown"
                                 MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
                                 Visibility="{Binding CanAccessPortfolioPerformance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                    <Label x:Name="PortSur4"   Margin="10,0,10,4"  Padding="0,0,0,0"  HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Content="PORTFOLIO SURVEILLANCE" FontFamily="Helvetica Neue" FontSize="12"
+                                Foreground="#00ccff" 
+                                Visibility="{Binding CanAccessSurveillance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+
                 </StackPanel>
 
-                <Grid Name="TimeIntervals" Grid.Row="4" Grid.RowSpan="3"    Margin="72,0,0,4" HorizontalAlignment="Left"
+                <!--<StackPanel x:Name="AOD"  Grid.Row="2" Margin="145,0,0,15" Grid.RowSpan="3" Grid.ColumnSpan="11" Background="Transparent" Orientation="Horizontal" HorizontalAlignment="Left"  Visibility="Collapsed">
+                    <Label  Margin="2,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" 
+                                Background="Transparent" Content="AOD" MouseDown="AOD_MouseDown"  FontFamily="Helvetica Neue" FontSize="12" 
+                                FontWeight="Normal" Foreground="#00ccff"
+                                Visibility="{Binding CanAccessPortfolioSetup, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                    <Label  Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Background="Transparent" Content="CHARTS"  Cursor="Hand" FontFamily="Helvetica Neue"
+                                FontSize="12" FontWeight="Normal" Foreground="White" 
+                            MouseDown="FundamentalML_MouseDown"
+                                MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
+                                Visibility="{Binding CanAccessOrderManagement, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
+                    <Label  Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Background="Transparent" Content="GLOBAL MACRO"  Cursor="Hand" FontFamily="Helvetica Neue"
+                                FontSize="12" FontWeight="Normal" Foreground="White" 
+                                MouseDown="GlobalMacro_MouseDown"
+                                MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
+                                Visibility="{Binding CanAccessOrderManagement, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
+                    <Label  Margin="10,0,10,4"  Padding="0,0,0,0"  HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Content="SCREENS" FontFamily="Helvetica Neue" FontSize="12" Cursor="Hand" 
+                                MouseDown="FundamentalML_MouseDown"
+                                MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
+                                Foreground="White" 
+                                Visibility="{Binding CanAccessSurveillance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                    <Label  Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Background="Transparent" Content="SIGNALS"  Cursor="Hand" FontFamily="Helvetica Neue"
+                                FontSize="12" FontWeight="Normal" Foreground="white" 
+                                MouseDown="FundamentalML_MouseDown"
+                                MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
+                                Visibility="{Binding CanAccessPortfolioPerformance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                </StackPanel>-->
+
+                <!--<StackPanel x:Name="CHARTS"  Grid.Row="2" Margin="145,0,0,15" Grid.RowSpan="3" Grid.ColumnSpan="11" Background="Transparent" Orientation="Horizontal" HorizontalAlignment="Left"  Visibility="Collapsed">
+                    <Label Margin="2,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" 
+                                Background="Transparent" Content="AOD" MouseDown="AOD_MouseDown"  FontFamily="Helvetica Neue" FontSize="12"                                 
+                                MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" Cursor="Hand"
+                                FontWeight="Normal" Foreground="White"
+                                Visibility="{Binding CanAccessPortfolioSetup, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                    <Label Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Background="Transparent" Content="CHARTS"  FontFamily="Helvetica Neue"
+                                FontSize="12" FontWeight="Normal" Foreground="#00ccff" 
+                                Visibility="{Binding CanAccessOrderManagement, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
+                    <Label  Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Background="Transparent" Content="GLOBAL MACRO"  Cursor="Hand" FontFamily="Helvetica Neue"
+                                FontSize="12" FontWeight="Normal" Foreground="White" 
+                                MouseDown="GlobalMacro_MouseDown"
+                                MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
+                                Visibility="{Binding CanAccessOrderManagement, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
+                    <Label Margin="10,0,10,4"  Padding="0,0,0,0"  HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Content="SCREENS" FontFamily="Helvetica Neue" FontSize="12" Cursor="Hand"                               
+                                MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
+                                Foreground="White" 
+                                Visibility="{Binding CanAccessSurveillance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                    <Label Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Background="Transparent" Content="SIGNALS"  Cursor="Hand" FontFamily="Helvetica Neue"
+                                FontSize="12" FontWeight="Normal" Foreground="White" 
+                                MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
+                                Visibility="{Binding CanAccessPortfolioPerformance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                </StackPanel>-->
+
+                <!--<StackPanel x:Name="SCREENS" Grid.Row="2" Margin="145,0,0,15" Grid.RowSpan="3" Grid.ColumnSpan="11" Background="Transparent" Orientation="Horizontal" HorizontalAlignment="Left"  Visibility="Collapsed">
+                    <Label  Margin="2,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" 
+                                Background="Transparent" Content="AOD" MouseDown="AOD_MouseDown"  FontFamily="Helvetica Neue" FontSize="12"                          
+                                MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" Cursor="Hand"
+                                FontWeight="Normal" Foreground="White"
+                                Visibility="{Binding CanAccessPortfolioSetup, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                    <Label  Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Background="Transparent" Content="CHARTS"  Cursor="Hand" FontFamily="Helvetica Neue"
+                                FontSize="12" FontWeight="Normal" Foreground="White"                                 
+                                MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
+                                Visibility="{Binding CanAccessOrderManagement, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
+                    <Label  Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+            Background="Transparent" Content="GLOBAL MACRO"  Cursor="Hand" FontFamily="Helvetica Neue"
+            FontSize="12" FontWeight="Normal" Foreground="White" 
+            MouseDown="GlobalMacro_MouseDown"
+            MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
+            Visibility="{Binding CanAccessOrderManagement, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
+                    <Label   Margin="10,0,10,4"  Padding="0,0,0,0"  HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Content="SCREENS" FontFamily="Helvetica Neue" FontSize="12"
+                                Foreground="#00ccff" 
+                                Visibility="{Binding CanAccessSurveillance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                    <Label   Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Background="Transparent" Content="SIGNALS"  Cursor="Hand" FontFamily="Helvetica Neue"
+                                FontSize="12" FontWeight="Normal" Foreground="white"                                
+                                MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
+                                Visibility="{Binding CanAccessPortfolioPerformance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                </StackPanel>-->
+
+                <StackPanel x:Name="SIGNALS" Grid.Row="2" Margin="145,0,0,15" Grid.RowSpan="3" Grid.ColumnSpan="11" Background="Transparent" Orientation="Horizontal" HorizontalAlignment="Left"  Visibility="Visible">
+                    <Label  Margin="2,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" 
+                                Background="Transparent" Content="AOD" MouseDown="AOD_MouseDown"  FontFamily="Helvetica Neue" FontSize="11"  
+                                
+                                MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" Cursor="Hand" 
+                                FontWeight="Normal" Foreground="White"
+                                Visibility="{Binding CanAccessPortfolioSetup, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                    <Label   Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Background="Transparent" Content="CHARTS"  Cursor="Hand" MouseDown="OurView_MouseDown" FontFamily="Helvetica Neue"
+                                FontSize="12" FontWeight="Normal" Foreground="White" 
+                                
+                                MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
+                                Visibility="{Binding CanAccessOrderManagement, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
+                    <Label  Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+            Background="Transparent" Content="GLOBAL MACRO"  Cursor="Hand" FontFamily="Helvetica Neue"
+            FontSize="12" FontWeight="Normal" Foreground="White" 
+            MouseDown="GlobalMacro_MouseDown"
+            MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
+            Visibility="{Binding CanAccessOrderManagement, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
+                    <Label Margin="10,0,10,4"  Padding="0,0,0,0"  HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Content="SCREENS" MouseDown="Alert_MouseDown" FontFamily="Helvetica Neue" FontSize="12" Cursor="Hand" 
+                                  
+                                MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2"
+                                Foreground="White" 
+                                Visibility="{Binding CanAccessSurveillance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                    <Label   Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Background="Transparent" Content="SIGNALS"  FontFamily="Helvetica Neue"
+                                FontSize="12" FontWeight="Normal" Foreground="#00ccff" 
+                                Visibility="{Binding CanAccessPortfolioPerformance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                </StackPanel>
+
+                <Grid Name="TimeIntervals" Grid.Row="4" Grid.RowSpan="3"    Margin="77,0,0,4" HorizontalAlignment="Left"
                       VerticalAlignment="Top">
 
                     <Grid.RowDefinitions>
@@ -3419,19 +3539,19 @@
 
                 </Grid>
 
-                <Rectangle Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" VerticalAlignment="Top"  Grid.RowSpan="2" Height="48" Width="780" Margin="0,0,0,0"
-                    Fill="Transparent" Stroke="#FF124b72" StrokeThickness="1" />
+                <Rectangle Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" VerticalAlignment="Top"  Grid.RowSpan="2" Height="48" Width="780" Margin="0,0,5,0"
+                    Fill="#0d1520" Stroke="Transparent" StrokeThickness="1" />
 
                 <Rectangle Grid.Column="0" Grid.Row="2" VerticalAlignment="Top" Height="1" Width="780" Margin="8,8,9,0"
-                    Fill="Transparent" Stroke="#FF124b72" StrokeThickness="1" />
+                    Fill="#0d1520" Stroke="Transparent" StrokeThickness="1" />
 
-                <Grid Name="SectorGrid"  Background="Transparent"  Grid.Row="0" Margin="5,0,0,15" Grid.RowSpan="2" Visibility="Visible" >
+                <Grid Name="SectorGrid"  Background="#0d1520"  Grid.Row="0" Margin="10,0,0,15" Grid.RowSpan="2" Visibility="Visible" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="50"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Orientation="Vertical" Grid.RowSpan="2" Background="Transparent" Margin="5,0,0,0">
+                    <StackPanel Grid.Column="0" Orientation="Vertical" Grid.RowSpan="2" Background="#0d1520" Margin="5,0,0,0">
                         <Label x:Name="LabelSectors" Content="SECTORS" Tag="Sector" Foreground="#00ccff" FontFamily="Helvetica Neue" FontSize="10" MouseDown="LabelSectors_MouseDown"
                                            Cursor="Hand"  Padding="0,4,0,0" Margin="0,0,0,0"
                                             MouseEnter="Sector_MouseEnter"   MouseLeave="Sector_MouseLeave"/>
@@ -3443,7 +3563,7 @@
                                             MouseEnter="Sector_MouseEnter" MouseLeave="Sector_MouseLeave"/>
                     </StackPanel>
 
-                    <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Disabled"  HorizontalScrollBarVisibility="Visible"  Background="Transparent"  Margin="0,0,10,0">
+                    <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Disabled"  HorizontalScrollBarVisibility="Visible"  Background="Transparent"  Margin="0,0,12,0">
                         <ItemsControl x:Name="TilesList">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -3461,7 +3581,7 @@
                                                 FontFamily="Helvetica Neue"
                                                 FontSize="10"
                                                 TextAlignment="Center"/>
-                                                                        <TextBlock Text="{Binding Value}"
+                                            <TextBlock Text="{Binding Value}"
                                                 FontFamily="Helvetica Neue"
                                                 FontSize="10"
                                                 Opacity="0.9"
@@ -3479,8 +3599,8 @@
                     </ScrollViewer>
                 </Grid>
 
-                <Grid  Name="BalGrid"  Grid.Row="1" Grid.RowSpan="2" Grid.Column="0"  Margin="0,5,0,0" Grid.ColumnSpan="4"
-                              Background="Black" Visibility="Visible">
+                <Grid  Name="BalGrid"  Grid.Row="1" Grid.RowSpan="2" Grid.Column="0"  Margin="6,5,0,0" Grid.ColumnSpan="4"
+                              Background="#0d1520" Visibility="Visible">
 
                     <Grid.RowDefinitions>
                         <RowDefinition Height="30"/>
@@ -3497,18 +3617,25 @@
                         <ColumnDefinition Width="50" />
                         <ColumnDefinition Width="70" />
                         <ColumnDefinition Width="50" />
-                        <ColumnDefinition Width="70" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Grid.ColumnSpan="13" >
+
+                    <Rectangle Grid.Column="0" Grid.ColumnSpan="15" Width="795"   VerticalAlignment="Bottom" Height="11" Margin="0,0,0,0"
+                    Fill="Black" Stroke="Black" StrokeThickness="10" HorizontalAlignment="Left" />
+
+
+                    <StackPanel Grid.Column="0" Margin="5,0,0,0" Orientation="Horizontal" Grid.ColumnSpan="15" >
+
                         <!--<Label Grid.Row="2" Grid.Column="0"  HorizontalContentAlignment="Left" Grid.ColumnSpan="2" 
             Margin="10,0,0,0" Padding="0,6,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
             Content="HWM" FontFamily="Helvetica Neue" FontSize="10" Foreground="Silver" />
                         <Label x:Name="HWM"   HorizontalContentAlignment="Left" 
             Margin="5,0,0,0" Padding="5,7,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
             Content="$124,588,619" FontFamily="Helvetica Neue" FontSize="9" Foreground="PaleGreen" />-->
+
                         <Label Grid.Row="2" Grid.Column="0"  HorizontalContentAlignment="Left" Grid.ColumnSpan="2" 
-                                    Margin="10,0,0,0" Padding="0,6,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
+                                    Margin="4,0,0,0" Padding="0,6,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
                                     Content="NAV" FontFamily="Helvetica Neue" FontSize="10" Foreground="Silver" />
                         <Label x:Name="Balance2"   HorizontalContentAlignment="Left" 
                                     Margin="5,0,0,0" Padding="5,7,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
@@ -3557,7 +3684,8 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid Name="ConditionsGrid" Grid.Row="2" Grid.RowSpan="2" Margin="8,9,0,0" Background="Black" VerticalAlignment="Top"
+
+                <Grid Name="ConditionsGrid" Grid.Row="2" Grid.RowSpan="2" Margin="8,20,0,0" Background="#0d1520" VerticalAlignment="Top"
                       Visibility="Visible">
 
                     <Grid.RowDefinitions>
@@ -3616,27 +3744,31 @@
                         <ColumnDefinition Width="10" />
                     </Grid.ColumnDefinitions>
 
-                    <Rectangle Grid.Row="0" Grid.Column="0" Width="1" Height="80" Margin="0,0,0,0"
+
+                    <Rectangle Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="45" VerticalAlignment="Bottom" Height="10" Margin="0,0,0,0"
+                    Fill="Black" Stroke="Black" StrokeThickness="10" />
+
+                    <!--<Rectangle Grid.Row="0" Grid.Column="0" Width="1" Height="80" Margin="0,0,0,0"
                                HorizontalAlignment="Left" VerticalAlignment="Top" Fill="Transparent" Stroke="#FF124b72"
-                               StrokeThickness="1" />
-                    <Rectangle Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Width="1"
+                               StrokeThickness="1" />-->
+                    <!--<Rectangle Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Width="1"
                                Height="80" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="Transparent"
-                               Stroke="#FF124b72" StrokeThickness="1" />
-                    <Rectangle Grid.Row="0" Grid.Column="10" Width="1" Height="80" Grid.RowSpan="2"
+                               Stroke="#FF124b72" StrokeThickness="1" />-->
+                    <!--<Rectangle Grid.Row="0" Grid.Column="10" Width="1" Height="80" Grid.RowSpan="2"
                                HorizontalAlignment="Left" VerticalAlignment="Top" Fill="Transparent" Stroke="#FF124b72"
-                               StrokeThickness="1" />
+                               StrokeThickness="1" />-->
 
-
-                    <Rectangle Grid.Row="0" Grid.RowSpan="2" Grid.Column="34" Width="1"
+                    <!--<Rectangle Grid.Row="0" Grid.RowSpan="2" Grid.Column="34" Width="1"
                                Height="80" HorizontalAlignment="Right" VerticalAlignment="Top" Fill="Transparent"
-                               Stroke="#FF124b72" StrokeThickness="1" />
-                    <Rectangle Grid.Row="0" Grid.RowSpan="2" Grid.Column="44" Width="1"
+                               Stroke="#FF124b72" StrokeThickness="1" />-->
+                    <!--<Rectangle Grid.Row="0" Grid.RowSpan="2" Grid.Column="44" Width="1"
                                Height="80" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="Transparent"
-                               Stroke="#FF124b72" StrokeThickness="1" />
+                               Stroke="#FF124b72" StrokeThickness="1" />-->
 
-                    <Label Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="9" HorizontalContentAlignment="Center" Margin="0,0,0,0"
+
+                    <Label Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="9" HorizontalContentAlignment="Center"
                            Content="Bullish Conditions" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal"
-                           Foreground="PaleGreen" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown" />
+                           Foreground="PaleGreen" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown" Height="40" VerticalAlignment="Top" />
                     <Label Grid.Row="0" Grid.Column="35" Grid.ColumnSpan="9" HorizontalContentAlignment="Center"
                            Content="Bearish Conditions" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal"
                            Foreground="PaleGreen" />
@@ -3649,7 +3781,7 @@
                     <Label Grid.Row="0" Grid.Column="26" Grid.ColumnSpan="9" HorizontalContentAlignment="Center"
                            Content="Sell Signals" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal"
                            Foreground="PaleGreen" />
-                    <Label Name="XSigTime1" Grid.Row="0" Grid.Column="22" 
+                    <Label Name="XSigTime1" Grid.Row="0" Grid.Column="22" VerticalAlignment="Top"
                            Height="20"  Margin="0,10,0,0"  Padding="0,10,0,0" HorizontalContentAlignment="Center" Content="D"
                            FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#00CCFF"
                            ToolTip="ATM X Signal Time Frame"   />
@@ -3682,11 +3814,11 @@
                            HorizontalContentAlignment="Center" Content="" FontFamily="Helvetica Neue" FontSize="10"
                            FontWeight="Normal" Foreground="#BDBDBD" ToolTip="ML PX Model Bullish Prediction" />
 
-                    <Label Grid.Row="0" Grid.Column="7" Grid.ColumnSpan="3" Height="20"  Margin="0,10,0,0" 
+                    <Label Grid.Row="0" Grid.Column="7" Grid.ColumnSpan="3" Height="20"  Margin="0,10,0,0" VerticalAlignment="Top"
                            Padding="0,10,0,0" HorizontalContentAlignment="Center" Content="FT" FontFamily="Helvetica Neue"
                            FontSize="10" FontWeight="Normal" Foreground="#BDBDBD" ToolTip="ATM Bullish Score"
                                />
-                    <Label Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3"  Height="20" Padding="0,10,0,0"  Margin="0,10,0,0" 
+                    <Label Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3"  Height="20" Padding="0,10,0,0"  Margin="0,10,0,0"  VerticalAlignment="Top"
                            HorizontalContentAlignment="Center" Content="TSB" FontFamily="Helvetica Neue" FontSize="10"
                            FontWeight="Normal" Foreground="#BDBDBD" ToolTip="ATM Bullish Trend Bar" 
                               />
@@ -3694,7 +3826,7 @@
                            HorizontalContentAlignment="Center" Content="ST &gt; FT" FontFamily="Helvetica Neue" FontSize="10"
                            FontWeight="Normal" Foreground="#BDBDBD" ToolTip="ATM Bullish Trend Line" 
                               />
-                    <Label Grid.Row="0" Grid.Column="4" Grid.ColumnSpan="3" Height="20"  Margin="0,10,0,0" 
+                    <Label Grid.Row="0" Grid.Column="4" Grid.ColumnSpan="3" Height="20"  Margin="0,10,0,0" VerticalAlignment="Top"
                            Padding="0,10,0,0" HorizontalContentAlignment="Center" Content="ST" FontFamily="Helvetica Neue"
                            FontSize="10" FontWeight="Normal" Foreground="#BDBDBD" ToolTip="ATM Bullish PR"
                                />
@@ -3706,7 +3838,7 @@
                            HorizontalContentAlignment="Center" Content="" FontFamily="Helvetica Neue" FontSize="10"
                            FontWeight="Normal" Foreground="#BDBDBD" ToolTip="ATM FT Strategy" 
                               />
-                    <Label Grid.Row="0" Grid.Column="38" Grid.ColumnSpan="3" Height="20"
+                    <Label Grid.Row="0" Grid.Column="38" Grid.ColumnSpan="3" Height="20"  VerticalAlignment="Top"
                            Padding="0,10,0,0"  Margin="0,10,0,0"  HorizontalContentAlignment="Center" Content="ST" FontFamily="Helvetica Neue"
                            FontSize="10" FontWeight="Normal" Foreground="#BDBDBD" ToolTip="ATM Bearish PR"
                                />
@@ -3715,79 +3847,79 @@
                            HorizontalContentAlignment="Center" Content="ST &lt; FT" FontFamily="Helvetica Neue" FontSize="10"
                            FontWeight="Normal" Foreground="#BDBDBD" ToolTip="ATM Bearish Trend Line" 
                               />
-                    <Label Grid.Row="0" Grid.Column="41" Grid.ColumnSpan="3" Height="20" Padding="0,10,0,0"  Margin="0,10,0,0" 
+                    <Label Grid.Row="0" Grid.Column="41" Grid.ColumnSpan="3" Height="20" Padding="0,10,0,0"  Margin="0,10,0,0"   VerticalAlignment="Top"
                            HorizontalContentAlignment="Center" Content="TSB" FontFamily="Helvetica Neue" FontSize="10"
                            FontWeight="Normal" Foreground="#BDBDBD" ToolTip="ATM Bearish Trend Bar" 
                               />
-                    <Label Grid.Row="0" Grid.Column="35" Grid.ColumnSpan="3" Height="20"
+                    <Label Grid.Row="0" Grid.Column="35" Grid.ColumnSpan="3" Height="20" VerticalAlignment="Top"
                            Padding="0,10,0,0"  Margin="0,10,0,0"  HorizontalContentAlignment="Center" Content="FT" FontFamily="Helvetica Neue"
                            FontSize="10" FontWeight="Normal" Foreground="#BDBDBD" ToolTip="ATM Bearish Score"
                                />
 
-                    <StackPanel Name="Column1" Grid.Row="1" Grid.Column="1" Height="40" HorizontalAlignment="Center" Orientation="Vertical">
+                    <StackPanel Name="Column1" Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40" HorizontalAlignment="Center"  Orientation="Vertical">
                         <Label Name="ltTSBLong" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center" Content="M" Cursor="Hand" FontFamily="Helvetica Neue" 
                                ToolTip="Sort Long-Term ATM Bullish Trend Strength"    
                                FontSize="10" FontWeight="Normal" Foreground="White" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown" />
                         <Label Name="Count1" Height="20" Padding="2" HorizontalContentAlignment="Center" Content="0" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#a9a9a9" />
                     </StackPanel>
 
-                    <StackPanel Name="Column2" Grid.Row="1" Grid.Column="2" Height="40" HorizontalAlignment="Center" Orientation="Vertical">
+                    <StackPanel Name="Column2" Grid.Row="0" Grid.Column="2" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40" HorizontalAlignment="Center" Orientation="Vertical">
                         <Label Name="mtTSBLong" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center" Content="W" Cursor="Hand" FontFamily="Helvetica Neue" 
                                ToolTip="Sort Mid-Term ATM Bullish Trend Strength"    
                                FontSize="10" FontWeight="Normal" Foreground="White" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown" />
                         <Label Name="Count2" Height="20" Padding="2" HorizontalContentAlignment="Center" Content="0" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#a9a9a9" />
                     </StackPanel>
 
-                    <StackPanel Name="Column3" Grid.Row="1" Grid.Column="3" Height="40" HorizontalAlignment="Center" Orientation="Vertical">
+                    <StackPanel Name="Column3" Grid.Row="0" Grid.Column="3" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40" HorizontalAlignment="Center" Orientation="Vertical">
                         <Label Name="stTSBLong" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center" Content="D" Cursor="Hand" FontFamily="Helvetica Neue" 
                                ToolTip="Sort Short-Term ATM Bullish Trend Strength"    
                                FontSize="10" FontWeight="Normal" Foreground="White" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown" />
                         <Label Name="Count3" Height="20" Padding="2" HorizontalContentAlignment="Center" Content="0" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#a9a9a9" />
                     </StackPanel>
 
-                    <StackPanel Name="Column4" Grid.Row="1" Grid.Column="4" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
+                    <StackPanel Name="Column4" Grid.Row="0" Grid.Column="4"  Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4"  Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="ltSTtUp" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center" Content="M" Cursor="Hand" FontFamily="Helvetica Neue" 
                                ToolTip="Sort Long-Term ATM ST Up Strong"    
                                FontSize="10" FontWeight="Normal" Foreground="White" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown" />
                         <Label Name="Count4" Height="20" Padding="2" HorizontalContentAlignment="Center" Content="0" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#a9a9a9" />
                     </StackPanel>
 
-                    <StackPanel Name="Column5" Grid.Row="1" Grid.Column="5" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
+                    <StackPanel Name="Column5" Grid.Row="0" Grid.Column="5" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="mtSTtUp" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center" Content="W" Cursor="Hand" FontFamily="Helvetica Neue" 
                                ToolTip="Sort Mid-Term ATM ST Up Strong"                                
                                FontSize="10" FontWeight="Normal" Foreground="White" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown" />
                         <Label Name="Count5" Height="20" Padding="2" HorizontalContentAlignment="Center" Content="0" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#a9a9a9" />
                     </StackPanel>
 
-                    <StackPanel Name="Column6" Grid.Row="1" Grid.Column="6" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
+                    <StackPanel Name="Column6" Grid.Row="0" Grid.Column="6" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="stSTtUp" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center" Content="D" Cursor="Hand" FontFamily="Helvetica Neue" 
                                ToolTip="Sort Short-Term ATM ST Up Strong"                                
                                FontSize="10" FontWeight="Normal" Foreground="White" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown" />
                         <Label Name="Count6" Height="20" Padding="2" HorizontalContentAlignment="Center" Content="0" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#a9a9a9" />
                     </StackPanel>
 
-                    <StackPanel Name="Column7" Grid.Row="1" Grid.Column="7" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
+                    <StackPanel Name="Column7" Grid.Row="0" Grid.Column="7" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="ltFTUp" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center" Content="M" Cursor="Hand" FontFamily="Helvetica Neue"
                                ToolTip="Sort Long-Term ATM FT Going Up"                               
                                FontSize="10" FontWeight="Normal" Foreground="White" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown" />
                         <Label Name="Count7" Height="20" Padding="2" HorizontalContentAlignment="Center" Content="0" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#a9a9a9" />
                     </StackPanel>
 
-                    <StackPanel Name="Column8" Grid.Row="1" Grid.Column="8" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
+                    <StackPanel Name="Column8" Grid.Row="0" Grid.Column="8" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="mtFTUp" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center" Content="W" Cursor="Hand" FontFamily="Helvetica Neue" 
                                ToolTip="Sort Mid-Term ATM FT Going Up"    
                                FontSize="10" FontWeight="Normal" Foreground="White" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown" />
                         <Label Name="Count8" Height="20" Padding="2" HorizontalContentAlignment="Center" Content="0" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#a9a9a9" />
                     </StackPanel>
 
-                    <StackPanel Name="Column9" Grid.Row="1" Grid.Column="9" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
+                    <StackPanel Name="Column9" Grid.Row="0" Grid.Column="9" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="stFTUp" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center" Content="D" Cursor="Hand" FontFamily="Helvetica Neue" 
                                ToolTip="Sort Short-Term ATM FT Going Up"    
                                FontSize="10" FontWeight="Normal" Foreground="White" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown" />
                         <Label Name="Count9" Height="20" Padding="2" HorizontalContentAlignment="Center" Content="0" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#a9a9a9" />
                     </StackPanel>
 
-                    <StackPanel Name="Column11" Grid.Row="1" Grid.Column="11" Height="40"
+                    <StackPanel Name="Column11" Grid.Row="0" Grid.Column="11" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="EXHLong" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="Ex" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -3798,7 +3930,7 @@
                                Foreground="#BDBDBD" />
                     </StackPanel>
 
-                    <StackPanel Name="Column12" Grid.Row="1" Grid.Column="12" Height="40"
+                    <StackPanel Name="Column12" Grid.Row="0" Grid.Column="12" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="RetraceDn" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="Re" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -3809,7 +3941,7 @@
                                Foreground="#BDBDBD" />
                     </StackPanel>
 
-                    <StackPanel Name="Column13" Grid.Row="1" Grid.Column="13" Height="40"
+                    <StackPanel Name="Column13" Grid.Row="0" Grid.Column="13" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="TBLong" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="2B" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -3820,7 +3952,7 @@
                                Foreground="#BDBDBD" />
                     </StackPanel>
 
-                    <StackPanel Name="Column14" Grid.Row="1" Grid.Column="14" Height="40"
+                    <StackPanel Name="Column14" Grid.Row="0" Grid.Column="14" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="SFTLong" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="Add" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -3831,7 +3963,7 @@
                                Foreground="#BDBDBD" />
                     </StackPanel>
 
-                    <StackPanel Name="Column15" Grid.Row="1" Grid.Column="15" Height="40"
+                    <StackPanel Name="Column15" Grid.Row="0" Grid.Column="15" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="PALong" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="Prs" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -3842,7 +3974,7 @@
                                Foreground="#BDBDBD" />
                     </StackPanel>
 
-                    <StackPanel Name="Column18" Grid.Row="1" Grid.Column="18" Height="40"
+                    <StackPanel Name="Column18" Grid.Row="0" Grid.Column="18" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="PosLong" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="Pos" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -3853,7 +3985,7 @@
                                Foreground="#BDBDBD" />
                     </StackPanel>
 
-                    <StackPanel Name="Column17" Grid.Row="1" Grid.Column="17" Height="40"
+                    <StackPanel Name="Column17" Grid.Row="0" Grid.Column="17" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="ATRXLong" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="X" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -3865,7 +3997,7 @@
                     </StackPanel>
 
 
-                    <StackPanel Name="Column16" Grid.Row="1" Grid.Column="16" Height="40"
+                    <StackPanel Name="Column16" Grid.Row="0" Grid.Column="16" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="stSCUp" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="Nt" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -3875,7 +4007,7 @@
                                Content="0" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal"
                                Foreground="#BDBDBD" />
                     </StackPanel>
-                    <StackPanel Name="Column19" Grid.Row="1" Grid.Column="19" Height="40"
+                    <StackPanel Name="Column19" Grid.Row="0" Grid.Column="19" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical">
                         <Label Name="ExitLong" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="X" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -3885,7 +4017,7 @@
                                FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#BDBDBD" />
                     </StackPanel>
 
-                    <StackPanel Name="Column20" Grid.Row="1" Grid.Column="20" Height="40"
+                    <StackPanel Name="Column20" Grid.Row="0" Grid.Column="20" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical">
                         <Label Name="NewLong" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="A" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -3896,7 +4028,7 @@
                                Foreground="#BDBDBD" />
                     </StackPanel>
 
-                    <StackPanel Name="Column21" Grid.Row="1" Grid.Column="21" Height="40"
+                    <StackPanel Name="Column21" Grid.Row="0" Grid.Column="21" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="LongPos" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="L" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -3979,7 +4111,7 @@
                                Foreground="#BDBDBD" />
                     </StackPanel>
 
-                    <StackPanel Name="Column26" Grid.Row="1" Grid.Column="26" Height="40"
+                    <StackPanel Name="Column26" Grid.Row="0" Grid.Column="26"  Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="PosShort" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="Pos" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -3990,7 +4122,7 @@
                                Foreground="#BDBDBD" />
                     </StackPanel>
 
-                    <StackPanel Name="Column27" Grid.Row="1" Grid.Column="27" Height="40"
+                    <StackPanel Name="Column27" Grid.Row="0" Grid.Column="27"  Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="ATRXShort" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="X" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -4002,7 +4134,7 @@
                     </StackPanel>
 
                     <!--NT-->
-                    <StackPanel Name="Column28" Grid.Row="1" Grid.Column="28" Height="40"
+                    <StackPanel Name="Column28" Grid.Row="0" Grid.Column="28"  Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="stSCDn" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="Nt" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -4015,7 +4147,7 @@
 
 
                     <!--Pressure-->
-                    <StackPanel Name="Column29" Grid.Row="1" Grid.Column="29" Height="40"
+                    <StackPanel Name="Column29" Grid.Row="0" Grid.Column="29"  Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="PAShort" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="Pr" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -4026,7 +4158,7 @@
                                Foreground="#BDBDBD" />
                     </StackPanel>
 
-                    <StackPanel Name="Column30" Grid.Row="1" Grid.Column="30" Height="40"
+                    <StackPanel Name="Column30" Grid.Row="0" Grid.Column="30"  Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4"  Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="SFTShort" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="Ad" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -4037,7 +4169,7 @@
                                Foreground="#BDBDBD" />
                     </StackPanel>
 
-                    <StackPanel Name="Column31" Grid.Row="1" Grid.Column="31" Height="40"
+                    <StackPanel Name="Column31" Grid.Row="0" Grid.Column="31"  Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="TBShort" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="2b" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -4048,7 +4180,7 @@
                                Foreground="#BDBDBD" />
                     </StackPanel>
 
-                    <StackPanel Name="Column32" Grid.Row="1" Grid.Column="32" Height="40"
+                    <StackPanel Name="Column32" Grid.Row="0" Grid.Column="32"  Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4"  Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="RetraceUp" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="Re" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -4059,7 +4191,7 @@
                                Foreground="#BDBDBD" />
                     </StackPanel>
 
-                    <StackPanel Name="Column33" Grid.Row="1" Grid.Column="33" Height="40"
+                    <StackPanel Name="Column33" Grid.Row="0" Grid.Column="33"  Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4"  Height="40"
                                 HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="EXHShort" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center"
                                Content="Ex" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
@@ -4071,42 +4203,42 @@
                     </StackPanel>
 
 
-                    <StackPanel Name="Column35" Grid.Row="1" Grid.Column="35" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
+                    <StackPanel Name="Column35" Grid.Row="0" Grid.Column="35"   Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="stFTDn" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center" Content="D" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10" 
                                ToolTip="Sort Short-Term ATM FT Going Dn"                                 
                                FontWeight="Normal" Foreground="White" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown"  />
                         <Label Name="Count35" Height="20" Padding="2" HorizontalContentAlignment="Center" Content="0" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#a9a9a9" />
                     </StackPanel>
 
-                    <StackPanel Name="Column36" Grid.Row="1" Grid.Column="36" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
+                    <StackPanel Name="Column36" Grid.Row="0" Grid.Column="36"  Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="mtFTDn" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center" Content="W" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10" 
                                ToolTip="Sort Mid-Term ATM FT Going Dn"                                 
                                FontWeight="Normal" Foreground="White" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown"  />
                         <Label Name="Count36" Height="20" Padding="2" HorizontalContentAlignment="Center" Content="0" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#a9a9a9" />
                     </StackPanel>
 
-                    <StackPanel Name="Column37" Grid.Row="1" Grid.Column="37" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
+                    <StackPanel Name="Column37" Grid.Row="0" Grid.Column="37"  Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="ltFTDn" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center" Content="M" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"     
                                ToolTip="Sort Long-Term ATM FT Going Dn"                            
                                FontWeight="Normal" Foreground="White" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown"  />
                         <Label Name="Count37" Height="20" Padding="2" HorizontalContentAlignment="Center" Content="0" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#a9a9a9" />
                     </StackPanel>
 
-                    <StackPanel Name="Column38" Grid.Row="1" Grid.Column="38" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
+                    <StackPanel Name="Column38" Grid.Row="0" Grid.Column="38"  Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="stSTtDn" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center" Content="D" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
                                ToolTip="Sort Mid-Term ATM ST Down Weak"     
                                FontWeight="Normal" Foreground="White" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown"  />
                         <Label Name="Count38" Height="20" Padding="2" HorizontalContentAlignment="Center" Content="0" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#a9a9a9" />
                     </StackPanel>
 
-                    <StackPanel Name="Column39" Grid.Row="1" Grid.Column="39" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
+                    <StackPanel Name="Column39" Grid.Row="0" Grid.Column="39"   Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4"  Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="mtSTtDn" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center" Content="W" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10"
                                ToolTip="Sort Mid-Term ATM ST Down Weak"     
                                FontWeight="Normal" Foreground="White" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown"  />
                         <Label Name="Count39" Height="20" Padding="2" HorizontalContentAlignment="Center" Content="0" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#a9a9a9" />
                     </StackPanel>
 
-                    <StackPanel Name="Column40" Grid.Row="1" Grid.Column="40" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
+                    <StackPanel Name="Column40" Grid.Row="0" Grid.Column="40"  Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="ltSTtDn" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center" Content="M" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10" 
                                ToolTip="Sort Long-Term ATM ST Down Weak"    
                                FontWeight="Normal" Foreground="White" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown"  />
@@ -4114,28 +4246,28 @@
                     </StackPanel>
 
 
-                    <StackPanel Name="Column41" Grid.Row="1" Grid.Column="41" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
+                    <StackPanel Name="Column41" Grid.Row="0" Grid.Column="41" Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4"  Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="stTSBShort" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center" Content="D" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10" 
                                ToolTip="Sort Short-Term Bearish ATM Trend Strength"     
                                FontWeight="Normal" Foreground="White" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown"  />
                         <Label Name="Count41" Height="20" Padding="2" HorizontalContentAlignment="Center" Content="0" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#a9a9a9" />
                     </StackPanel>
 
-                    <StackPanel Name="Column42" Grid.Row="1" Grid.Column="42" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
+                    <StackPanel Name="Column42" Grid.Row="0" Grid.Column="42"  Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4"  Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="mtTSBShort" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center" Content="W" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10" 
                                ToolTip="Sort Mid-Term Bearish ATM Trend Strength"     
                                FontWeight="Normal" Foreground="White" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown"  />
                         <Label Name="Count42" Height="20" Padding="2" HorizontalContentAlignment="Center" Content="0" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#a9a9a9" />
                     </StackPanel>
 
-                    <StackPanel Name="Column43" Grid.Row="1" Grid.Column="43" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
+                    <StackPanel Name="Column43" Grid.Row="0" Grid.Column="43"  Grid.RowSpan="2" VerticalAlignment="Bottom" Margin="0,0,0,4" Height="40" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Visible">
                         <Label Name="ltTSBShort" Height="20" Padding="0,3,0,0" HorizontalContentAlignment="Center" Content="M" Cursor="Hand" FontFamily="Helvetica Neue" FontSize="10" 
                                ToolTip="Sort Long-Term Bearish ATM Trend Strength"     
                                FontWeight="Normal" Foreground="White" MouseEnter="Portfolio_MouseEnter" MouseLeave="Portfolio_MouseLeave2" MouseLeftButtonDown="SpreadsheetGroupConditions_MouseLeftButtonDown"  />
                         <Label Name="Count43" Height="20" Padding="2" HorizontalContentAlignment="Center" Content="0" FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="#a9a9a9" />
                     </StackPanel>
 
-                    <ScrollViewer Name="SpreadsheetConditionsScroller" Grid.Row="2" Grid.ColumnSpan="45" Margin="0,0,0,75"
+                    <ScrollViewer Name="SpreadsheetConditionsScroller" Grid.Row="2" Grid.ColumnSpan="45" Margin="0,0,0,82"
                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto" 
                                   Background="Transparent">
                         <Grid Name="ConditionsSpreadsheetGrid">
@@ -4149,7 +4281,7 @@
 
                 </Grid>
 
-                <Grid Name="ChartGrid" Grid.Row="3" Margin="10,2,6,0" Background="Black"
+                <Grid Name="ChartGrid" Grid.Row="3" Margin="7,2,6,0" Background="Black"
                       Visibility="Visible">
 
                     <Grid.ColumnDefinitions>

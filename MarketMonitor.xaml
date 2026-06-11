@@ -1,11 +1,12 @@
 <ContentControl x:Class="ATMML.MarketMonitor" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                 xmlns:local="clr-namespace:ATMML" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:my="clr-namespace:ATMML"
                 xmlns:auth="clr-namespace:ATMML.Auth"
+                xmlns:svg="clr-namespace:SharpVectors.Converters;assembly=SharpVectors.Converters.Wpf"
                 DataContext="{Binding}"
                 mc:Ignorable="d">
 
     <ContentControl.Resources>
-        <Canvas x:Key="Logo" Width="162" Height="72" Margin="4,2,160,85">
+        <Canvas x:Key="Logo" Width="162" Height="72" Margin="4,2,160,85" Visibility="Collapsed">
             <!--<Path Fill="#4DFFFFFF" Data="F1 M 141.729,37.408 L 127.825,37.408 L 127.911,37.574 C 123.026,46.390 118.896,52.471 115.504,55.799 C 112.105,59.131 108.382,60.794 104.315,60.794 C 99.631,60.794 95.866,58.535 93.022,53.995 C 90.354,49.750 88.934,44.216 88.769,37.408 L 73.708,37.408 C 73.707,37.606 73.699,37.799 73.699,37.998 C 73.699,47.627 76.313,55.342 81.548,61.127 C 86.782,66.919 93.753,69.813 102.455,69.813 C 109.192,69.813 114.820,68.140 119.337,64.781 C 123.858,61.434 128.313,55.612 132.715,47.321 L 140.783,63.844 L 149.384,51.854 C 149.384,51.854 144.149,41.977 141.729,37.408 L 141.729,37.408 M 142.750,2.100 C 141.027,9.372 138.496,16.899 135.153,24.655 C 130.516,15.184 126.232,8.805 122.315,5.517 C 118.393,2.229 113.133,0.576 106.541,0.576 C 96.643,0.576 88.690,4.002 82.697,10.848 C 76.743,17.645 73.749,26.605 73.703,37.741 L 88.780,37.741 C 88.764,37.185 88.753,36.622 88.753,36.047 C 88.753,28.368 90.274,22.052 93.308,17.101 C 96.346,12.137 100.227,9.660 104.961,9.660 C 108.312,9.660 111.309,11.092 113.961,13.957 C 116.613,16.821 120.091,22.443 124.393,30.806 L 127.911,37.574 C 127.880,37.631 127.850,37.686 127.817,37.741 L 141.905,37.741 C 141.077,36.178 140.525,35.137 140.526,35.137 C 148.269,22.373 153.409,11.369 155.942,2.100 L 142.750,2.100 L 142.750,2.100 Z"/>
             <Path Fill="#ff007cbc" Data="F1 M 152.368,56.080 L 142.873,69.656 L 161.778,69.656 L 152.368,56.080 L 152.368,56.080 Z"/>-->
             <!--<Path Fill="#FF2395CE" Data="F1 M 141.729,37.408 L 127.825,37.408 L 127.911,37.574 C 123.026,46.390 118.896,52.471 115.504,55.799 C 112.105,59.131 108.382,60.794 104.315,60.794 C 99.631,60.794 95.866,58.535 93.022,53.995 C 90.354,49.750 88.934,44.216 88.769,37.408 L 73.708,37.408 C 73.707,37.606 73.699,37.799 73.699,37.998 C 73.699,47.627 76.313,55.342 81.548,61.127 C 86.782,66.919 93.753,69.813 102.455,69.813 C 109.192,69.813 114.820,68.140 119.337,64.781 C 123.858,61.434 128.313,55.612 132.715,47.321 L 140.783,63.844 L 149.384,51.854 C 149.384,51.854 144.149,41.977 141.729,37.408 L 141.729,37.408 M 142.750,2.100 C 141.027,9.372 138.496,16.899 135.153,24.655 C 130.516,15.184 126.232,8.805 122.315,5.517 C 118.393,2.229 113.133,0.576 106.541,0.576 C 96.643,0.576 88.690,4.002 82.697,10.848 C 76.743,17.645 73.749,26.605 73.703,37.741 L 88.780,37.741 C 88.764,37.185 88.753,36.622 88.753,36.047 C 88.753,28.368 90.274,22.052 93.308,17.101 C 96.346,12.137 100.227,9.660 104.961,9.660 C 108.312,9.660 111.309,11.092 113.961,13.957 C 116.613,16.821 120.091,22.443 124.393,30.806 L 127.911,37.574 C 127.880,37.631 127.850,37.686 127.817,37.741 L 141.905,37.741 C 141.077,36.178 140.525,35.137 140.526,35.137 C 148.269,22.373 153.409,11.369 155.942,2.100 L 142.750,2.100 L 142.750,2.100 Z"/>-->
@@ -4188,15 +4189,25 @@
                 <Viewbox>
                     <StaticResource ResourceKey="Logo" />
                 </Viewbox>
-                <Label Grid.Row="0" Grid.Column="0" Margin="0,0,38,13" HorizontalAlignment="Right"
-                       VerticalContentAlignment="Center" Background="Transparent" Content="ML" FontFamily="Helvetica Neue"
-                       FontSize="12" FontStyle="Normal" FontWeight="Normal" Foreground="White" />
-                <Label Grid.Row="1" Margin="0,0,0,12"  Content="Hedge Fund App"
-                       HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" FontFamily="Helvetica Neue"
-                       FontSize="9" FontWeight="Normal" Foreground="White" />
-                <Label Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="2" Margin="0,0,0,0"
-                       HorizontalAlignment="Left" VerticalAlignment="BOTTOM" Background="Transparent" Content=""
-                       FontFamily="Helvetica Neue" FontSize="11" FontWeight="Normal" Foreground="CRIMSON" />
+
+
+                <Label Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3"
+                   Margin="5,43,0,0" Padding="0,1,0,0" HorizontalAlignment="LEFT" HorizontalContentAlignment="Center"
+                   VerticalContentAlignment="Top" Background="Transparent" Content="CAPITAL MARKET RESEARCH" Cursor="Hand"
+                   FontFamily="Helvetica Neue" FontSize="8" FontWeight="Normal" Foreground="#00ccff"
+                   MouseDown="Help_MouseDown">
+                </Label>
+
+                <!--CMR Logo-->
+                <ContentControl Grid.Row="0"
+                Grid.Column="0" HorizontalAlignment="Left" 
+                Grid.ColumnSpan="3">
+                    <Grid Margin="5,0,0,7" Background="Transparent">
+                        <svg:SvgViewbox Source="pack://application:,,,/Images/CMR_ATM_BlueAlpha7.svg"
+                        Width="60"
+                        Height="30"/>
+                    </Grid>
+                </ContentControl>
 
             </Grid>
             <!-- logo -->
@@ -4205,7 +4216,7 @@
             <StackPanel Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right" VerticalAlignment="Top"
-                        Margin="0,12,10,0">
+                        Margin="0,14,10,0">
                 <TextBlock Text="{Binding DisplayName, Source={x:Static auth:AuthContext.Current}}"
                            Foreground="#00ccff" FontSize="12" FontFamily="Helvetica Neue"
                            VerticalAlignment="Center" Margin="0,0,8,0"/>
@@ -4275,9 +4286,8 @@
                 </Grid>
 
 
-                <StackPanel Grid.Row="0" Grid.RowSpan="3" Margin="140,0,0,0" HorizontalAlignment="Left"
-                            Background="Transparent" Orientation="Horizontal">
-
+                <StackPanel Grid.Row="0" Grid.RowSpan="4" Margin="140,7,0,3" HorizontalAlignment="Left"
+                            Background="transparent" Orientation="Horizontal">
 
                     <Grid Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Collapsed" >
                         <Grid.ColumnDefinitions>
@@ -4345,200 +4355,88 @@
                     </Grid>
 
 
-                    <Grid Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Visible">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="40" />
-                        </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Row="1" Margin="5,0,0,9" Grid.RowSpan="3" Grid.ColumnSpan="11" Background="Transparent" Orientation="Horizontal" HorizontalAlignment="Left"  Visibility="Visible">
+                        <Label x:Name="PortSetup4"  Grid.RowSpan="2" Margin="2,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" 
+                             Background="Transparent" Content="PORTFOLIO SETUP"  FontFamily="Helvetica Neue" FontSize="12" MouseDown="FundamentalML_MouseDown"
+                             FontWeight="Normal" Foreground="White"
+                             Visibility="{Binding CanAccessPortfolioSetup, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                        <Label x:Name="OrderMgm4"    Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                             Background="Transparent" Content="PORTFOLIO MANAGEMENT"  Cursor="Hand" FontFamily="Helvetica Neue" MouseDown="RebalanceView_MouseDown"
+                             FontSize="12" FontWeight="Normal" Foreground="White"
+                             Visibility="{Binding CanAccessOrderManagement, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
+                        <Label x:Name="PortPerf4"   Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                             Background="Transparent" Content="PORTFOLIO PERFORMANCE"  Cursor="Hand" FontFamily="Helvetica Neue" MouseDown="Performance_MouseDown"
+                             FontSize="12" FontWeight="Normal" Foreground="White"
+                             Visibility="{Binding CanAccessPortfolioPerformance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                        <Label x:Name="PortSur4"   Margin="10,0,10,4"  Padding="0,0,0,0"  HorizontalAlignment="Left" VerticalAlignment="Center"
+                             Content="PORTFOLIO SURVEILLANCE" FontFamily="Helvetica Neue" FontSize="12"
+                             Foreground="#00ccff" 
+                             Visibility="{Binding CanAccessSurveillance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                    </StackPanel>
 
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-
-                        <Image Grid.Row="1" Grid.RowSpan="5" Grid.Column="0" Grid.ColumnSpan="2"
-                               Margin="0,0,0,8" HorizontalAlignment="Right" Opacity="0" Source="Images/A.png"
-                               Visibility="Visible" />
-                        <Label Grid.Row="2" Grid.RowSpan="3" Grid.Column="0" Grid.ColumnSpan="2"
-                               Margin="0,0,5,0" Padding="2" Content="PORTFOLIO MANAGEMENT"  FontFamily="Helvetica Neue"
-                               FontSize="12" Foreground="White" MouseDown="FundamentalML_MouseDown" MouseEnter="OurView_MouseEnter"
-                               MouseLeave="OurView_MouseLeave"  />
-
-                    </Grid>
-
-
-
-                    <Grid Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Collapsed" >
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="40" />
-                        </Grid.ColumnDefinitions>
-
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-
-                        <Label Grid.Row="2" Grid.RowSpan="3" Grid.ColumnSpan="2" Margin="0,0,5,0"
-                               Padding="2" Content="INDUSTRY ANALYSIS" FontFamily="Helvetica Neue" FontSize="12"
-                               Foreground="White"   MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"  />
-                    </Grid>
-
-                    <Grid Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Visible" >
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="40" />
-                        </Grid.ColumnDefinitions>
-
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-
-
-
-                        <Image Grid.Row="1" Grid.RowSpan="5" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,8" HorizontalAlignment="Right" Opacity="0" Source="Images/A.png" Visibility="Collapsed" />
-
-                        <Label Grid.Row="2" Grid.RowSpan="3" Grid.ColumnSpan="2" Margin="0,0,0,0"  x:Name="ATMPROButton"
-                               Padding="2" Content="PORTFOLIO SURVEILLANCE" FontFamily="Helvetica Neue" FontSize="12"
-                               Foreground="White" MouseDown="Server_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"/>
-
-                    </Grid>
-
-
-                    <Grid Grid.Row="0" Margin="5,0,10,0" Background="Transparent" Visibility="Visible">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="40" />
-                        </Grid.ColumnDefinitions>
-
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-
-
-                        <Viewbox
-                            Grid.Row="0" Grid.RowSpan="5" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,1,0,2">
-                            <Canvas
-                                Name="aa22" Margin="290,0,1,250" HorizontalAlignment="Center" Visibility="Visible">
-
-                                <Path
-                                    Canvas.Left="140" Canvas.Top="23.995" Width="228.609" Height="181.997" Data="F1 M 141.729,37.408 L 127.825,37.408 L 127.911,37.574 C 123.026,46.390 118.896,52.471 115.504,55.799 C 112.105,59.131 108.382,60.794 104.315,60.794 C 99.631,60.794 95.866,58.535 93.022,53.995 C 90.354,49.750 88.934,44.216 88.769,37.408 L 73.708,37.408 C 73.707,37.606 73.699,37.799 73.699,37.998 C 73.699,47.627 76.313,55.342 81.548,61.127 C 86.782,66.919 93.753,69.813 102.455,69.813 C 109.192,69.813 114.820,68.140 119.337,64.781 C 123.858,61.434 128.313,55.612 132.715,47.321 L 140.783,63.844 L 149.384,51.854 C 149.384,51.854 144.149,41.977 141.729,37.408 L 141.729,37.408 M 142.750,2.100 C 141.027,9.372 138.496,16.899 135.153,24.655 C 130.516,15.184 126.232,8.805 122.315,5.517 C 118.393,2.229 113.133,0.576 106.541,0.576 C 96.643,0.576 88.690,4.002 82.697,10.848 C 76.743,17.645 73.749,26.605 73.703,37.741 L 88.780,37.741 C 88.764,37.185 88.753,36.622 88.753,36.047 C 88.753,28.368 90.274,22.052 93.308,17.101 C 96.346,12.137 100.227,9.660 104.961,9.660 C 108.312,9.660 111.309,11.092 113.961,13.957 C 116.613,16.821 120.091,22.443 124.393,30.806 L 127.911,37.574 C 127.880,37.631 127.850,37.686 127.817,37.741 L 141.905,37.741 C 141.077,36.178 140.525,35.137 140.526,35.137 C 148.269,22.373 153.409,11.369 155.942,2.100 L 142.750,2.100 L 142.750,2.100 Z"
-                                    Fill="#FF2395CE" RenderTransformOrigin="0.503,0.455" Stretch="Fill">
-                                    <Path.RenderTransform>
-                                        <TransformGroup>
-                                            <ScaleTransform />
-                                            <SkewTransform AngleY="-0.057" />
-                                            <RotateTransform />
-                                            <TranslateTransform Y="-2.9" />
-                                        </TransformGroup>
-                                    </Path.RenderTransform>
-                                </Path>
-
-                                <Path
-                                    Canvas.Left="335" Canvas.Top="169" Width="50" Height="33" Data="F1 M 152.368,56.080 L 142.873,69.656 L 161.778,69.656 L 152.368,56.080 L 152.368,56.080 Z"
-                                    Fill="#FFBC0031" RenderTransformOrigin="0.487,0.678" Stretch="Fill" />
-                            </Canvas>
-                        </Viewbox>
-
-                        <!--<Image Grid.Row="1" Grid.RowSpan="5" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,8" HorizontalAlignment="Right" Opacity="0" Source="Images/A.png" Visibility="Visible" />-->
-                        <Label Grid.Row="2" Grid.RowSpan="3" Grid.ColumnSpan="2" Margin="0,0,5,0"
-                               Padding="2" Content="PORTFOLIO RESEARCH" FontFamily="Helvetica Neue" FontSize="12"
-                               Foreground="White" MouseDown="AODView_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave" />
-
-                    </Grid>
 
                 </StackPanel>
                 <!-- top level horizontal menu -->
 
 
-                <StackPanel Name="GlobalCostNav" Grid.Row="3" Margin="140,0,0,0" HorizontalAlignment="Left"
+                <StackPanel Name="GlobalCostNav" Grid.Row="3" Margin="140,0,0,0" HorizontalAlignment="Left" 
                             Background="Transparent" Orientation="Horizontal" Visibility="Visible">
 
-                    <!--<Grid Grid.Row="0" Margin="0,0,0,0" Background="Transparent" Visibility="visible">
+                    <Grid Grid.Row="0" Margin="5,0,0,0" Background="Transparent">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-
-                        <Label Grid.Row="0" Margin="0,0,5,0" Padding="2" VerticalAlignment="Center"
-                               Content="MONITORS" FontFamily="Helvetica Neue" FontSize="12" Foreground="White"
-                                MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"   />
-
-                    </Grid>-->
-
-                    <Grid Grid.Row="0" Margin="0,0,0,0" Background="Transparent">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <Label Grid.Row="0" Margin="0,0,5,0" Padding="2" VerticalAlignment="Center"
-                            Content="CHART ANALYSIS" FontFamily="Helvetica Neue" FontSize="12" Foreground="White"
-                            MouseDown="OurView_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave" ToolTip="ATM Chart Application."
-                                />
+                        <Label Grid.Row="0" Margin="0,0,5,0" Padding="2" VerticalAlignment="Center" Cursor="Hand"
+                            Content="AOD" FontFamily="Helvetica Neue" FontSize="12" Foreground="White"
+                            MouseDown="AOD_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"
+                             />
                     </Grid>
 
-                    <Grid Grid.Row="0" Margin="10,0,0,0" Background="Transparent" Visibility="Collapsed" >
+                    <Grid Grid.Row="0" Margin="10,0,0,0" Background="Transparent">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-
-                        <Label Grid.Row="0" Margin="0,0,5,0" Padding="2" VerticalAlignment="Center"
-                            Content="CONDITIONS" FontFamily="Helvetica Neue" FontSize="12" Foreground="White"
-                            MouseDown="Server_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave" ToolTip="ATM Condition Spreadsheet Application."
-                                />
+                        <Label Grid.Row="0" Margin="0,0,5,0" Padding="2" VerticalAlignment="Center" Cursor="Hand"
+                            Content="CHARTS" FontFamily="Helvetica Neue" FontSize="12" Foreground="White"
+                            MouseDown="Charts_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave" />
                     </Grid>
-
-
 
                     <Grid Grid.Row="0" Margin="10,0,0,0" Background="Transparent" Visibility="Visible">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-
-                        <Label Name="AlertButton" Grid.Row="0" Margin="0,0,5,0" Padding="2"
-                        VerticalAlignment="Center" Content="CONDITION SCANS" FontFamily="Helvetica Neue" FontSize="12"
-                        Foreground="White" MouseDown="Alert_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"
-                        ToolTip="ATM Alert Application"   
-                         />
+                        <Label x:Name="GlobalMacButton" Grid.Row="0" Margin="0,0,5,0" Padding="2" VerticalAlignment="Center" Cursor="Hand"
+                            Content="GLOBAL MACRO" FontFamily="Helvetica Neue" FontSize="12" Foreground="#00ccff" Visibility="Visible" MouseDown="GlobalMacro_MouseDown"
+                            />
                     </Grid>
 
-
-                    <Grid Grid.Row="0" Margin="10,0,0,0" Background="Transparent" Visibility="Collapsed" >
+                    <Grid Grid.Row="0" Margin="10,0,0,0" Background="Transparent">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-
-                        <Label Grid.Row="0" Margin="0,0,5,0" Padding="2" VerticalAlignment="Center"
-                               Content="PREDICTION MATRIX" FontFamily="Helvetica Neue" FontSize="12" Foreground="white"
-                               MouseDown="PredictionMatrix_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"  />
-
+                        <Label x:Name="AlertButton" Grid.Row="0" Margin="0,0,5,0" Padding="2" VerticalAlignment="Center" Cursor="Hand"
+                            Content="SCREENS" FontFamily="Helvetica Neue" FontSize="12" Foreground="White"
+                            MouseDown="Alert_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"
+                            ToolTip="ATM Alert Application" />
                     </Grid>
 
-                    <Grid Grid.Row="0" Margin="10,0,0,0" Background="Transparent"  Visibility="Visible" >
+                    <Grid Grid.Row="0" Margin="10,0,0,0" Background="Transparent">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-
-                        <Label x:Name="GlobalMacButton" Grid.Row="0" Margin="0,0,5,0" Padding="2" VerticalAlignment="Center"
-                        Content="GLOBAL HEAT MAP" FontFamily="Helvetica Neue" FontSize="12" Foreground="#00ccff" Visibility="Visible" 
-                         MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave" />
+                        <Label Grid.Row="0" Margin="0,0,5,0" Padding="2" VerticalAlignment="Center" Cursor="Hand"
+                            Content="SIGNALS" FontFamily="Helvetica Neue" FontSize="12" Foreground="White"
+                            MouseDown="Server_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"/>
                     </Grid>
 
+                    <StackPanel x:Name="AODPageBar" Orientation="Horizontal" Margin="45,2,0,0" VerticalAlignment="Top" Background="Transparent" Visibility="Visible">
+                        <Label Content="ADD | MODIFY PAGES" Foreground="White" FontFamily="Helvetica Neue" FontSize="11" VerticalAlignment="Center" Cursor="Hand" Margin="0,0,16,0" MouseDown="AODPageSetup_MouseDown"/>
+                        <ScrollViewer VerticalAlignment="Center" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                            <StackPanel x:Name="PageList" Orientation="Horizontal" VerticalAlignment="Center"/>
+                        </ScrollViewer>
+                    </StackPanel>
                     <Grid Name="ChartIntervals" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Visibility="Visible"
-                      Margin="120,2,0,0" HorizontalAlignment="right" VerticalAlignment="Top" Background="transparent">
+                      Margin="45,2,0,0" HorizontalAlignment="right" VerticalAlignment="Top" Background="transparent">
 
                         <Grid.RowDefinitions>
                             <RowDefinition Height="25" />
@@ -5174,569 +5072,256 @@
             </Grid>
             <!-- Map Navigation -->
 
-            <Grid x:Name="AOD3ControlGrid" Grid.Row="1" Grid.Column="0" Margin="0,0,0,0"
-                  Background="Black" Visibility="Collapsed">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="26" />
-                    <RowDefinition Height="26" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                </Grid.RowDefinitions>
-
+                        <Grid Name="ControlPanel" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Visibility="Collapsed" Panel.ZIndex="2" >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="130" />
                 </Grid.ColumnDefinitions>
 
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-                <Grid Name="ModelForecast" Grid.Row="0" Grid.RowSpan="2" Width="130"  Background="Black"
-                      Margin="0,0,0,0" Visibility="Collapsed">
+                <!--<Rectangle Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="25" Margin="2,0,0,0" 
+                           Fill="transparent" Stroke="#FF124B72" StrokeThickness="1" />-->
+
+                <Grid x:Name="AOD3ControlGrid" Grid.Row="0" Grid.Column="0"  Grid.RowSpan="17"
+                  Background="black" Visibility="Visible" >
 
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="130" />
+                        <ColumnDefinition Width="58" />
+                        <ColumnDefinition Width="23" />
+                        <ColumnDefinition Width="29" />
+                        <ColumnDefinition Width="20" />
                     </Grid.ColumnDefinitions>
 
                     <Grid.RowDefinitions>
                         <RowDefinition Height="25" />
                         <RowDefinition Height="25" />
+                        <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <Rectangle Grid.Row="0" Grid.RowSpan="2" Fill="Transparent" Stroke="#FF124B72"
-                               StrokeThickness="1" />
+                    <Rectangle Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Grid.RowSpan="3" Margin="2,0,0,0" 
+                           Fill="transparent" Stroke="Black" StrokeThickness="1" />
 
-                    <Rectangle Grid.Row="0" Height="1" Margin="5,0,5,0" VerticalAlignment="Bottom"
-                               Fill="Black" Stroke="#FF124B72" StrokeThickness="1" />
+                    <StackPanel Grid.Row="2" Visibility="Collapsed">
+                        <Canvas  Width="130" Height="100" Margin="2,0,0,0">
+                            <Rectangle x:Name="AODRect"  Fill="#1a1a1a" Height="90" Canvas.Left="2" Stroke="Black" Canvas.Top="5"   Width="123"></Rectangle>
+                            <TextBlock HorizontalAlignment="Right" Canvas.Top="20" Margin="115,5,0,0" 
+                                        Text="R O W   1" Foreground="White" FontFamily="Helvetica Neue" FontSize="8" FontWeight="Medium" Padding="1" >
+                                <TextBlock.LayoutTransform>
+                                    <RotateTransform Angle="90" />
+                                </TextBlock.LayoutTransform>
+                            </TextBlock>
 
-                    <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Margin="4,0,0,0"
-                           VerticalAlignment="Top" Background="Transparent" Content="ALIGNMENT" FontSize="11"
-                           Foreground="White" MouseDown="ATMTimingMenu_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"
-                           ToolTip="Click to Access Your Forecast Models"   
-                            />
+                            <Rectangle x:Name="AODRect2" Fill="#1a1a1a" Height="90" Canvas.Left="2" Stroke="Black" Canvas.Top="98"  Width="123"></Rectangle>
+                            <TextBlock HorizontalAlignment="Right" Canvas.Top="115"  Margin="115,5,0,0" 
+                                        Text="R O W   2" Foreground="White" FontFamily="Helvetica Neue" FontSize="8" FontWeight="Medium" Padding="1" >
+                                <TextBlock.LayoutTransform>
+                                    <RotateTransform Angle="90" />
+                                </TextBlock.LayoutTransform>
+                            </TextBlock>
 
-                    <!--<Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="4,0,0,0"
-                           HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent" Content="Model"
-                           FontFamily="Helvetica Neue" FontSize="11" Foreground="#BDBDBD" />-->
-                    <Label Name="ForecastModel" Grid.Row="1" Grid.Column="0"
-                           Margin="4,0,0,2" HorizontalAlignment="left" Background="Transparent"
-                           Content="ATM Alignment" FontFamily="Helvetica Neue" FontSize="11" Foreground="#FF00CCFF" />
-                </Grid>
+                            <Rectangle x:Name="AODRect3" Fill="#1a1a1a" Height="90" Canvas.Left="2" Stroke="Black" Canvas.Top="190" Width="123"></Rectangle>
+                            <TextBlock HorizontalAlignment="Right" Canvas.Top="210"  Margin="115,5,0,0" 
+                                        Text="R O W   3" Foreground="White" FontFamily="Helvetica Neue" FontSize="8" FontWeight="Medium" Padding="1"  >
+                                <TextBlock.LayoutTransform>
+                                    <RotateTransform Angle="90" />
+                                </TextBlock.LayoutTransform>
+                            </TextBlock>
 
-                <Grid Name="MLScenario2" Grid.Row="0" Grid.RowSpan="3" Width="130" Background="Black"
-                      Margin="0,0,0,0" Visibility="collapsed ">
-
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="119.5" />
-                        <ColumnDefinition Width="10.5" />
-                    </Grid.ColumnDefinitions>
-
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="25" />
-                        <RowDefinition Height="25" />
-                        <RowDefinition Height="25" />
-                    </Grid.RowDefinitions>
-
-                    <Rectangle Grid.Row="0" Grid.RowSpan="3" Grid.ColumnSpan="2" Fill="Transparent"
-                               Stroke="#FF124B72" StrokeThickness="1" />
-
-                    <Rectangle Grid.Row="0" Grid.ColumnSpan="2" Height="1" Margin="5,0,5,0"
-                               VerticalAlignment="Bottom" Fill="Transparent" Stroke="#FF124B72" StrokeThickness="1" />
-
-                    <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Margin="4,0,0,0"
-                           VerticalAlignment="Top" Background="Transparent" Content="ML MODEL" FontSize="11"
-                           Foreground="White" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"
-                           ToolTip="Click to Access Your ML Models"   
-                            />
-
-                    <Label Grid.Row="1" Grid.Column="0" Margin="4,0,0,0" HorizontalAlignment="Left"
-                           VerticalAlignment="Top" Background="Transparent" Content="Model" FontFamily="Helvetica Neue"
-                           FontSize="11" Foreground="#BDBDBD" />
-                    <Label Name="ScenarioModel1a" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
-                           HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent" Content="Model Name"
-                           FontFamily="Helvetica Neue" FontSize="11" Foreground="#FF00CCFF" />
-                    <Label Grid.Row="2" Grid.Column="0" Margin="4,0,0,0" HorizontalAlignment="Left"
-                           VerticalAlignment="Top" Background="Transparent" Content="Scenario" FontFamily="Helvetica Neue"
-                           FontSize="11" Foreground="#BDBDBD" />
-                    <Label Name="ScenarioName1a" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
-                           HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent" Content="C1 | C0"
-                           FontFamily="Helvetica Neue" FontSize="11" Foreground="#FF00CCFF" />
-                </Grid>
-
-                <Grid Name="CalculateControl" Grid.Row="4" Grid.RowSpan="2" Width="130"
-                      Margin="0,0,0,0" Visibility="Collapsed">
-
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="130" />
-                    </Grid.ColumnDefinitions>
-
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="25" />
-                        <RowDefinition Height="25" />
-                    </Grid.RowDefinitions>
-
-                    <Rectangle Grid.Row="0" Grid.RowSpan="2" Fill="Black" Stroke="#FF124B72"
-                               StrokeThickness="1" />
-
-                    <Label Name="Calculate" Grid.Row="0" Margin="4,0,0,0" HorizontalAlignment="Left"
-                           VerticalAlignment="Top" Background="Transparent" Content="CALCULATE" Cursor="Hand"
-                           FontFamily="Helvetica Neue" FontSize="11" Foreground="White" MouseEnter="OurView_MouseEnter"
-                           MouseLeave="OurView_MouseLeave" MouseLeftButtonDown="REFRESH_MouseLeftButtonDown" ToolTip="Click to Refresh Monitors" 
-                              />
-
-                    <Label Name="ProgressTitle2" Grid.Row="1" Grid.Column="0" Margin="4,0,0,0"
-                           HorizontalAlignment="Left" VerticalAlignment="Center" Background="Transparent" Content="Calculating......."
-                           FontFamily="Helvetica Neue" FontSize="11" FontWeight="Normal" Foreground="#FFFF8C00"  Visibility = "collapsed" />
-                    <TextBlock Name="ProgressBarLabel2" Grid.Row="1" Grid.Column="1" Margin="0,0,6,0"
-                               HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="9" Foreground="#FF00ccff" />
-                </Grid>
-
-
-                <Grid Name="SaveControl" Grid.Row="0"  Width="130" Grid.RowSpan="2"
-                      Margin="0,0,0,0" Visibility="Visible">
-
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="130" />
-                    </Grid.ColumnDefinitions>
-
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="25" />
-                        <RowDefinition Height="25" />
-                    </Grid.RowDefinitions>
-
-                    <!--<Rectangle Grid.Row="0" Fill="Black" Stroke="#FF124B72" Grid.RowSpan="2"
-                               StrokeThickness="1" />-->
-
-                    <Label Name="Save" Grid.Row="0" Margin="4,0,0,0" HorizontalAlignment="Left"
-                           VerticalAlignment="Top" Background="Transparent" Content="SAVE SETTINGS" Cursor="Hand"
-                           FontFamily="Helvetica Neue" FontSize="11" Foreground="White" MouseEnter="OurView_MouseEnter"
-                           MouseLeave="OurView_MouseLeave" MouseLeftButtonDown="SaveMonitorSettings_MouseLeftButtonDown" ToolTip="Click to Sav Monitor Settings" 
-                              />
-
-                </Grid>
-
-
-                <Rectangle Grid.Row="9"  Grid.RowSpan="18" Grid.ColumnSpan="3" Width="130"  Visibility="Collapsed"
-                           Margin="0,0,0,0" Fill="Transparent" Stroke="#FF124b72" StrokeThickness="1" />
-
-                <Grid Name="CostDate" Grid.Row="10" Grid.RowSpan="3" Width="130"  Background="Black"
-                      Margin="0,0,0,0" Visibility="collapsed">
-
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="130" />
-                    </Grid.ColumnDefinitions>
-
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="25" />
-                        <RowDefinition Height="25" />
-                        <RowDefinition Height="25" />
-                    </Grid.RowDefinitions>
-
-                    <Label Grid.Row="0" Margin="4,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-                       Background="Transparent" Content="Start Cost Date" FontFamily="Helvetica Neue" FontSize="11"
-                       FontWeight="Normal" Foreground="#BDBDBD" />
-
-                    <Rectangle Grid.Row="0" Grid.RowSpan="3" Fill="Transparent" Stroke="#FF124B72"
-                           StrokeThickness="1" />
-
-                    <StackPanel Name="StartCostDate" Grid.Row="1" 
-                                Margin="7,1,0,1" Background="Transparent" Orientation="Horizontal" Visibility="Visible">
-
-
-                        <DatePicker Name="UserFactorModelTrainStartDate" Margin="0,3,0,-15" HorizontalContentAlignment="Right" VerticalContentAlignment="Stretch"
-                                    Background="Black" BorderBrush="Transparent" BorderThickness="0" Cursor="Hand"
-                                    FontFamily="Helvetica Neue" FontSize="11" Foreground="White">
-                            <DatePicker.Resources>
-                                <Style TargetType="DatePickerTextBox">
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="{x:Type DatePickerTextBox}">
-                                                <Grid>
-                                                    <Grid.Resources>
-                                                        <SolidColorBrush x:Key="WatermarkBrush" Color="Black" />
-                                                    </Grid.Resources>
-                                                    <Border x:Name="Border"
-                                                            Padding="{TemplateBinding Padding}"
-                                                            Background="{TemplateBinding Background}"
-                                                            BorderBrush="{TemplateBinding BorderBrush}"
-                                                            BorderThickness="{TemplateBinding BorderThickness}"
-                                                            CornerRadius="1" Opacity="1">
-                                                        <Grid x:Name="WatermarkContent"
-                                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                                              Background="Black">
-                                                            <Border x:Name="ContentElement" BorderBrush="Black" BorderThickness="1" />
-                                                            <Border x:Name="watermark_decorator" BorderBrush="Black" BorderThickness="1">
-                                                                <ContentControl x:Name="PART_Watermark" Padding="2" Focusable="False" IsHitTestVisible="False"
-                                                                                Opacity="0" />
-                                                            </Border>
-                                                            <ScrollViewer x:Name="PART_ContentHost" Margin="0"
-                                                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
-                                                        </Grid>
-                                                    </Border>
-                                                    <!--<VisualStateManager.VisualStateGroups>
-                                                        <VisualStateGroup x:Name="CommonStates">
-                                                            <VisualStateGroup.Transitions>
-                                                                <VisualTransition GeneratedDuration="0" />
-                                                                <VisualTransition GeneratedDuration="0:0:0.1" To="MouseOver" />
-                                                            </VisualStateGroup.Transitions>
-                                                            <VisualState x:Name="Normal" />
-                                                            <VisualState x:Name="MouseOver" />
-                                                        </VisualStateGroup>
-                                                        <VisualStateGroup x:Name="WatermarkStates">
-                                                            <VisualStateGroup.Transitions>
-                                                                <VisualTransition GeneratedDuration="0" />
-                                                            </VisualStateGroup.Transitions>
-                                                            <VisualState x:Name="Unwatermarked" />
-                                                            <VisualState x:Name="Watermarked">
-                                                                <Storyboard>
-                                                                    <DoubleAnimation Storyboard.TargetName="ContentElement" Storyboard.TargetProperty="Opacity" To="0" Duration="0" />
-                                                                    <DoubleAnimation Storyboard.TargetName="PART_Watermark" Storyboard.TargetProperty="Opacity" To="1" Duration="0" />
-                                                                </Storyboard>
-                                                            </VisualState>
-                                                        </VisualStateGroup>
-                                                        <VisualStateGroup x:Name="FocusStates">
-                                                            <VisualStateGroup.Transitions>
-                                                                <VisualTransition GeneratedDuration="0" />
-                                                            </VisualStateGroup.Transitions>
-                                                            <VisualState x:Name="Unfocused" />
-                                                            <VisualState x:Name="Focused" />
-                                                        </VisualStateGroup>
-                                                    </VisualStateManager.VisualStateGroups>-->
-                                                </Grid>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </DatePicker.Resources>
-                        </DatePicker>
+                            <Rectangle x:Name="AODRect4" Fill="#1a1a1a" Height="90" Canvas.Left="2" Stroke="Black" Canvas.Top="282" Width="123"></Rectangle>
+                            <TextBlock HorizontalAlignment="Right" Canvas.Top="305"  Margin="115,5,0,0" 
+                                        Text="R O W   4" Foreground="White" FontFamily="Helvetica Neue" FontSize="8" FontWeight="Medium" Padding="1" >
+                                <TextBlock.LayoutTransform>
+                                    <RotateTransform Angle="90" />
+                                </TextBlock.LayoutTransform>
+                            </TextBlock>
+                        </Canvas>
                     </StackPanel>
+
+                    <Label Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="4" Margin="4,0,0,0" HorizontalAlignment="Left"
+                        VerticalAlignment="Center" Background="Transparent" Content="ADD MONITORS" 
+                        Cursor="Hand"  MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave" MouseDown="AddMonitor_MouseDown"        
+                        FontFamily="Helvetica Neue" FontSize="10" FontWeight="Medium" Foreground="White" ToolTip="Add Another Monitor" ToolTipService.BetweenShowDelay="1000"
+                        ToolTipService.InitialShowDelay="500" ToolTipService.IsEnabled="True" ToolTipService.ShowDuration="15000"/>
+
+                    <Label  x:Name="PageName"  Grid.Row="0" Grid.Column="1"  Margin="0,0,0,0" HorizontalAlignment="Right" Grid.ColumnSpan="4"
+                       VerticalAlignment="Center" Background="Transparent" Content="PAGE 1" FontFamily="Helvetica Neue"
+                       FontSize="10" FontWeight="Medium" Foreground="#00ccff" />
+
+                    <!--<Label Grid.Row="0" Grid.Column="0"  Margin="0,0,0,0" HorizontalAlignment="Right" Grid.ColumnSpan="3"
+                       VerticalAlignment="Center" Background="Transparent" Content="Securities" FontFamily="Helvetica Neue"
+                       FontSize="11" FontWeight="Normal" Foreground="PaleGreen" />-->
+
+                    <!--<Label Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Margin="4,0,0,0" HorizontalAlignment="Left"
+                        VerticalAlignment="Center" Background="Transparent" Content="ADD SECURITY" 
+                        Cursor="Hand"  MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave" MouseDown="AddMonitor_MouseDown"        
+                        FontFamily="Helvetica Neue" FontSize="10" FontWeight="Normal" Foreground="White" ToolTip="Add Another Monitor" ToolTipService.BetweenShowDelay="1000"
+                        ToolTipService.InitialShowDelay="500" ToolTipService.IsEnabled="True" ToolTipService.ShowDuration="15000"/>-->
+
+                    <Label Grid.Row="1" Grid.Column="0"  Margin="4,0,0,0" HorizontalAlignment="left" Grid.ColumnSpan="3"
+                       VerticalAlignment="Center" Background="Transparent" Content="Symbol" FontFamily="Helvetica Neue"
+                       FontSize="10" FontWeight="Normal" Foreground="PaleGreen" />
+                    <!--<Label Grid.Row="2" Grid.Column="0"  Margin="0,0,0,0" HorizontalAlignment="left"  Padding="1"
+                       VerticalAlignment="Center" Background="Transparent" Content="USGGR30YR" FontFamily="Helvetica Neue"
+                       FontSize="9" FontWeight="Normal" Foreground="PaleGreen" />
+                    <Label Grid.Row="2" Grid.Column="1"  Margin="0,0,0,0" HorizontalAlignment="Center"  Padding="1"
+                       VerticalAlignment="Center" Background="Transparent" Content="240" FontFamily="Helvetica Neue"
+                       FontSize="9" FontWeight="Normal" Foreground="PaleGreen" />
+                    <Label Grid.Row="2" Grid.Column="2"  Margin="0,0,0,0" HorizontalAlignment="Center" Padding="1"
+                       VerticalAlignment="Center" Background="Transparent" Content="11.00" FontFamily="Helvetica Neue"
+                       FontSize="9" FontWeight="Normal" Foreground="PaleGreen" />
+                    <Label Grid.Row="2" Grid.Column="3"  Margin="0,0,0,0" HorizontalAlignment="Center" Padding="1"
+                       VerticalAlignment="Center" Background="Transparent" Content="x" FontFamily="Helvetica Neue"
+                       FontSize="12" FontWeight="Normal" Foreground="PaleGreen" />-->
+
+                    <Label Grid.Row="1" Grid.Column="1"  Margin="0,0,0,0" HorizontalAlignment="Right" 
+                       VerticalAlignment="Center" Background="Transparent" Content="TF" FontFamily="Helvetica Neue"
+                       FontSize="10" FontWeight="Normal" Foreground="PaleGreen" />
+
+
+
+                    <StackPanel Name="MonitorPanel" Margin="0,0,0,0"  Grid.Row="2" Grid.ColumnSpan="4"  Grid.RowSpan="16" Width="128"  />
+
+                    <!--<ScrollViewer  Name="MonitorScroller" Grid.Row="2" Margin="2,0,0,0" HorizontalAlignment="Right" VerticalScrollBarVisibility="Auto" Background="Transparent"  Grid.ColumnSpan="4"  Grid.RowSpan="25" Width="126">
+                        <StackPanel Name="MonitorPanel" />
+                    </ScrollViewer>-->
+
                 </Grid>
 
-
-                <Grid Name="ConditionLegend" Grid.Row="0" Grid.RowSpan="10" Grid.Column="0"
-                      Margin="8,0,0,0" VerticalAlignment="Top" Background="black" Visibility="Collapsed">
-
+                <Grid Name="AODResearch"  Grid.Row="18"  Grid.RowSpan="11" Margin="2,0,0,0" HorizontalAlignment="Stretch" Background="Black" Visibility="Visible" Grid.ColumnSpan="2">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="20" />
-                        <ColumnDefinition Width="110" />
+                        <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="78"/>
                     </Grid.ColumnDefinitions>
-
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
+                        <RowDefinition Height="22" />
+                        <RowDefinition Height="22" />
+                        <RowDefinition Height="22" />
+                        <RowDefinition Height="22" />
+                        <RowDefinition Height="22" />
+                        <RowDefinition Height="22" />
+                        <RowDefinition Height="*"  />
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Left"
-                               VerticalAlignment="Top" FontFamily="Helvetica Neue" FontSize="11" Foreground="#A0A0A0"
-                               Text="Trend Condition" />
+                    <Rectangle Grid.Row="0" Grid.RowSpan="11" Grid.ColumnSpan="3" Margin="0,0,0,0" Fill="Transparent" Stroke="Black" StrokeThickness="1" />
+                    <Rectangle Grid.Row="1" Grid.RowSpan="4"  Margin="75,0,0,0" Width="1"  Fill="Transparent" Stroke="Black" StrokeThickness="1" />
 
 
-                    <Rectangle Grid.Row="1" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Cyan" />
-                    <Label Grid.Row="1" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                           VerticalAlignment="Center" Content="Bullish O | B" FontFamily="Helvetica Neue" FontSize="10"
-                           Foreground="#FFFF8C00" />
+                    <Label
+                        Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Grid.ColumnSpan="2"  Margin="2,0,0,1" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent" Content="ATM Analysis Settings"
+                        FontFamily="Helvetica Neue" FontSize="9" Foreground="#FFFF8C00" />
 
-                    <Rectangle Grid.Row="2" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Lime" />
-                    <TextBlock Grid.Row="2" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Bullish" />
+                    <Label
+                        Grid.Row="1" Grid.Column="0" Grid.RowSpan="5"    Margin="2,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent" Content="Entry"
+                        FontFamily="Helvetica Neue" FontSize="9" Foreground="Silver" />
+                    <!--<RadioButton Grid.Row="2" Grid.Column="0"
+                        Name="Long" Margin="5,4,0,0" Padding="0,0,0,0" HorizontalAlignment="Left" Background="White" BorderBrush="Black" 
+                        Content="Long" Cursor="Hand" FontSize="9" Foreground="White" GroupName="Position" IsChecked="False" ToolTip="Long Only Positions"
+                        ToolTipService.BetweenShowDelay="1000" ToolTipService.InitialShowDelay="500" ToolTipService.IsEnabled="True" ToolTipService.ShowDuration="15000" />-->
+                    <!--<RadioButton Grid.Row="3" Grid.Column="0"
+                        Name="Short" Margin="5,4,0,0" Padding="0,0,0,0" HorizontalAlignment="Left" Background="White" BorderBrush="Black" 
+                        Content="Short" Cursor="Hand" FontSize="9" Foreground="White" GroupName="Position" IsChecked="False" ToolTip="Short Only Positions"
+                        ToolTipService.BetweenShowDelay="1000" ToolTipService.InitialShowDelay="500" ToolTipService.IsEnabled="True" ToolTipService.ShowDuration="15000" />-->
 
-                    <Rectangle Grid.Row="3" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Green" />
-                    <TextBlock Grid.Row="3" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Bullish O | S" />
+                    <!--<RadioButton Grid.Row="4" Grid.Column="0"
+                        Name="LS" Margin="5,4,0,0" Padding="0,0,0,0" HorizontalAlignment="Left" Background="White" BorderBrush="Black" 
+                        Content="L | S" Cursor="Hand" FontSize="9" Foreground="White" GroupName="Position" IsChecked="True" ToolTip="Short Only Positions"
+                        ToolTipService.BetweenShowDelay="1000" ToolTipService.InitialShowDelay="500" ToolTipService.IsEnabled="True" ToolTipService.ShowDuration="15000" />-->
 
-                    <Rectangle Grid.Row="4" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Blue" />
-                    <TextBlock Grid.Row="4" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Neutral O | B" />
+                    <CheckBox Name="EnableNewTrend" Grid.Row="1"  Grid.Column="1" Width="78"   Margin="0,0,0,0" Padding="4,3,0,0"  HorizontalAlignment="Right" VerticalAlignment="Center" Background="White" Content="New Trend"   FontWeight="Medium"
+                         Cursor="Hand"  FontFamily="Helvetica Neue" FontSize="9" Foreground="White"
+                        ToolTip="New Trend - The beginning of a new bullish or bearish ATM Trend" ToolTipService.BetweenShowDelay="1000" ToolTipService.InitialShowDelay="500" ToolTipService.IsEnabled="True"
+                               ToolTipService.ShowDuration="15000" ></CheckBox>
 
-                    <Rectangle Grid.Row="5" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="White" />
-                    <TextBlock Grid.Row="5" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Neutral" />
+                    <CheckBox Name="EnablePAlert" Grid.Row="2" Grid.Column="1" Width="78"  Margin="0,0,0,0" Padding="4,3,0,0"  HorizontalAlignment="Left" VerticalAlignment="Center" Background="White" Content="Pressure"   FontWeight="Medium"
+                       Cursor="Hand"  FontFamily="Helvetica Neue" FontSize="9" Foreground="White"
+                         ToolTip="Pressure Alert - First signs of New Selling or Buying when the market is Overbought or Oversold." ToolTipService.BetweenShowDelay="1000" ToolTipService.InitialShowDelay="500" ToolTipService.IsEnabled="True"
+                               ToolTipService.ShowDuration="15000" ></CheckBox>
 
-                    <Rectangle Grid.Row="6" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Yellow" />
-                    <TextBlock Grid.Row="6" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Neutral O | S" />
+                    <CheckBox Name="EnableAddAlert" Grid.Row="3" Grid.Column="1"  Width="78" Margin="0,0,0,0" Padding="4,3,0,0"  HorizontalAlignment="Left" VerticalAlignment="Center" Background="White" Content="Add"  FontWeight="Medium"
+                        Cursor="Hand"  FontFamily="Helvetica Neue" FontSize="9" Foreground="White"
+                        ToolTip="Add Alert - New Add Alert in the direction of the current time frame trend" ToolTipService.BetweenShowDelay="1000" ToolTipService.InitialShowDelay="500" ToolTipService.IsEnabled="True"
+                               ToolTipService.ShowDuration="15000" ></CheckBox>
 
-                    <Rectangle Grid.Row="7" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="DarkOrange" />
-                    <TextBlock Grid.Row="7" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Bearish O | B" />
+                    <!--<CheckBox Name="Enable2BarAlert" Grid.Row="4" Grid.Column="1"  Width="78"  Margin="0,0,0,0" Padding="4,3,0,0"  HorizontalAlignment="Left" VerticalAlignment="Center" Background="White" Content="2 Bar Alert"
+                        Cursor="Hand"  FontFamily="Helvetica Neue" FontSize="9" Foreground="White"
+                        ToolTip="2 Bar Alert - Agressive Entry with two closes in the opposite direction of the FT direction" ToolTipService.BetweenShowDelay="1000" ToolTipService.InitialShowDelay="500" ToolTipService.IsEnabled="True"
+                               ToolTipService.ShowDuration="15000" ></CheckBox>-->
 
-                    <Rectangle Grid.Row="8" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Red" />
-                    <TextBlock Grid.Row="8" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Bearish" />
 
-                    <Rectangle Grid.Row="9" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Magenta" />
-                    <TextBlock Grid.Row="9" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Bearish O | S" />
+                    <Label Grid.Row="4" Grid.Column="0"  Margin="2,1,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent" Content="Reduce" FontWeight="Normal"
+                        FontFamily="Helvetica Neue" FontSize="9" Foreground="Silver" />
 
-                    <Rectangle Grid.Row="12" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Transparent" />
-                    <TextBlock Grid.Row="12" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="" />
+                    <CheckBox Name="EnableRegressionAlert" Grid.Row="4" Grid.Column="1"   Margin="0,0,0,0" Padding="4,3,0,0"  HorizontalAlignment="Left" VerticalAlignment="Center" Background="White" Content="Retracing"   FontWeight="Medium"
+                        Cursor="Hand"  FontFamily="Helvetica Neue" FontSize="10" Foreground="White" 
+                        ToolTip="Retracing - Trend Direction Retracements" ToolTipService.BetweenShowDelay="1000" ToolTipService.InitialShowDelay="500" ToolTipService.IsEnabled="True"
+                               ToolTipService.ShowDuration="15000" ></CheckBox>
 
-                    <Rectangle Grid.Row="13" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Transparent" />
-                    <TextBlock Grid.Row="13" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="" />
 
-                    <Rectangle Grid.Row="14" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Transparent" />
-                    <TextBlock Grid.Row="14" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="" />
+                    <Label
+                        Grid.Row="5" Grid.Column="0"   Margin="2,1,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent" Content="Exit"
+                        FontFamily="Helvetica Neue" FontSize="9" Foreground="Silver" />
 
+                    <CheckBox Name="EnableExhAlert" Grid.Row="5" Grid.Column="1"   Margin="0,2,0,0" Padding="4,3,0,0"  HorizontalAlignment="Left" VerticalAlignment="Center" Background="White" Content="Exhaustion"   FontWeight="Medium"
+                        Cursor="Hand"  FontFamily="Helvetica Neue" FontSize="9" Foreground="White"
+                        ToolTip="Exh - Exhaustion Exits" ToolTipService.BetweenShowDelay="1000" ToolTipService.InitialShowDelay="500" ToolTipService.IsEnabled="True"
+                               ToolTipService.ShowDuration="15000" ></CheckBox>
+
+                    <Rectangle Grid.Row="7" Height="25" Margin="0,0,0,0" Grid.ColumnSpan="2" VerticalAlignment="Bottom" Fill="#FF124b72" Stroke="#FF124B72" StrokeThickness="1" Cursor="Hand"  MouseDown="ApplySCAdds"/>
+
+                    <Label Grid.Row="7" Grid.Column="0"   Margin="7,0,0,0" Padding="0" HorizontalAlignment="Left" VerticalAlignment="Center" Background="Transparent"   FontWeight="Medium" Content="APPLY"  MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"
+                        FontFamily="Helvetica Neue" FontSize="10"  Foreground="White"  ToolTip="Save Selection" Cursor="Hand"  MouseDown="ApplySCAdds"/>
+
+                    <!--<Label Grid.Row="10" Grid.Column="1"   Margin="0,0,10,0" Padding="0" HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent" Content="VIEW LEGEND" MouseEnter="Legend_MouseEnter" MouseLeave="Legend_MouseLeave"
+                        FontFamily="Helvetica Neue" FontSize="10"  Foreground="White"  ToolTip="ATM Analysis Legend" />-->
+
+                    <!--<ScrollViewer  Name="ResearchScroller" Grid.Row="1" Margin="0,2,2,-2" HorizontalAlignment="Right" VerticalScrollBarVisibility="Auto" Background="Transparent"  Width="124">
+                        <StackPanel Name="ResearchPanel" />
+                    </ScrollViewer>-->
                 </Grid>
-
-
-                <Grid Name="StrengthLegend" Grid.Row="10" Grid.RowSpan="10" Grid.Column="0"
-                      Margin="8,0,0,0" VerticalAlignment="Top" Background="black" Visibility="Collapsed">
-
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="20" />
-                        <ColumnDefinition Width="110" />
-                    </Grid.ColumnDefinitions>
-
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                    </Grid.RowDefinitions>
-
-                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Left"
-                               VerticalAlignment="Top" FontFamily="Helvetica Neue" FontSize="11" Foreground="#A0A0A0"
-                               Text="Trend Strength" />
-
-
-                    <Rectangle Grid.Row="1" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Lime" />
-                    <Label Grid.Row="1" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                           VerticalAlignment="Center" Content="Strong | Up" FontFamily="Helvetica Neue" FontSize="10"
-                           Foreground="#FFFF8C00" />
-
-                    <Rectangle Grid.Row="2" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Green" />
-                    <TextBlock Grid.Row="2" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Early Up" />
-
-                    <Rectangle Grid.Row="3" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Cyan" />
-                    <TextBlock Grid.Row="3" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Quick Up" />
-
-                    <Rectangle Grid.Row="4" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Yellow" />
-                    <TextBlock Grid.Row="4" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Transition Up" />
-
-                    <Rectangle Grid.Row="5" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="DarkOrange" />
-                    <TextBlock Grid.Row="5" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Transition Dn" />
-
-                    <Rectangle Grid.Row="6" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Magenta" />
-                    <TextBlock Grid.Row="6" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Quick Dn" />
-
-                    <Rectangle Grid.Row="7" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Crimson" />
-                    <TextBlock Grid.Row="7" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Early Dn" />
-
-                    <Rectangle Grid.Row="8" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Red" />
-                    <TextBlock Grid.Row="8" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Strong Dn" />
-
-                    <Rectangle Grid.Row="12" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Transparent" />
-                    <TextBlock Grid.Row="12" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="" />
-
-                    <Rectangle Grid.Row="13" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Transparent" />
-                    <TextBlock Grid.Row="13" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="" />
-
-                    <Rectangle Grid.Row="14" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Transparent" />
-                    <TextBlock Grid.Row="14" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="" />
-
-                </Grid>
-
-
-                <Grid Name="RecommendationLegend" Grid.Row="19" Grid.RowSpan="10" Grid.Column="0"
-                      Margin="8,0,0,0" VerticalAlignment="center" Background="black" Visibility="Collapsed">
-
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="20" />
-                        <ColumnDefinition Width="110" />
-                    </Grid.ColumnDefinitions>
-
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="18" />
-                    </Grid.RowDefinitions>
-
-                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Left"
-                               VerticalAlignment="Top" FontFamily="Helvetica Neue" FontSize="11" Foreground="#A0A0A0"
-                               Text="Position" />
-                    <Rectangle Grid.Row="1" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Cyan" />
-                    <Label Grid.Row="1" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                           VerticalAlignment="Center" Content="Exit Long" FontFamily="Helvetica Neue" FontSize="10"
-                           Foreground="#FFFF8C00" />
-
-                    <Rectangle Grid.Row="2" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Yellow" />
-                    <TextBlock Grid.Row="2" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Reduce Long" />
-
-                    <Rectangle Grid.Row="3" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="MediumSpringGreen" />
-                    <TextBlock Grid.Row="3" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Stay Long" />
-
-                    <Rectangle Grid.Row="4" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Lime" />
-                    <TextBlock Grid.Row="4" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="New Long" />
-
-                    <Rectangle Grid.Row="5" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="red" />
-                    <TextBlock Grid.Row="5" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="New Short" />
-
-                    <Rectangle Grid.Row="6" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Crimson" />
-                    <TextBlock Grid.Row="6" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Stay Short" />
-
-                    <Rectangle Grid.Row="7" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="DarkOrange" />
-                    <TextBlock Grid.Row="7" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Reduce Short" />
-
-                    <Rectangle Grid.Row="8" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Magenta" />
-                    <TextBlock Grid.Row="8" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="Exit Short" />
-
-
-
-                    <Rectangle Grid.Row="12" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Transparent" />
-                    <TextBlock Grid.Row="12" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="" />
-
-                    <Rectangle Grid.Row="13" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Transparent" />
-                    <TextBlock Grid.Row="13" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="" />
-
-                    <Rectangle Grid.Row="14" Grid.Column="0" Width="8" Height="8"
-                               Margin="2,0,0,0" HorizontalAlignment="Left" Fill="Transparent" />
-                    <TextBlock Grid.Row="14" Grid.Column="1" Padding="0,0,0,0" HorizontalAlignment="Left"
-                               VerticalAlignment="Center" FontFamily="Helvetica Neue" FontSize="10" Foreground="#FFFF8C00"
-                               Text="" />
-
-                </Grid>
-
-            </Grid>
+             </Grid>
 
             <Grid x:Name="CostCal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
-                  Margin="4,0,3,0" Background="Black" Visibility="Collapsed">
+                  Margin="0,0,3,0" Background="Black" Visibility="Collapsed">
 
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="11*"/>
+                    <RowDefinition Height="0"/>
                     <RowDefinition Height="246*"/>
                     <RowDefinition Height="343*"/>
                 </Grid.RowDefinitions>
 
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="138" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <Grid x:Name="SourceNavigation" Grid.RowSpan="3" Margin="8,0,0,0" Visibility="Collapsed">
+
+                <Grid x:Name="SourceNavigation" Grid.Column="1" Grid.RowSpan="3" Margin="8,0,0,0" Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
@@ -5765,7 +5350,7 @@
                     </ScrollViewer>
                 </Grid>
 
-                <ScrollViewer x:Name="AODScrollViewer" Grid.RowSpan="3">
+                <ScrollViewer x:Name="AODScrollViewer" Grid.Row="1" Grid.Column="1" Grid.RowSpan="2">
                     <Grid x:Name="AODGrid">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="25*" />
@@ -5776,7 +5361,7 @@
                     </Grid>
                 </ScrollViewer>
 
-                <Grid Name="AODChartGrid" Grid.Row="2"
+                <Grid Name="AODChartGrid" Grid.Row="2" Grid.Column="1"
                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Black" Visibility="Collapsed">
 
                     <Grid Name="AODChartBorder1" Margin="8,0,2,2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"

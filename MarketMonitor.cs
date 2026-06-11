@@ -53,6 +53,7 @@ namespace ATMML
 		List<DateTime> _agoTime = null;
 
 		bool _initialize = false;
+		bool _openAod = false;
 
 		List<Path> _countryPaths = new List<Path>();
 
@@ -111,7 +112,7 @@ namespace ATMML
 
 		ConditionDialog _conditionDialog;
 
-		public MarketMonitor(MainView mainView, ViewType viewType = ViewType.Cost)
+		public MarketMonitor(MainView mainView, ViewType viewType = ViewType.Map)
 		{
 			_mainView = mainView;
 			_viewType = viewType;
@@ -153,6 +154,11 @@ namespace ATMML
 			ChartIntervals.Visibility = Visibility.Visible;
 		}
 
+		public MarketMonitor(MainView mainView, bool openAod) : this(mainView, ViewType.Cost)
+		{
+			_openAod = openAod;
+		}
+
 		private void requestUpdate(AOD3 aod)
 		{
 			lock (_aodUpdate)
@@ -192,7 +198,7 @@ namespace ATMML
 					}
 					catch (Exception x)
 					{
-
+						aodLog("updateAod EX: " + x.Message);
 					}
 					aod = null;
 				}
@@ -368,6 +374,8 @@ namespace ATMML
 
 			//setView(_viewType);
 
+			setView(_viewType);
+
 			highlightIntervalButton(ChartIntervals, _interval.Replace(" Min", ""));
 
 			initializeAlert();
@@ -381,8 +389,9 @@ namespace ATMML
 		private void setView(ViewType viewType)
 		{
 			_viewType = viewType;
+			AODPageBar.Visibility = Visibility.Collapsed;
 
-			var text = (viewType == ViewType.Cost) ? "MONITORS" : "GLOBAL MACRO";
+			var text = (viewType == ViewType.Map) ? "GLOBAL MACRO" : "AOD";
 			highlightButton(GlobalCostNav, text, true);
 
 			if (_viewType == ViewType.Symbol)
@@ -400,7 +409,7 @@ namespace ATMML
 				CostCal.Visibility = Visibility.Collapsed;
 				AODGrid.Visibility = Visibility.Collapsed;
 				AODChartGrid.Visibility = Visibility.Collapsed;
-				AOD3ControlGrid.Visibility = Visibility.Collapsed;
+				ControlPanel.Visibility = Visibility.Collapsed;
 				ATMStrategyScrollViewer.Visibility = Visibility.Collapsed;
 				PredictionMatrixGrid.Visibility = Visibility.Collapsed;
 				CostCalOld.Visibility = Visibility.Collapsed;
@@ -417,8 +426,11 @@ namespace ATMML
 				MapNavigationGrid.Visibility = Visibility.Collapsed;
 				CostCal.Visibility = Visibility.Visible;
 				AODGrid.Visibility = Visibility.Visible;
-				AODChartGrid.Visibility = Visibility.Visible;
-				AOD3ControlGrid.Visibility = Visibility.Visible;
+				AODChartGrid.Visibility = _aodChartVisibility;
+				Grid.SetRowSpan(AODScrollViewer, (_aodChartVisibility == Visibility.Visible) ? 1 : 2);
+				ControlPanel.Visibility = Visibility.Visible;
+				ChartIntervals.Visibility = Visibility.Collapsed;
+				AODPageBar.Visibility = Visibility.Visible;
 				ATMStrategyScrollViewer.Visibility = Visibility.Visible;
 				PredictionMatrixGrid.Visibility = Visibility.Collapsed;
 				CostCalOld.Visibility = Visibility.Collapsed;
@@ -429,11 +441,9 @@ namespace ATMML
 
 				updateModel();
 
-				loadAODs();
-				if (_aods.Count == 0) testAOD();
-				drawAod();
+				loadAODPages();
 
-				ForecastModel.Content = _strategy;
+				//ForecastModel.Content = _strategy;
 
 				calculateAOD();
 
@@ -458,8 +468,8 @@ namespace ATMML
 			var scenario = (model != null) ? MainView.GetSenarioLabel(model.Scenario) : "";
 			ScenarioModel.Content = modelName;
 			ScenarioName.Content = scenario;
-			ScenarioModel1a.Content = modelName;
-			ScenarioName1a.Content = scenario;
+			//ScenarioModel1a.Content = modelName;
+			//ScenarioName1a.Content = scenario;
 
 			setChartModel();
 		}
@@ -491,7 +501,7 @@ namespace ATMML
 		private void showAODChart()
 		{
 			_AODchart1.Show();
-			Grid.SetRowSpan(AODScrollViewer, 2);
+			Grid.SetRowSpan(AODScrollViewer, 1);
 		}
 
 		private void addCharts()
@@ -599,8 +609,9 @@ namespace ATMML
 			saveAODChartProperties();
 
 			_AODchart1.Hide();
+			foreach (var a0 in _aods) a0.SetSelected(false);
 
-			Grid.SetRowSpan(AODScrollViewer, 3);
+			Grid.SetRowSpan(AODScrollViewer, 2);
 		}
 
 		private void closeAODChart()
@@ -1174,6 +1185,8 @@ namespace ATMML
 
 		Dictionary<string, bool> getSCAddEnbs()
 		{
+			var _c1 = _scAddEnbsCache;
+			if (_c1 != null) return new Dictionary<string, bool>(_c1);
 			Dictionary<string, bool> output = new Dictionary<string, bool>();
 			if (_AODchart1 != null)
 			{
@@ -1181,6 +1194,8 @@ namespace ATMML
 			}
 			return output;
 		}
+
+		static bool _aodInDumped = false;
 
 		private void updateAod(AOD3 aod)
 		{
@@ -1205,12 +1220,22 @@ namespace ATMML
 			Series[] shortTermSeries = _aodBarCache.GetSeries(ticker, interval0, new string[] { "Open", "High", "Low", "Close" }, extra);
 			List<DateTime> midTermTimes = _aodBarCache.GetTimes(ticker, interval1, extra);
 			Series[] midTermSeries = _aodBarCache.GetSeries(ticker, interval1, new string[] { "Open", "High", "Low", "Close" }, extra);
+			string interval2 = Study.getForecastInterval(interval, 2);
+			List<DateTime> longTermTimes = _aodBarCache.GetTimes(ticker, interval2, extra);
+			Series[] longTermSeries = _aodBarCache.GetSeries(ticker, interval2, new string[] { "Open", "High", "Low", "Close" }, extra);
+			string interval3 = Study.getForecastInterval(interval, 3);
+			List<DateTime> xlTimes = (interval3 == null || interval3.Length == 0) ? new List<DateTime>() : _aodBarCache.GetTimes(ticker, interval3, extra);
+			Series[] xlSeries = (interval3 == null || interval3.Length == 0) ? new Series[4] : _aodBarCache.GetSeries(ticker, interval3, new string[] { "Open", "High", "Low", "Close" }, extra);
+			aodLog("updateAod " + ticker + " i0=" + interval0 + " i1=" + interval1 + " i2=" + interval2 + " st=" + shortTermTimes.Count + " mt=" + midTermTimes.Count + " lt=" + longTermTimes.Count);
+			if (!_aodInDumped) { _aodInDumped = true; try { string _rk = ""; foreach (var _k in _referenceData.Keys) _rk += _k + ";"; string _sk = ""; foreach (var _kv in getSCAddEnbs()) _sk += _kv.Key + "=" + _kv.Value + ";"; aodLog("[MM INPUTS] refKeys=" + _rk + " enbs=" + _sk); } catch (Exception _x) { aodLog("[MM INPUTS] EX: " + _x.Message); } }
 			var shortTermCurrentBarIndex = shortTermTimes.Count - 1 - extra;
 			var midTermCurrentBarIndex = midTermTimes.Count - 1 - extra;
 			mpst.predict(ticker, interval0, new string[] { modelName }.ToList(), _aodBarCache);
 
 			_referenceData["Index Prices : " + interval0] = _aodBarCache.GetSeries(indexTicker, interval0, new string[] { "Close" }, extra)[0];
 			_referenceData["Index Prices : " + interval1] = _aodBarCache.GetSeries(indexTicker, interval1, new string[] { "Close" }, extra)[0];
+			_referenceData["Index Prices : " + interval2] = _aodBarCache.GetSeries(indexTicker, interval2, new string[] { "Close" }, extra)[0];
+			if (interval3 != null && interval3.Length > 0) _referenceData["Index Prices : " + interval3] = _aodBarCache.GetSeries(indexTicker, interval3, new string[] { "Close" }, extra)[0];
 
 			if (shortTermTimes.Count > 0) // && midTermTimes.Count > 0) 
 			{
@@ -1224,6 +1249,11 @@ namespace ATMML
 				aodInput.MidTermTimes = midTermTimes;
 				aodInput.ShortTermSeries = shortTermSeries;
 				aodInput.MidTermSeries = midTermSeries;
+				aodInput.MidTermIndex = midTermCurrentBarIndex;
+				aodInput.LongTermTimes = longTermTimes;
+				aodInput.LongTermSeries = longTermSeries;
+				aodInput.XLTimes = xlTimes;
+				aodInput.XLSeries = xlSeries;
 				aodInput.ShortTermPredictions = mpst.getPredictions(ticker, interval0, modelName);
 				aodInput.ShortTermActuals = mpst.getActuals(ticker, interval0, modelName);
 
@@ -1266,29 +1296,34 @@ namespace ATMML
 
 		private void requestAODIndexBars()
 		{
-			var indexTickers = _aods.Select(x => _portfolio1.GetRelativeIndex(x.Symbol)).Distinct().Where(x => x.Length > 0).ToList();
-			var intervals = getAodIntervals();
-
-			_indexBarRequestCount = indexTickers.Count * intervals.Count;
-			foreach (var ticker in indexTickers)
+			var seen = new HashSet<string>();
+			var reqs = new List<string[]>();
+			foreach (var aod in _aods)
 			{
-				foreach (var interval in intervals)
+				var idx = _portfolio1.GetRelativeIndex(aod.Symbol);
+				if (idx == null || idx.Length == 0) continue;
+				string[] ivs = { Study.getForecastInterval(aod.Interval, 0), Study.getForecastInterval(aod.Interval, 1), Study.getForecastInterval(aod.Interval, 2), Study.getForecastInterval(aod.Interval, 3) };
+				foreach (var iv in ivs)
 				{
-					_aodBarCache.RequestBars(ticker, interval, true);
+					if (iv == null || iv.Length == 0) continue;
+					if (seen.Add(idx + "|" + iv)) reqs.Add(new[] { idx, iv });
 				}
 			}
+			_indexBarRequestCount = reqs.Count;
+			if (_indexBarRequestCount == 0) { requestAODBars(); return; }
+			foreach (var r in reqs) _aodBarCache.RequestBars(r[0], r[1], true);
 		}
 
 		private void requestAODBars()
 		{
-			var tickers = _aods.Select(x => x.Symbol).Distinct();
-			var intervals = getAodIntervals();
-
-			foreach (var ticker in tickers)
+			var seen = new HashSet<string>();
+			foreach (var aod in _aods)
 			{
-				foreach (var interval in intervals)
+				string[] ivs = { Study.getForecastInterval(aod.Interval, 0), Study.getForecastInterval(aod.Interval, 1), Study.getForecastInterval(aod.Interval, 2), Study.getForecastInterval(aod.Interval, 3) };
+				foreach (var iv in ivs)
 				{
-					_aodBarCache.RequestBars(ticker, interval, true, 300, true);
+					if (iv == null || iv.Length == 0) continue;
+					if (seen.Add(aod.Symbol + "|" + iv)) _aodBarCache.RequestBars(aod.Symbol, iv, true, 300, true);
 				}
 			}
 		}
@@ -3076,6 +3111,29 @@ namespace ATMML
 			_mainView.Content = new Timing(_mainView);
 		}
 
+		private void AOD_MouseDown(object sender, MouseButtonEventArgs e)
+		{
+			_viewType = ViewType.Cost;
+			hideNavigation();
+			setView(ViewType.Cost);
+		}
+
+		private void Charts_MouseDown(object sender, MouseButtonEventArgs e)
+		{
+			Close();
+			_mainView.Content = new Charts(_mainView);
+		}
+
+		private void Alert_MouseDown(object sender, MouseButtonEventArgs e)
+		{
+			Close();
+			_mainView.Content = new Alerts(_mainView);
+		}
+		private void MarketMaps_MouseDown(object sender, MouseButtonEventArgs e)
+		{
+			Close();
+			_mainView.Content = new MarketMonitor(_mainView);
+		}
 
 		private void Interval_MouseEnter(object sender, MouseEventArgs e)
 		{
@@ -7764,7 +7822,7 @@ namespace ATMML
 		{
 			Label label = e.Source as Label;
 			_strategy = label.Content as string;
-			ForecastModel.Content = _strategy;
+			//ForecastModel.Content = _strategy;
 			hideNavigation();
 			AODScrollViewer.Visibility = Visibility.Visible;
 		}
@@ -7781,7 +7839,7 @@ namespace ATMML
 		{
 			Label label = e.Source as Label;
 			_factorName = label.Content as string;
-			ForecastModel.Content = _factorName;
+			//ForecastModel.Content = _factorName;
 		}
 
 		private void AODModel_MouseDown(object sender, MouseButtonEventArgs e)
@@ -8365,6 +8423,7 @@ namespace ATMML
 
 		private void loadMemberPanel()
 		{
+			if (_aodPageSourceMode) { buildPageFromMembers(); return; }
 			var members = _portfolio1.GetSymbols();
 
 			var items = new List<string>();
@@ -8917,6 +8976,7 @@ namespace ATMML
 		{
 			var aod = sender as AOD3;
 			var id = e.Id;
+			aodLog("handleAodEvent id=" + id + " _aods=" + _aods.Count + " pageAods=" + ((getActivePage() != null) ? getActivePage().Aods.Count : -1) + " sameRef=" + ((getActivePage() != null) && ReferenceEquals(_aods, getActivePage().Aods)));
 			if (id == AodEventType.Chart)
 			{
 				showAODChart();
@@ -8924,7 +8984,8 @@ namespace ATMML
 				_aodChartVisibility = Visibility.Visible;
 				AODChartGrid.Visibility = _aodChartVisibility;
 				_chartSymbol = aod.Symbol;
-				var interval = aod.Interval;
+				var interval = toChartInterval(aod.Interval);
+				foreach (var a0 in _aods) a0.SetSelected(a0 == aod);
 				_AODchart1.Change(_chartSymbol, interval);
 
 				var modelNames = new List<string>();
@@ -8942,6 +9003,9 @@ namespace ATMML
 				var index = _aods.FindIndex(x => x == aod);
 				_aods.Insert(index + 1, aod1);
 				drawAod();
+				updateMonitorList();
+				requestAODIndexBars();
+				saveAODPage(_aodPageId);
 			}
 			else if (id == AodEventType.Close)
 			{
@@ -8951,6 +9015,8 @@ namespace ATMML
 					aod.Close();
 					_aods.Remove(aod);
 					drawAod();
+					updateMonitorList();
+					saveAODPage(_aodPageId);
 				}
 			}
 			else if (id == AodEventType.Interval)
@@ -8958,9 +9024,11 @@ namespace ATMML
 				aod.Clear();
 				drawAod();
 				requestAODIndexBars();
+				updateMonitorList();
+				saveAODPage(_aodPageId);
 				if (_AODchart1 != null)
 				{
-					_AODchart1.Change(aod.Symbol, aod.Interval);
+					_AODchart1.Change(aod.Symbol, toChartInterval(aod.Interval));
 				}
 			}
 			else if (id == AodEventType.Symbol)
@@ -8969,6 +9037,8 @@ namespace ATMML
 				aod.Description = _symbolPortfolio.GetDescription(aod.Symbol);
 				drawAod();
 				requestAODIndexBars();
+				updateMonitorList();
+				saveAODPage(_aodPageId);
 			}
 			else if (id == AodEventType.Save)
 			{
@@ -9258,7 +9328,7 @@ namespace ATMML
 		private void drawAod()
 		{
 			AODGrid.Children.Clear();
-			var rowCnt = (_aods.Count + 2) / 3;
+			var rowCnt = (_aods.Count + 3) / 4;
 			AODGrid.RowDefinitions.Clear();
 			for (var row = 0; row < rowCnt; row++)
 			{
@@ -9277,6 +9347,10 @@ namespace ATMML
 
 				aod.Draw();
 			}
+			Grid.SetRowSpan(AODScrollViewer, (AODChartGrid.Visibility == Visibility.Visible) ? 1 : 2);
+			AODGrid.UpdateLayout();
+			aodLog("geom viewer=" + AODScrollViewer.ActualHeight + " viewport=" + AODScrollViewer.ViewportHeight + " extent=" + AODScrollViewer.ExtentHeight + " grid=" + AODGrid.ActualHeight + " chartVis=" + AODChartGrid.Visibility);
+			aodLog("drawAod count=" + _aods.Count + " rows=" + AODGrid.RowDefinitions.Count + " cols=" + AODGrid.ColumnDefinitions.Count);
 		}
 
 		private void changeChart(string symbol, string interval, bool initialize)
@@ -9323,10 +9397,17 @@ namespace ATMML
 			startMapColoring(3000);
 		}
 
-		private void Alert_MouseDown(object sender, MouseButtonEventArgs e)
+
+		private void RebalanceView_MouseDown(object sender, MouseButtonEventArgs e)
 		{
 			Close();
-			_mainView.Content = new Alerts(_mainView);
+			_mainView.Content = new PortfolioBuilder(_mainView, "", PortfolioBuilder.InitialView.PortfolioManagement);
+		}
+
+		private void Performance_MouseDown(object sender, MouseButtonEventArgs e)
+		{
+			Close();
+			_mainView.Content = new PortfolioBuilder(_mainView, "", PortfolioBuilder.InitialView.PortfolioPerformance);
 		}
 
 		private void ML_MouseDown(object sender, MouseButtonEventArgs e)
@@ -9346,7 +9427,7 @@ namespace ATMML
 			GlobalCostNav.Visibility = Visibility.Visible;
 			ChartIntervals.Visibility = Visibility.Visible;
 			ProdCostImpactNav.Visibility = Visibility.Collapsed;
-			AOD3ControlGrid.Visibility = Visibility.Collapsed;
+			ControlPanel.Visibility = Visibility.Collapsed;
 			CostCal.Visibility = Visibility.Collapsed;
 			showMap();
 			_viewType = ViewType.Map;
@@ -9359,7 +9440,7 @@ namespace ATMML
 			GlobalCostNav.Visibility = Visibility.Visible;
 			ChartIntervals.Visibility = Visibility.Visible;
 			ProdCostImpactNav.Visibility = Visibility.Collapsed;
-			AOD3ControlGrid.Visibility = Visibility.Collapsed;
+			ControlPanel.Visibility = Visibility.Collapsed;
 			CostCal.Visibility = Visibility.Collapsed;
 			showMap();
 			_viewType = ViewType.Map;

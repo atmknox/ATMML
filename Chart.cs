@@ -1,4 +1,4 @@
-﻿using HedgeFundReporting;
+using HedgeFundReporting;
 using LoadingControl.Control;
 using Microsoft.ML.Probabilistic.Collections;
 using Microsoft.ML.Probabilistic.Models.Attributes;
@@ -3222,7 +3222,9 @@ namespace ATMML
 										{
 											if (!_showCursor) _adviceBarIndex = _currentIndex;
 											var adviceBarIndex = _enableHistoricalAdvice ? _adviceBarIndex : shortTermCurrentBarIndex;
-											sid = atm.getAdvice(_symbol, t, b, intervals, referenceData, GetSCAddEnbs(), adviceBarIndex);
+											var _enbs1 = GetSCAddEnbs();
+											sid = atm.getAdvice(_symbol, t, b, intervals, referenceData, _enbs1, adviceBarIndex);
+											if (!_chartAdvDumped) { _chartAdvDumped = true; try { string _rk = ""; foreach (var _k in referenceData.Keys) _rk += _k + ";"; string _sk = ""; foreach (var _kv in _enbs1) _sk += _kv.Key + "=" + _kv.Value + ";"; System.IO.File.AppendAllText(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ATMML_AOD.log"), DateTime.Now.ToString("HH:mm:ss.fff") + "  [CHART] count=" + (sid == null ? -1 : sid.Count) + " refKeys=" + _rk + " enbs=" + _sk + Environment.NewLine); } catch { } }
 										}
 										lock (_studyInfoDataLock)
 										{
@@ -7676,6 +7678,7 @@ namespace ATMML
 			}
 		}
 
+		static bool _chartAdvDumped = false;
 		public List<Tuple<String, Color>> GetAdvice(string symbol, string interval)
 		{
 			List<Tuple<String, Color>> output = null;

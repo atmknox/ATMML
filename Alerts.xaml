@@ -6,6 +6,7 @@
                 xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2" 
                 xmlns:local ="clr-namespace:ATMML"
                 xmlns:auth="clr-namespace:ATMML.Auth"
+                xmlns:svg="clr-namespace:SharpVectors.Converters;assembly=SharpVectors.Converters.Wpf"
                 mc:Ignorable="d">
 
     <ContentControl.Resources>
@@ -447,27 +448,30 @@
                 <ColumnDefinition Width="5" />
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.Row="0" Grid.Column="0" Margin="4,0,0,0" Background="Black"
-                  Visibility="Visible">
-                <Viewbox>
-                    <StaticResource ResourceKey="Logo" />
-                </Viewbox>
-                <Label Grid.Row="0" Grid.Column="0" Margin="0,0,38,13" HorizontalAlignment="Right"
-                       VerticalContentAlignment="Center" Background="Transparent" Content="ML" FontFamily="Helvetica Neue"
-                       FontSize="12" FontStyle="Normal" FontWeight="Normal" Foreground="White" />
-                <Label Grid.Row="1" Margin="0,0,0,12"  Content="Hedge Fund App"
-                       HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" FontFamily="Helvetica Neue"
-                       FontSize="9" FontWeight="Normal" Foreground="White" />
-                <Label Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="2" Margin="0,0,0,0"
-                       HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" Content=""
-                       FontFamily="Helvetica Neue" FontSize="11" FontWeight="Normal" Foreground="WHITE" />
-            </Grid>
+            <Label Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3"
+       Margin="9,43,0,0" Padding="0,1,0,0" HorizontalAlignment="LEFT" HorizontalContentAlignment="Center"
+       VerticalContentAlignment="Top" Background="Transparent" Content="CAPITAL MARKET RESEARCH" Cursor="Hand"
+       FontFamily="Helvetica Neue" FontSize="8" FontWeight="Normal" Foreground="#00ccff"
+       MouseDown="Help_MouseDown">
+            </Label>
+
+            <!--CMR Logo-->
+            <ContentControl Grid.Row="0"
+    Grid.Column="0" HorizontalAlignment="Left" 
+    Grid.ColumnSpan="3">
+                <Grid Margin="9,0,0,7" Background="Transparent">
+                    <svg:SvgViewbox Source="pack://application:,,,/Images/CMR_ATM_BlueAlpha7.svg"
+            Width="60"
+            Height="30"/>
+                </Grid>
+            </ContentControl>
+
 
             <!-- Logged-in user display + settings gear -->
             <StackPanel Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right" VerticalAlignment="Top"
-                        Margin="0,12,10,0">
+                        Margin="0,14,8,0">
                 <TextBlock Text="{Binding DisplayName, Source={x:Static auth:AuthContext.Current}}"
                            Foreground="#00ccff" FontSize="12" FontFamily="Helvetica Neue"
                            VerticalAlignment="Center" Margin="0,0,8,0"/>
@@ -607,157 +611,77 @@
                                MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"  />
                     </Grid>
 
-
-                    <Grid Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Visible">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="40" />
-                        </Grid.ColumnDefinitions>
-
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-
-                        <Image Grid.Row="1" Grid.RowSpan="5" Grid.Column="0" Grid.ColumnSpan="2"
-                               Margin="0,0,0,8" HorizontalAlignment="Right" Opacity="0" Source="Images/A.png"
-                               Visibility="Visible" />
-                        <Label Grid.Row="2" Grid.RowSpan="3" Grid.ColumnSpan="2" Margin="0,0,5,0"
-                               Padding="2" Content="PORTFOLIO MANAGEMENT"  FontFamily="Helvetica Neue" FontSize="12"
-                               Foreground="White" MouseDown="FundamentalML_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"/>
-                    </Grid>
-
-
-                    <Grid Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Visible">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="40" />
-                        </Grid.ColumnDefinitions>
-
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-
-                        <Label Grid.Row="2" Grid.RowSpan="3" Grid.ColumnSpan="2" Margin="0,0,5,0"
-                               Padding="2" Content="PORTFOLIO SURVEILLANCE" FontFamily="Helvetica Neue" FontSize="12"
-                               Foreground="White"  MouseDown="Server_MouseDown"  MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"/>
-
-                    </Grid>
-
-                    <Grid Grid.Row="0" Margin="0,0,15,0" Background="Transparent">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="40" />
-                        </Grid.ColumnDefinitions>
-
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-
-
-                        <Viewbox Grid.Row="0" Grid.RowSpan="5" Grid.Column="0" Grid.ColumnSpan="2"
-                                 Margin="0,1,0,2">
-                            <Canvas Name="aa2" Margin="50,0,1,250" HorizontalAlignment="Center" Visibility="Visible">
-
-                                <Path Canvas.Left="280" Canvas.Top="23.995" Width="228.609" Height="181.997"
-                                      Data="F1 M 141.729,37.408 L 127.825,37.408 L 127.911,37.574 C 123.026,46.390 118.896,52.471 115.504,55.799 C 112.105,59.131 108.382,60.794 104.315,60.794 C 99.631,60.794 95.866,58.535 93.022,53.995 C 90.354,49.750 88.934,44.216 88.769,37.408 L 73.708,37.408 C 73.707,37.606 73.699,37.799 73.699,37.998 C 73.699,47.627 76.313,55.342 81.548,61.127 C 86.782,66.919 93.753,69.813 102.455,69.813 C 109.192,69.813 114.820,68.140 119.337,64.781 C 123.858,61.434 128.313,55.612 132.715,47.321 L 140.783,63.844 L 149.384,51.854 C 149.384,51.854 144.149,41.977 141.729,37.408 L 141.729,37.408 M 142.750,2.100 C 141.027,9.372 138.496,16.899 135.153,24.655 C 130.516,15.184 126.232,8.805 122.315,5.517 C 118.393,2.229 113.133,0.576 106.541,0.576 C 96.643,0.576 88.690,4.002 82.697,10.848 C 76.743,17.645 73.749,26.605 73.703,37.741 L 88.780,37.741 C 88.764,37.185 88.753,36.622 88.753,36.047 C 88.753,28.368 90.274,22.052 93.308,17.101 C 96.346,12.137 100.227,9.660 104.961,9.660 C 108.312,9.660 111.309,11.092 113.961,13.957 C 116.613,16.821 120.091,22.443 124.393,30.806 L 127.911,37.574 C 127.880,37.631 127.850,37.686 127.817,37.741 L 141.905,37.741 C 141.077,36.178 140.525,35.137 140.526,35.137 C 148.269,22.373 153.409,11.369 155.942,2.100 L 142.750,2.100 L 142.750,2.100 Z" Fill="#FF2395CE" RenderTransformOrigin="0.503,0.455" Stretch="Fill">
-                                    <Path.RenderTransform>
-                                        <TransformGroup>
-                                            <ScaleTransform />
-                                            <SkewTransform AngleY="-0.057" />
-                                            <RotateTransform />
-                                            <TranslateTransform Y="-2.9" />
-                                        </TransformGroup>
-                                    </Path.RenderTransform>
-                                </Path>
-
-                                <Path Canvas.Left="475" Canvas.Top="169" Width="50" Height="33"
-                                      Data="F1 M 152.368,56.080 L 142.873,69.656 L 161.778,69.656 L 152.368,56.080 L 152.368,56.080 Z" Fill="#FFBC0031" RenderTransformOrigin="0.487,0.678" Stretch="Fill" />
-                            </Canvas>
-                        </Viewbox>
-
-                        <Label Grid.Row="2" Grid.RowSpan="3" Grid.ColumnSpan="2" Margin="0,0,0,0" x:Name="ATMPROButton"
-                               Padding="2" Content="PORTFOLIO RESEARCH" FontFamily="Helvetica Neue" FontSize="12"
-                               Foreground="White"    />
-                    </Grid>
-
-
-                    <Grid Grid.Row="0" Margin="0,0,15,0" Background="Transparent" Visibility="Collapsed">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="40" />
-                        </Grid.ColumnDefinitions>
-
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-
-                        <Label Grid.Row="2" Grid.RowSpan="3" Grid.ColumnSpan="2" Margin="0,0,5,0"
-                               Padding="2" Content="INDUSTRY ANALYSIS" FontFamily="Helvetica Neue" FontSize="12"
-                               Foreground="White" MouseDown="AODView_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"/>
-
-                    </Grid>
-
-
                 </StackPanel>
 
-                <StackPanel Grid.Row="3" Margin="140,0,0,0" HorizontalAlignment="Left" Background="Transparent"
-                            Orientation="Horizontal">
 
-                    <Grid Grid.Row="0" Margin="0,0,0,0" Background="Transparent">
+                <StackPanel Grid.Row="1" Margin="145,0,0,10" Grid.RowSpan="3" Grid.ColumnSpan="11" Background="Transparent" Orientation="Horizontal" HorizontalAlignment="Left"  Visibility="Visible">
+                    <Label x:Name="PortSetup4"  Grid.RowSpan="2" Margin="2,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" 
+                             Background="Transparent" Content="PORTFOLIO SETUP"  FontFamily="Helvetica Neue" FontSize="12" MouseDown="FundamentalML_MouseDown"
+                             FontWeight="Normal" Foreground="White"
+                             Visibility="{Binding CanAccessPortfolioSetup, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                    <Label x:Name="OrderMgm4"    Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                             Background="Transparent" Content="PORTFOLIO MANAGEMENT"  Cursor="Hand" FontFamily="Helvetica Neue" MouseDown="RebalanceView_MouseDown"
+                             FontSize="12" FontWeight="Normal" Foreground="White"
+                             Visibility="{Binding CanAccessOrderManagement, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}" />
+                    <Label x:Name="PortPerf4"   Margin="10,0,10,4" Padding="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                             Background="Transparent" Content="PORTFOLIO PERFORMANCE"  Cursor="Hand" FontFamily="Helvetica Neue" MouseDown="Performance_MouseDown"
+                             FontSize="12" FontWeight="Normal" Foreground="White"
+                             Visibility="{Binding CanAccessPortfolioPerformance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                    <Label x:Name="PortSur4"   Margin="10,0,10,4"  Padding="0,0,0,0"  HorizontalAlignment="Left" VerticalAlignment="Center"
+                             Content="PORTFOLIO SURVEILLANCE" FontFamily="Helvetica Neue" FontSize="12"
+                             Foreground="#00ccff" 
+                             Visibility="{Binding CanAccessSurveillance, Source={x:Static auth:AuthContext.Current}, Converter={StaticResource BoolToVisConv}}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="3" Margin="140,0,0,0" HorizontalAlignment="Left" Background="Transparent" Visibility="Visible"
+                         Orientation="Horizontal">
+
+                    <Grid Grid.Row="0" Margin="5,0,0,0" Background="Transparent">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-
-                        <Label Grid.Row="0" Margin="0,0,5,0" Padding="2" VerticalAlignment="Center"
-                               Content="CHART ANALYSIS" FontFamily="Helvetica Neue" FontSize="12" Foreground="White"
-                               MouseDown="OurView_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave" />
-                    </Grid>
-
-                    <Grid Grid.Row="0" Margin="10,0,0,0" Visibility="Collapsed"  Background="Transparent">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <Label Grid.Row="0" Margin="0,0,5,0" Padding="2" VerticalAlignment="Center"
-                               Content="CONDITIONS" FontFamily="Helvetica Neue" FontSize="12" Foreground="White"
-                               MouseDown="Server_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"  />
+                        <Label Grid.Row="0" Margin="0,0,5,0" Padding="2" VerticalAlignment="Center" Cursor="Hand"
+                            Content="AOD" FontFamily="Helvetica Neue" FontSize="12" Foreground="White"
+                            MouseDown="AOD_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"
+                            ToolTip="Analysis on Demand" />
                     </Grid>
 
                     <Grid Grid.Row="0" Margin="10,0,0,0" Background="Transparent">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-
-                        <Label Name="AlertButton" Grid.Row="0" Margin="0,0,5,0" Padding="2"
-                               VerticalAlignment="Center" Content="CONDITION SCANS" FontFamily="Helvetica Neue" FontSize="12"
-                               Foreground="#00ccff"   />
+                        <Label Grid.Row="0" Margin="0,0,5,0" Padding="2" VerticalAlignment="Center" Cursor="Hand"
+                            Content="CHARTS" FontFamily="Helvetica Neue" FontSize="12" Foreground="White"
+                            MouseDown="Charts_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave" />
                     </Grid>
 
-                    <Grid Grid.Row="0" Margin="10,0,0,0" Background="Transparent"  Visibility="Visible" >
+                    <Grid Grid.Row="0" Margin="10,0,0,0" Background="Transparent" Visibility="Visible">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-
-                        <Label x:Name="GlobalMacButton" Grid.Row="0" Margin="0,0,5,0" Padding="2" VerticalAlignment="Center"
-                               Content="GLOBAL HEAT MAP" FontFamily="Helvetica Neue" FontSize="12" Foreground="white"  Visibility="Visible" 
-                               MouseDown="MarketMaps_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave" />
+                        <Label x:Name="GlobalMacButton" Grid.Row="0" Margin="0,0,5,0" Padding="2" VerticalAlignment="Center" Cursor="Hand"
+                            Content="GLOBAL MACRO" FontFamily="Helvetica Neue" FontSize="12" Foreground="White" Visibility="Visible"
+                            MouseDown="MarketMaps_MouseDown" MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave" />
                     </Grid>
+
+                    <Grid Grid.Row="0" Margin="10,0,0,0" Background="Transparent">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Label x:Name="AlertButton" Grid.Row="0" Margin="0,0,5,0" Padding="2" VerticalAlignment="Center" Cursor="Hand"
+                            Content="SCREENS" FontFamily="Helvetica Neue" FontSize="12" Foreground="#00ccff" />
+                    </Grid>
+
+                    <Grid Grid.Row="0" Margin="10,0,0,0" Background="Transparent">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Row="0" Margin="0,0,5,0" Padding="2" VerticalAlignment="Center" Cursor="Hand"
+                            Content="SIGNALS" FontFamily="Helvetica Neue" FontSize="12" Foreground="White"
+                               MouseEnter="OurView_MouseEnter" MouseLeave="OurView_MouseLeave"
+                            MouseDown="Server_MouseDown"  />
+                    </Grid>
+
                 </StackPanel>
 
                 <Grid Name="ChartIntervals" Grid.Row="3" Margin="138,2,0,0" HorizontalAlignment="Right"
@@ -1162,6 +1086,7 @@
                             <RowDefinition Height="25" />
                             <RowDefinition Height="25" />
                             <RowDefinition Height="25" />
+
                         </Grid.RowDefinitions>
 
                         <Label Grid.Row="0" Grid.Column="0" Margin="0,0,0,0" HorizontalAlignment="Left"

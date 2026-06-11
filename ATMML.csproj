@@ -66,7 +66,7 @@
     <Compile Remove="RiskEngineMN.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="Images\CMR_Name_Blueeps.svg" />
+    <None Remove="Images\CMR_ATM_BlueAlpha7.svg" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FlexOneAPI">
@@ -163,7 +163,7 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\A1a.png" />
-    <Resource Include="Images\CMR_Name_Blueeps.svg" />
+    <Resource Include="Images\CMR_ATM_BlueAlpha7.svg" />
     <Resource Include="Images\Left Arrow.png" />
     <Resource Include="Images\printer icon1.png" />
     <Resource Include="Images\printer icon2.png" />

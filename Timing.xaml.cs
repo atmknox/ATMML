@@ -3425,6 +3425,7 @@ namespace ATMML
 			label.Foreground = new SolidColorBrush(Color.FromRgb(0xff, 0xff, 0xff));
 		}
 
+
 		private void FundamentalML_MouseDown(object sender, MouseButtonEventArgs e)
 		{
 			Close();
@@ -3468,6 +3469,12 @@ namespace ATMML
 		{
 			Close();
 			_mainView.Content = new Alerts(_mainView);
+		}
+
+		private void AOD_MouseDown(object sender, MouseButtonEventArgs e)
+		{
+			Close();
+			_mainView.Content = new MarketMonitor(_mainView, true);
 		}
 
 		private void OurView_MouseDown(object sender, MouseButtonEventArgs e)

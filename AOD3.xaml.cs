@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,11 +16,13 @@ using System.Windows.Shapes;
 
 namespace ATMML
 {
+
     public class AOD3Input
     {
         public string Interval = "";
         public string ModelName = "";
         public int ShortTermIndex = 0;
+        public int MidTermIndex = 0;
         public Dictionary<string, bool> SCAddEnbs = new Dictionary<string, bool>();
         public Dictionary<string, object> ReferenceData = new Dictionary<string, object>();
         public List<DateTime> ShortTermTimes = new List<DateTime>();
@@ -28,6 +31,8 @@ namespace ATMML
         public Series[] ShortTermSeries = new Series[4];
         public Series[] MidTermSeries = new Series[4];
         public Series[] LongTermSeries = new Series[4];
+        public List<DateTime> XLTimes = new List<DateTime>();
+        public Series[] XLSeries = new Series[4];
         public Dictionary<DateTime, double> ShortTermPredictions = new Dictionary<DateTime, double>();
         public Dictionary<DateTime, double> ShortTermActuals = new Dictionary<DateTime, double>();
         public Dictionary<DateTime, double> MidTermPredictions = new Dictionary<DateTime, double>();
@@ -35,6 +40,8 @@ namespace ATMML
     }
     public partial class AOD3 : UserControl
     {
+        public string _id = Guid.NewGuid().ToString();
+
         public event OrderEventHandler OrderEvent;
         public event AodEventHandler AodEvent;
 
@@ -44,6 +51,8 @@ namespace ATMML
         private Dictionary<DateTime, double> MidTermActuals = new Dictionary<DateTime, double>();
 
         private bool _next = false;
+
+        public string Id { get { return _id; } }
 
         public AOD3()
         {
@@ -58,16 +67,22 @@ namespace ATMML
 
             IntervalSelector.ItemsSource = Intervals;
             IntervalSelector.Width = 15;
-            IntervalSelector.ToolTip = "Change Intervals";
+            //IntervalSelector.ToolTip = "Click to Change Intervals";
             IntervalSelector.Padding = new Thickness(0, 1, 0, 1);
             IntervalSelector.Height = 13;
             IntervalSelector.Margin = new Thickness(0, 0, 0, 0);
-            IntervalSelector.FontSize = 7;
+            IntervalSelector.FontSize = 9;
             IntervalSelector.Foreground = Brushes.White;
-            IntervalSelector.Background = Brushes.Transparent;
+            
+            IntervalSelector.Background = Brushes.Black;
+            IntervalSelector.BorderBrush = Brushes.Black;
+            var intervalItemStyle = new Style(typeof(ComboBoxItem));
+            intervalItemStyle.Setters.Add(new Setter(ComboBoxItem.ForegroundProperty, Brushes.White));
+            intervalItemStyle.Setters.Add(new Setter(ComboBoxItem.BackgroundProperty, Brushes.Black));
+            IntervalSelector.ItemContainerStyle = intervalItemStyle;
             IntervalSelector.SelectionChanged += Interval_SelectionChanged;
-            var style = Application.Current.Resources["ComboBoxStyle1"] as Style;
-            IntervalSelector.Style = style;
+            //var style = MainView.LoadStyle("ComboBoxStyle1") as Style;  // ATMML LoadStyle is instance; style skipped
+            //IntervalSelector.Style = style;
 
             TickerSymbol.Visibility = Visibility.Visible;
             //TickerSymbol.IsReadOnly = true;
@@ -76,18 +91,20 @@ namespace ATMML
             TickerSymbol.CharacterCasing = CharacterCasing.Upper;
             TickerSymbol.Background = Brushes.Transparent;
             //TickerSymbol.Foreground = new SolidColorBrush(_foregroundColor);
-            TickerSymbol.AllowDrop = true;
+            TickerSymbol.AllowDrop = false;
             TickerSymbol.GotFocus += new RoutedEventHandler(TickerSymbol_GotFocus);
             TickerSymbol.LostFocus += new RoutedEventHandler(TickerSymbol_LostFocus);
             TickerSymbol.PreviewMouseLeftButtonUp += new MouseButtonEventHandler(TickerSymbol_PreviewMouseLeftButtonUp);
             TickerSymbol.PreviewMouseLeftButtonDown += new MouseButtonEventHandler(TickerSymbol_PreviewMouseLeftButtonDown);
-            TickerSymbol.PreviewDrop += new DragEventHandler(TickerSymbol_PreviewDrop);
+            //TickerSymbol.PreviewDrop += new DragEventHandler(TickerSymbol_PreviewDrop);
             TickerSymbol.PreviewKeyDown += TickerSymbol_PreviewKeyDown;
             TickerSymbol.KeyDown += TickerSymbol_KeyDown;
+            //TickerSymbol.ToolTip = "Select to Type New Bloomberg Symbol";
 
             AODPanel.KeyDown += new KeyEventHandler(KeyDown);
             AODPanel.KeyUp += new KeyEventHandler(KeyUp);
             AODPanel.TextInput += new TextCompositionEventHandler(TextInput);
+            AODPanel.MouseWheel += new MouseWheelEventHandler(Scroll);
         }
 
         bool _symbolDrop = false;
@@ -96,10 +113,16 @@ namespace ATMML
         //bool _clearEdit = true;
         bool _editingSymbol = false;
 
+        private void Scroll(object sender, MouseWheelEventArgs e)
+        {
+            e.Handled = true;
+        }
+
         void TickerSymbol_PreviewDrop(object sender, DragEventArgs e)
         {
             TickerSymbol.Text = "";
             _symbolDrop = true;
+            sendAodEvent(new AodEventArgs(AodEventType.Symbol));
         }
 
         void TickerSymbol_LostFocus(object sender, RoutedEventArgs e)
@@ -281,7 +304,7 @@ namespace ATMML
             {
                 if (ii > 0) command += ATMML.Symbol.SpreadCharacter;
                 string symbol = fields[ii].Trim();
-                if (!symbol.Contains(' ') && !Portfolio.isCQGSymbol(symbol))
+                if (!symbol.Contains(' '))
                 {
                     symbol += " US Equity";
                 }
@@ -298,7 +321,7 @@ namespace ATMML
 
         private void processCommand(string command)
         {
-            Symbol = command;
+            symbol = command;
             _editingSymbol = false;
             //_clearEdit = true;
             sendAodEvent(new AodEventArgs(AodEventType.Symbol));
@@ -340,8 +363,6 @@ namespace ATMML
 
         public string Interval { get; set; }
         public string ModelName { get; set; }
-
-
         private void Interval_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var cb = sender as ComboBox;
@@ -350,17 +371,16 @@ namespace ATMML
             {
                 cb.SelectedValue = "";
 
-                if (time == "D") time = "Daily";
-                else if (time == "W") time = "Weekly";
-                else if (time == "M") time = "Monthly";
-                else if (time == "Q") time = "Quarterly";
-                else if (time == "S") time = "SemiAnnually";
-                else if (time == "Y") time = "Yearly";
+                if (time == "D") time = "D";
+                else if (time == "W") time = "W";
+                else if (time == "M") time = "M";
+                else if (time == "Q") time = "Q";
+                else if (time == "S") time = "SA";
+                else if (time == "Y") time = "Y";
                 Interval = time;
                 sendAodEvent(new AodEventArgs(AodEventType.Interval));
             }
         }
-
         private List<string> Intervals
         {
             get
@@ -370,9 +390,15 @@ namespace ATMML
             }
         }
 
+        public void SetSelected(bool on)
+        {
+            RecHighLight.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
+            BlueRec.Visibility = on ? Visibility.Collapsed : Visibility.Visible;
+        }
+
         private void AOD3_MouseLeave(object sender, MouseEventArgs e)
         {
-            BlueRec.Visibility = Visibility.Visible;
+            BlueRec.Visibility = (RecHighLight.Visibility == Visibility.Visible) ? Visibility.Collapsed : Visibility.Visible;
             WhiteRec.Visibility = Visibility.Hidden;
         }
 
@@ -380,6 +406,11 @@ namespace ATMML
         {
             WhiteRec.Visibility = Visibility.Visible;
             BlueRec.Visibility = Visibility.Hidden;
+        }
+
+        public void Highlight(bool on)
+        {
+            RecHighLight.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void sendAodEvent(AodEventArgs e)
@@ -435,24 +466,45 @@ namespace ATMML
         double _referencePrice1 = double.NaN;
         double _referencePrice2 = double.NaN;
 
+        int _direction = 0;
+        public int Direction
+        {
+            get { return _direction; }
+        }
+
+        static bool _advDumped = false;
+
+        private void aodDbg(string msg)
+        {
+            try
+            {
+                var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ATMML_AOD.log");
+                System.IO.File.AppendAllText(path, DateTime.Now.ToString("HH:mm:ss.fff") + "  [AOD3] " + msg + Environment.NewLine);
+            }
+            catch { }
+        }
+
         public void update(AOD3Input input)
         {
             // input
             var interval0 = input.Interval;
             var interval1 = GetOverviewInterval(interval0, 1);
+            var interval2 = GetOverviewInterval(interval0, 2);
             ShortTermInterval = interval0;
             MidTermInterval = interval1;
+            LongTermInterval = interval2;
 
             var scAddEnbs = input.SCAddEnbs;
 
             var referenceData = input.ReferenceData;
             var shortTermTimes = input.ShortTermTimes;
             var midTermTimes = input.MidTermTimes;
-            //var longTermTimes = input.LongTermTimes;
+            var longTermTimes = input.LongTermTimes;
             var shortTermSeries = input.ShortTermSeries;
             var midTermSeries = input.MidTermSeries;
-            //var longTermSeries = input.LongTermSeries;
+            var longTermSeries = input.LongTermSeries;
             int shortTermCurrentBarIndex = input.ShortTermIndex;
+            int midTermCurrentBarIndex = input.MidTermIndex;
 
             ShortTermPredictions = input.ShortTermPredictions;
             ShortTermActuals = input.ShortTermActuals;
@@ -461,8 +513,8 @@ namespace ATMML
             {
                 var stDateCurrent = shortTermTimes[shortTermCurrentBarIndex - 1];
                 var stDateNext = shortTermTimes[shortTermCurrentBarIndex];
-                ShortTermPredictionCurrent = ShortTermPredictions.ContainsKey(stDateCurrent) ? ShortTermPredictions[stDateCurrent] : 0;
-                ShortTermPredictionNext = ShortTermPredictions.ContainsKey(stDateNext) ? ShortTermPredictions[stDateNext] : 0;
+                ShortTermPredictionCurrent = ShortTermPredictions[stDateCurrent];
+                ShortTermPredictionNext = ShortTermPredictions[stDateNext];
             }
 
             updateMatrix(shortTermTimes);
@@ -470,6 +522,7 @@ namespace ATMML
             if (shortTermTimes.Count > 1)
             {
                 Time = shortTermTimes[shortTermCurrentBarIndex];
+                NextTime = shortTermTimes[shortTermCurrentBarIndex + 1];
 
                 ShortTermClose = shortTermSeries[3][shortTermCurrentBarIndex];
                 ShortTermClose1 = shortTermSeries[3][shortTermCurrentBarIndex - 1];
@@ -497,23 +550,86 @@ namespace ATMML
                 ShortTermSTTPDn = stp_st_dn[shortTermCurrentBarIndex];
             }
 
+            var scoreSt = new Series();
             if (shortTermTimes.Count > 0 && midTermTimes.Count > 0)
             {
-                var _scores = calculateScore(shortTermTimes, shortTermSeries, midTermTimes, midTermSeries, interval0);
+                scoreSt = calculateScore(shortTermTimes, shortTermSeries, midTermTimes, midTermSeries, interval0);
 
-                ShortTermScore = _scores[shortTermCurrentBarIndex];
+                ShortTermScore = scoreSt[shortTermCurrentBarIndex];
+            }
+
+            var scoreMt = new Series();
+            if (midTermTimes.Count > 0 && longTermTimes.Count > 0)
+            {
+                scoreMt = calculateScore(midTermTimes, midTermSeries, longTermTimes, longTermSeries, interval1);
             }
 
             Dictionary<string, List<DateTime>> times = new Dictionary<string, List<DateTime>>();
             times[ShortTermInterval] = shortTermTimes;
             times[MidTermInterval] = midTermTimes;
+            times[LongTermInterval] = longTermTimes;
             Dictionary<string, Series[]> bars = new Dictionary<string, Series[]>();
             bars[ShortTermInterval] = shortTermSeries;
             bars[MidTermInterval] = midTermSeries;
-            var intervals = new string[]{ ShortTermInterval, MidTermInterval };
+            bars[LongTermInterval] =longTermSeries;
+            var intervalst = new string[] { ShortTermInterval, MidTermInterval, LongTermInterval };
+            aodDbg("update S=" + ShortTermInterval + " M=" + MidTermInterval + " L=" + LongTermInterval);
+            var intervalmt = new string[] { MidTermInterval, LongTermInterval };
 
             //_advice1 = atm.getAction(Symbol, times, bars, intervals, referenceData, scAddEnbs, shortTermCurrentBarIndex);
-            _advice1 = atm.getAdvice(Symbol, times, bars, intervals, referenceData, scAddEnbs, shortTermCurrentBarIndex);
+            _advice1 = atm.getAdvice(symbol, times, bars, intervalst, referenceData, scAddEnbs, shortTermCurrentBarIndex);
+            aodDbg("getAdvice count=" + (_advice1 == null ? -1 : _advice1.Count));
+            { string _ad = ""; for (int _i = 0; _i < _advice1.Count; _i++) { _ad += "[" + _i + "]" + (_advice1[_i].Item1 ?? "") + " | "; } aodDbg("ADV(" + _advice1.Count + "): " + _ad); }
+            if (!_advDumped) { _advDumped = true; try { var _ms = typeof(atm).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Instance); string _s = ""; foreach (var _m in _ms) { if (_m.Name.IndexOf("dvice", StringComparison.OrdinalIgnoreCase) >= 0 || _m.Name.IndexOf("ction", StringComparison.OrdinalIgnoreCase) >= 0) { string _ps = ""; var _prs = _m.GetParameters(); for (int _pi = 0; _pi < _prs.Length; _pi++) { _ps += _prs[_pi].ParameterType.Name + ","; } _s += _m.Name + "(" + _ps + ") | "; } } aodDbg("ATM METHODS: " + _s); } catch (Exception _ex) { aodDbg("refl EX: " + _ex.Message); } }
+
+            _advice2 = null;
+            try
+            {
+                var interval3 = GetOverviewInterval(interval0, 3);
+                if (interval3 != null && interval3.Length > 0 && midTermTimes.Count > 0 && longTermTimes.Count > 0 && input.XLTimes != null && input.XLTimes.Count > 0)
+                {
+                    var t2 = new Dictionary<string, List<DateTime>>();
+                    t2[interval1] = midTermTimes; t2[interval2] = longTermTimes; t2[interval3] = input.XLTimes;
+                    var b2 = new Dictionary<string, Series[]>();
+                    b2[interval1] = midTermSeries; b2[interval2] = longTermSeries; b2[interval3] = input.XLSeries;
+                    var iv2 = new string[] { interval1, interval2, interval3 };
+                    _advice2 = atm.getAdvice(symbol, t2, b2, iv2, referenceData, scAddEnbs, midTermCurrentBarIndex);
+                }
+                aodDbg("getAdvice MT count=" + (_advice2 == null ? -1 : _advice2.Count));
+            }
+            catch (Exception _e2) { aodDbg("adv2 EX: " + _e2.Message); }
+
+            bool rev = atm.isYieldTicker(symbol);
+
+            // short term trade size
+            TradeSizeSt = 0.0;
+            var barCountSt = times[interval0].Count;
+            var rpSt = Conditions.Calculate("Relative Price", symbol, intervalst, barCountSt, times, bars, referenceData);
+            //var tradest = atm.getTrades(symbol, scoreSt, rpSt, shortTermSeries, scAddEnbs, 0, 0, shortTermCurrentBarIndex, rev).signals;
+            //if (tradest.Count > 0)
+            //{
+                //var t = tradest[tradest.Count - 1];
+                //if (t.ExitIndex == shortTermCurrentBarIndex)
+                //{
+                    //TradeBullishSt = t.Bullish;
+                    //TradeSizeSt = t.Size[shortTermCurrentBarIndex];
+                //}
+            //}
+
+            // mid term trade size
+            TradeSizeMt = 0.0;
+            var barCountMt = times[interval1].Count;
+            var rpMt = Conditions.Calculate("Relative Price", symbol, intervalmt, barCountMt, times, bars, referenceData);
+            //var trademt = atm.getTrades(symbol, scoreMt, rpMt, midTermSeries, scAddEnbs, 0, 0,midTermCurrentBarIndex, rev).signals;
+            //if (trademt.Count > 0)
+            //{
+                //var t = trademt[trademt.Count - 1];
+                //if (t.ExitIndex == midTermCurrentBarIndex)
+                //{
+                    //TradeBullishMt = t.Bullish;
+                    //TradeSizeMt = t.Size[midTermCurrentBarIndex];
+                //}
+            //}
 
             var scenario = getScenario();
             var text1 = scenario.Trim();
@@ -543,8 +659,8 @@ namespace ATMML
                 _referencePrice1 = rp1 + bias;
                 _referencePrice2 = rp2 + bias;
             }
+        aodDbg("update done count=" + (_advice1 == null ? -1 : _advice1.Count));
         }
-
         public string GetOverviewInterval(string interval, int level)
         {
             return Study.getForecastInterval(interval, level);
@@ -562,7 +678,6 @@ namespace ATMML
             else label = interval;
             return label;
         }
-
         private Series calculateScore(List<DateTime> t1, Series[] b1, List<DateTime> t2, Series[] b2, string shortTermInterval)
         {
             Dictionary<string, List<DateTime>> times = new Dictionary<string, List<DateTime>>();
@@ -579,16 +694,19 @@ namespace ATMML
             Dictionary<string, object> referenceData = new Dictionary<string, object>();
 
             string[] intervalList = { shortTermInterval, midTermInterval };
-            return Conditions.Calculate("Score", Symbol, intervalList, barCount, times, bars, referenceData);
+            return Conditions.Calculate("Score", symbol, intervalList, barCount, times, bars, referenceData);
         }
 
-        public string Symbol;
+        public string symbol;
+        public string Symbol { get { return symbol; } set { symbol = value; } }
         public string Description;
         public string PoP;
         public string PxProj;
         public string ShortTermInterval;
         public string MidTermInterval;
+        public string LongTermInterval;
         public DateTime Time;
+        public DateTime NextTime;
 
         public double ShortTermPredictionCurrent;
         public double ShortTermPredictionNext;
@@ -604,11 +722,20 @@ namespace ATMML
         public double ShortTermSTTPDnNext;
         public double ShortTermSTTPDn;
 
+        public bool TradeBullishSt;
+        public bool TradeBullishMt;
+        public double TradeSizeSt = double.NaN;
+        public double TradeSizeMt = double.NaN;
+
         List<Tuple<string, Color>> _advice1 = new List<Tuple<string, Color>>();  // Advice
+        List<Tuple<string, Color>> _advice2 = null;  // MT advice
 
 
         public void Clear()
         {
+            TradeSizeSt = double.NaN;
+            TradeSizeMt = double.NaN;
+
             _accuracy = double.NaN;
 
             ShortTermPredictionCurrent = double.NaN;
@@ -622,33 +749,52 @@ namespace ATMML
             ShortTermFTTPDnNext = 0;
 
             Cl.Content = "";
-            STScore.Content = "";
+            //STScore.Content = "";
 
             _advice1.Clear();
             for (int ii = 0; ii < 5; ii++) _advice1.Add(new Tuple<string, Color>("", Colors.Black));
 
-            STScore.Content = "";
-            STPredict.Text = "";
-            ForecastPrice.Content = "";
-            AdjustedPrice.Content = "";
-            Accuracy.Content = "";
-            StrategyPosition.Content = "";
-            ModelPosition.Content = "";
-            ForecastPosition.Content = "";
+            //STScore.Content = "";
+            //STPredict.Text = "";
+            //ForecastPrice.Content = "";
+            //AdjustedPrice.Content = "";
+            //Accuracy.Content = "";
+            StrategyPosition.Text = "";
+            ModelPosition.Text = "";
+            ForecastPosition.Text = "";
+
+            MTMoMessage.Text = "";
+            STMoMessage.Text = "";
+            PriceMTMessage.Text = "";
+
+            TrendChgWarning.Text = "";
+            MTTrendChgWarning.Text = "";
+
+            NewRec.Text = "";
+
+            MTtrendMessage.Text = "";
+            MTpositionMessage.Text = "";
+
+            STTrendText.Text = "";
+            CurrentRec.Text = "";
         }
 
         private void drawMatrix()
         {
-            Accuracy.Content = (double.IsNaN(_accuracy)) ? "" : (100 * _accuracy).ToString("0.00");
+            //Accuracy.Content = (double.IsNaN(_accuracy)) ? "" : (100 * _accuracy).ToString("0.00");
         }
 
         string getIntervalLabel(string input)
         {
             var output = input;
-            if (input == "Q") output = "Quarterly";
-            else if (input == "M") output = "Month";
-            else if (input == "W") output = "Weekly";
-            else if (input == "D") output = "Daily";
+            if (input != null && input.Length > 0)
+            {
+                if (input == "Quarterly") output = "Q";
+                else if (input == "Monthly") output = "M";
+                else if (input == "Weekly") output = "W";
+                else if (input == "Daily") output = "D";
+                //else if (Char.IsDigit(input[0])) output = input + " M";
+            }
             return output;
         }
 
@@ -692,31 +838,28 @@ namespace ATMML
         double getBias()
         {
             var output = 0.0;
-            var model = MainView.GetModel(ModelName);
-            if (model != null)
-            {
-                var key = Symbol + ":" + Interval;
-                if (model.Biases.ContainsKey(key))
-                {
-                    output = model.Biases[key];
-                }
-            }
+            //var model = MainView.GetModel(ModelName);
+            //if (model != null)
+            //{
+            //    var key = Symbol + ":" + Interval;
+            //    if (model.Biases.ContainsKey(key))
+            //    {
+            //        output = model.Biases[key];
+            //    }
+            //}
             return output;
         }
 
         public void DrawClose(double close0, double close1)
         {
+            bool rev = atm.isYieldTicker(symbol);
+
             ShortTermClose = close0;
             ShortTermClose1 = close1;
 
-            if (ShortTermClose1 > ShortTermClose)
-            {
-                Cl.Foreground = Brushes.Red;
-            }
-            else if (ShortTermClose1 < ShortTermClose)
-            {
-                Cl.Foreground = Brushes.Lime;
-            }
+            var up = ShortTermClose > ShortTermClose1;
+
+            Cl.Foreground = rev ? (up ? Brushes.Red : Brushes.Lime) : (up ? Brushes.Lime : Brushes.Red);
             Cl.Content = (double.IsNaN(ShortTermClose)) ? "" : ShortTermClose.ToString("0.00");
         }
 
@@ -726,91 +869,178 @@ namespace ATMML
             Draw();
         }
 
+        private void drawAdvice28()
+        {
+            try
+            {
+                CurrentTrendInterval.Text = "| " + getIntervalLabel(ShortTermInterval);
+                CurrentAnalysisInterval0.Text = getIntervalLabel(ShortTermInterval);
+                CurrentAnalysisInterval1.Text = getIntervalLabel(ShortTermInterval);
+                CurrentAnalysisIntervalMT.Text = getIntervalLabel(MidTermInterval);
+
+                STTrendText.Text = _advice1[0].Item1;
+                STTrendText.Foreground = new SolidColorBrush(_advice1[0].Item2);
+                StrategyPosition.Text = _advice1[1].Item1;
+                StrategyPosition.Foreground = new SolidColorBrush(_advice1[1].Item2);
+                CurrentRec.Text = _advice1[2].Item1;
+                CurrentRec.Foreground = new SolidColorBrush(_advice1[2].Item2);
+                NewRec.Text = _advice1[3].Item1;
+                NewRec.Foreground = new SolidColorBrush(_advice1[3].Item2);
+                ForecastPosition.Text = _advice1[3].Item1;
+                ForecastPosition.Foreground = new SolidColorBrush(_advice1[3].Item2);
+
+                TrendChgWarning.Visibility = Visibility.Collapsed;
+                MTTrendChgWarning.Text = "";
+
+                if (_advice2 != null && _advice2.Count >= 4)
+                {
+                    MTtrendMessage.Text = _advice2[0].Item1;
+                    MTtrendMessage.Foreground = new SolidColorBrush(_advice2[0].Item2);
+                    MTpositionMessage.Text = _advice2[1].Item1;
+                    MTpositionMessage.Foreground = new SolidColorBrush(_advice2[1].Item2);
+                    PriceMTMessage.Text = _advice2[2].Item1;
+                    PriceMTMessage.Foreground = new SolidColorBrush(_advice2[2].Item2);
+                    MTMoMessage.Text = _advice2[3].Item1;
+                    MTMoMessage.Foreground = new SolidColorBrush(_advice2[3].Item2);
+                }
+            }
+            catch (Exception _e3) { aodDbg("draw28 EX: " + _e3.Message); }
+        }
+
         public void Draw()
         {
             if (ModelName == "No Prediction")
             {
-                Accuracy.Content = ""; 
-                ForecastPrice.Visibility = Visibility.Hidden;
-                STPredict.Visibility = Visibility.Hidden; 
-                AdjustedPrice.Visibility = Visibility.Hidden;
-                Current.Visibility = Visibility.Hidden;
-                Next.Visibility = Visibility.Hidden;
+                //Accuracy.Content = ""; 
+                //ForecastPrice.Visibility = Visibility.Hidden;
+                //STPredict.Visibility = Visibility.Hidden; 
+                //AdjustedPrice.Visibility = Visibility.Hidden;
+                //Current.Visibility = Visibility.Hidden;
+                //Next.Visibility = Visibility.Hidden;
             }
             else
             {
-                ForecastPrice.Visibility = Visibility.Visible;
-                STPredict.Visibility = Visibility.Visible;
-                AdjustedPrice.Visibility = Visibility.Visible;
-                Current.Visibility = Visibility.Visible;
-                Next.Visibility = Visibility.Visible;
+                //ForecastPrice.Visibility = Visibility.Visible;
+                //STPredict.Visibility = Visibility.Visible;
+                //AdjustedPrice.Visibility = Visibility.Visible;
+                //Current.Visibility = Visibility.Visible;
+                //Next.Visibility = Visibility.Visible;
             }
 
-            var activeBrush = new SolidColorBrush(Color.FromRgb(0x00, 0xcc, 0xff));
-            Current.Foreground = _next ? Brushes.White : activeBrush;
-            Next.Foreground = _next ? activeBrush : Brushes.White;
+            //MTUnitSize.Foreground = TradeBullishMt ? Brushes.Lime : Brushes.Red;
+            //MTUnitSize.Content = (TradeSizeMt == 0) ? "" : TradeSizeMt.ToString("##.00");
+            //STUnitSize.Foreground = TradeBullishSt ? Brushes.Lime : Brushes.Red;
+            //STUnitSize.Content = (TradeSizeSt == 0) ? "" : TradeSizeSt.ToString("##.00");
 
-            if (!_editingSymbol) TickerSymbol.Text = Symbol;
-            //Desc.Content = Description;
+            var spread = symbol.Contains(ATMML.Symbol.SpreadCharacter);
+            var ticker = spread ? symbol.Replace(" Index", "") : symbol;
+
+            if (!_editingSymbol) TickerSymbol.Text = ticker;
+            Desc.Content = spread ? "" : Description;
             IntervalText.Text = getIntervalAbbreviation(Interval);
 
-            Model.Content = ModelName;
-            Scenario.Content = getScenario();
+            CurrentDate.Text = Time.ToString("MM/dd");
+            NextDate.Text = NextTime.ToString("MM/dd");
 
-            CurrentPosition.Content = "Current "  + getIntervalLabel(ShortTermInterval) + " Model Position";  //Current Position
-            CurrentRec.Content = "Current "  + getIntervalLabel(ShortTermInterval) + " Model Position Analysis";
-            NewRec.Content = "Next " + getIntervalLabel(ShortTermInterval) + " Model Position Analysis";
-
-            if (_advice1 != null && _advice1.Count >= 5) 
+            if (_advice1 != null && _advice1.Count >= 28 && _advice1.Count < 43) { drawAdvice28(); } else if (_advice1 != null && _advice1.Count >=  43) 
             {
-                StrategyPosition.Content = _advice1[1].Item1;
+                CurrentTrendInterval.Text = "| " + getIntervalLabel(ShortTermInterval);  //Current Psoition
+
+                CurrentAnalysisInterval0.Text = getIntervalLabel(ShortTermInterval);
+                CurrentAnalysisInterval1.Text = getIntervalLabel(ShortTermInterval);
+                CurrentAnalysisIntervalMT.Text = getIntervalLabel(MidTermInterval);
+
+                MTpositionMessage.Text = _advice1[40].Item1;   //Current Position 
+                CurrentRec.Text = _advice1[34].Item1;  //Current Rec
+                NewRec.Text = _advice1[41].Item1;
+
+                MTtrendMessage.Text = _advice1[42].Item1;
+                MTtrendMessage.Foreground = new SolidColorBrush(_advice1[42].Item2);
+
+
+                STTrendText.Text = _advice1[0].Item1;
+                STTrendText.Foreground = new SolidColorBrush(_advice1[0].Item2);
+                //CurrentTrendText.Text = _advice1[0].Item1;
+                //CurrentTrendText.Foreground = new SolidColorBrush(_advice1[0].Item2);
+
+                //TickerSymbol.Foreground = new SolidColorBrush(_advice1[34].Item2);
+                MTpositionMessage.Foreground = new SolidColorBrush(_advice1[40].Item2);
+                CurrentRec.Foreground = new SolidColorBrush(_advice1[34].Item2);
+                //PriceRec.ToolTip = _advice1[40].Item1;
+                //CurrentRec.ToolTip = _advice1[34].Item1;
+
+                StrategyPosition.Text = _advice1[1].Item1;
                 StrategyPosition.Foreground = new SolidColorBrush(_advice1[1].Item2);
-                ModelPosition.Content = _advice1[2].Item1;
+                ModelPosition.Text = _advice1[2].Item1;
                 ModelPosition.Foreground = new SolidColorBrush(_advice1[2].Item2);
-                ForecastPosition.Content = _advice1[3].Item1;
+                ForecastPosition.Text = _advice1[3].Item1;
                 ForecastPosition.Foreground = new SolidColorBrush(_advice1[3].Item2);
-                PressureMessage.Content = _advice1[4].Item1;
-                PressureMessage.Foreground = new SolidColorBrush(_advice1[4].Item2);
+                TrendChgWarning.Text = _advice1[28].Item1;
+                //TrendChgWarning.ToolTip = _advice1[29].Item1;
+                TrendChgWarning.Visibility = (_advice1[28].Item1.Length == 0) ? Visibility.Collapsed : Visibility.Visible;
+                MTMoMessage.Text = _advice1[4].Item1;
+                MTMoMessage.Foreground = new SolidColorBrush(_advice1[4].Item2);
+                PriceMTMessage.Text = _advice1[35].Item1;
+                PriceMTMessage.Foreground = new SolidColorBrush(_advice1[35].Item2);
+                MTTrendChgWarning.Text = _advice1[36].Item1;
+                //MTTrendChgWarning.ToolTip = _advice1[37].Item1;
+                MTTrendChgWarning.Visibility = (_advice1[36].Item1.Length == 0) ? Visibility.Collapsed : Visibility.Visible;
+                STMoMessage.Text = _advice1[38].Item1;
+                STMoMessage.Foreground = new SolidColorBrush(_advice1[38].Item2);
             }
 
             drawMatrix();
 
-            var prediction = _next ? ShortTermPredictionNext : ShortTermPredictionCurrent;
-            STPredict.Text = double.IsNaN(prediction) ? "" : (prediction > 0) ? "\u25B2" : "\u25BC";
-            STPredict.Foreground = double.IsNaN(prediction) ? Brushes.Transparent : (prediction > 0) ? Brushes.Lime : Brushes.Red;
-            ForecastPrice.Content = _forecastPriceType;
-            var referencePrice = _next ? _referencePrice2 : _referencePrice1;
-            AdjustedPrice.Content = double.IsNaN(referencePrice) ? "" : referencePrice.ToString("0.00") + " | Acc";
+            //var prediction = _next ? ShortTermPredictionNext : ShortTermPredictionCurrent;
+            //STPredict.Text = double.IsNaN(prediction) ? "" : (prediction > 0) ? "\u25B2" : "\u25BC";
+            //STPredict.Foreground = double.IsNaN(prediction) ? Brushes.Transparent : (prediction > 0) ? Brushes.Lime : Brushes.Red;
+            //ForecastPrice.Content = _forecastPriceType;
+            //var referencePrice = _next ? _referencePrice2 : _referencePrice1;
+            //AdjustedPrice.Content = double.IsNaN(referencePrice) ? "" : referencePrice.ToString("0.00") + " | Acc";
 
-            if (ShortTermClose1 > ShortTermClose)
+            //if (ShortTermClose1 > ShortTermClose)
+            //{
+            //    Cl.Foreground = Brushes.Red;
+            //}
+            //else if (ShortTermClose1 < ShortTermClose)
+            //{
+            //    Cl.Foreground = Brushes.Lime;
+            //}
+            //Cl.Content = (double.IsNaN(ShortTermClose)) ? "" : MainView.getValueText(Symbol, ShortTermClose);
+
+            //var ClosetoClose = 100 * (ShortTermClose - ShortTermClose1) / ShortTermClose;
+            //if (ShortTermClose1 > ShortTermClose)
+            //{
+            //    //clToCl.Foreground = Brushes.Red;
+            //}
+            //else if (ShortTermClose1 < ShortTermClose)
+            //{
+            //    //clToCl.Foreground = Brushes.Lime;
+            //}
+            ////clToCl.Content = (double.IsNaN(ClosetoClose)) ? "" : ClosetoClose.ToString("0.00");
+
+            //char ch1 = '\u2b63';
+            //char ch2 = '\u2b62';
+
+            //STScore.Content = (double.IsNaN(ShortTermScore)) ? "" : ShortTermScore.ToString("0.00");
+
+            //if (ShortTermScore > 50) { STScore.Foreground = Brushes.Lime; }
+            //else if (ShortTermScore <= 50) { STScore.Foreground = Brushes.Red; }
+            //else if (ShortTermScore <= 0) { STScore.Foreground = Brushes.Transparent; }
+
+            if (_advice1.Count > 3)
             {
-                Cl.Foreground = Brushes.Red;
+                var dirCur = (_advice1[2].Item2 == Colors.DarkOrange) ? 2 : (_advice1[2].Item2 == Colors.Violet) ? -2 : (_advice1[2].Item2 == Colors.Lime) ? 1 : (_advice1[2].Item2 == Colors.Red) ? -1 : 0;
+                var dirNxt = (_advice1[3].Item2 == Colors.DarkOrange) ? 2 : (_advice1[3].Item2 == Colors.Violet) ? -2 : (_advice1[3].Item2 == Colors.Lime) ? 1 : (_advice1[3].Item2 == Colors.Red) ? -1 : 0;
+                var direction = (dirCur != 0) ? dirCur : dirNxt;
+                if (direction != _direction)
+                {
+                    _direction = direction;
+                    //var e = new AodEventArgs(AodEventType.Alert);
+                    //e.Direction = direction;
+                    //sendAodEvent(e);
+                }
             }
-            else if (ShortTermClose1 < ShortTermClose)
-            {
-                Cl.Foreground = Brushes.Lime;
-            }
-            Cl.Content = (double.IsNaN(ShortTermClose)) ? "" : ShortTermClose.ToString("0.00");
-
-            var ClosetoClose = 100 * (ShortTermClose - ShortTermClose1) / ShortTermClose;
-            if (ShortTermClose1 > ShortTermClose)
-            {
-                //clToCl.Foreground = Brushes.Red;
-            }
-            else if (ShortTermClose1 < ShortTermClose)
-            {
-                //clToCl.Foreground = Brushes.Lime;
-            }
-            //clToCl.Content = (double.IsNaN(ClosetoClose)) ? "" : ClosetoClose.ToString("0.00");
-
-            char ch1 = '\u2b63';
-            char ch2 = '\u2b62';
-
-            STScore.Content = (double.IsNaN(ShortTermScore)) ? "" : ShortTermScore.ToString("0.00");
-
-            if (ShortTermScore > 50) { STScore.Foreground = Brushes.Lime; }
-            else if (ShortTermScore <= 50) { STScore.Foreground = Brushes.Red; }
-            else if (ShortTermScore <= 0) { STScore.Foreground = Brushes.Transparent; }
         }
 
         private class AnalysisInfo
@@ -841,8 +1071,9 @@ namespace ATMML
         private void OurView_MouseLeave(object sender, MouseEventArgs e)
         {
             var label = sender as Control;
-            var active = (label == Current && !_next) || (label == Next && _next);
-            if (!active) label.Foreground = new SolidColorBrush(Color.FromRgb(0xff, 0xff, 0xff));
+            //var active = (label == Current && !_next) || (label == Next && _next);
+            //if (!active) label.Foreground = new SolidColorBrush(Color.FromRgb(0xff, 0xff, 0xff));
+            label.Foreground = new SolidColorBrush(Color.FromRgb(0xff, 0xff, 0xff));
         }
 
         private void CloseAOD_MouseDown(object sender, MouseButtonEventArgs e)
@@ -888,15 +1119,27 @@ namespace ATMML
 
         public void Close()
         {
+            TickerSymbol.KeyDown -= TickerSymbol_KeyDown;
             TickerSymbol.GotFocus -= new RoutedEventHandler(TickerSymbol_GotFocus);
             TickerSymbol.LostFocus -= new RoutedEventHandler(TickerSymbol_LostFocus);
             TickerSymbol.PreviewMouseLeftButtonUp -= new MouseButtonEventHandler(TickerSymbol_PreviewMouseLeftButtonUp);
             TickerSymbol.PreviewMouseLeftButtonDown -= new MouseButtonEventHandler(TickerSymbol_PreviewMouseLeftButtonDown);
             TickerSymbol.PreviewDrop -= new DragEventHandler(TickerSymbol_PreviewDrop);
+
+            AODPanel.KeyDown -= new KeyEventHandler(KeyDown);
+            AODPanel.KeyUp -= new KeyEventHandler(KeyUp);
+            AODPanel.TextInput -= new TextCompositionEventHandler(TextInput);
+            AODPanel.MouseWheel -= new MouseWheelEventHandler(Scroll);
+
+            MouseEnter -= AOD3_MouseEnter;
+            MouseLeave -= AOD3_MouseLeave;
+
+            IntervalSelector.SelectionChanged -= Interval_SelectionChanged;
         }
 
         private void MouseRec_MouseDown(object sender, MouseButtonEventArgs e)
         {
+
             sendAodEvent(new AodEventArgs(AodEventType.Chart));
         }
     }

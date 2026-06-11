@@ -1,0 +1,201 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+
+namespace ATMML
+{
+    // Stage 2 / increment 1: AOD "pages" â€” named sets of monitors with a tab bar.
+    // Adapted from the ATM-PRO MarketMonitor to feed ATMML's existing _aods / drawAod()
+    // / engine, rather than the ATM-PRO per-page draw loop. Persistence matches ATM-PRO:
+    //   "aod pages"        -> tab-separated list of page GUIDs
+    //   "aod {guid}"       -> line 0 = page name, then symbol\tdesc\tinterval\tmodel per monitor
+    public partial class MarketMonitor
+    {
+        Guid _aodPageId;
+        List<AODPage> _aodPages = new List<AODPage>();
+
+        private AODPage getAodPage(Guid id) { return _aodPages.Find(x => x.Id == id); }
+        private AODPage getActivePage() { return getAodPage(_aodPageId); }
+
+        // Parse monitors for a page from a user-data tag (name line is skipped via >=4 fields).
+        private List<AOD3> getPageAods(string tag)
+        {
+            var aods = new List<AOD3>();
+            var text = (tag.Length > 0) ? MainView.LoadUserData(tag) : "";
+            foreach (var line in text.Split('\n'))
+            {
+                if (line.Length == 0) continue;
+                var fields = line.Split('\t');
+                if (fields.Length >= 4)
+                {
+                    var aod1 = new AOD3();
+                    aod1.Symbol = fields[0];
+                    aod1.Description = fields[1];
+                    aod1.Interval = (fields.Length > 2) ? fields[2] : "D";
+                    aod1.ModelName = (fields.Length > 3) ? fields[3] : "";
+                    if (aod1.ModelName == "") aod1.ModelName = _modelName;
+                    aod1.PoP = "1.0";
+                    aod1.MouseRightButtonUp += AOD_Capture;
+                    aods.Add(aod1);
+                }
+            }
+            return aods;
+        }
+
+        private string getDefaultAodPageName()
+        {
+            var names = _aodPages.Select(x => x.Name).ToList();
+            for (int ii = 1; ii < 1000; ii++)
+            {
+                var name = "aods " + ii;
+                if (!names.Contains(name)) return name;
+            }
+            return "aods";
+        }
+
+        private AODPage loadAODPage(Guid id)
+        {
+            var tag = "aod " + id.ToString();
+            var text = MainView.LoadUserData(tag);
+            var fields = text.Split('\n');
+            var name = (fields.Length >= 1 && fields[0].Length > 0) ? fields[0] : getDefaultAodPageName();
+            var page = new AODPage(name);
+            page.Id = id;
+            page.Aods = getPageAods(tag);
+            return page;
+        }
+
+        private void saveAODPage(Guid id)
+        {
+            var page = getAodPage(id);
+            if (page == null) return;
+            var text = page.Name + "\n";
+            page.Aods.ForEach(x => text += x.Symbol + "\t" + x.Description + "\t" + x.Interval + "\t" + x.ModelName + "\n");
+            MainView.SaveUserData("aod " + id.ToString(), text);
+        }
+
+        private void saveAODPages()
+        {
+            var text = "";
+            foreach (var page in _aodPages) { text += page.Id.ToString() + "\t"; saveAODPage(page.Id); }
+            MainView.SaveUserData("aod pages", text);
+        }
+
+        private void createNewPage(string tag)
+        {
+            var page = new AODPage(getDefaultAodPageName());
+            if (tag == "aods")
+            {
+                // legacy import: reuse ATMML's existing flat-monitor loader, then snapshot
+                loadAODs();
+                page.Aods = new List<AOD3>(_aods);
+            }
+            else
+            {
+                page.Aods = getPageAods(tag);
+            }
+            _aodPageId = page.Id;
+            _aodPages.Add(page);
+            saveAODPages();
+        }
+
+        private void activateAODs()
+        {
+            var page = getActivePage();
+            _aods = (page != null) ? page.Aods : new List<AOD3>();
+            _aods.ForEach(x => { x.AodEvent -= handleAodEvent; x.AodEvent += handleAodEvent; });
+        }
+
+        private void deactivateAODs()
+        {
+            _aods.ForEach(x => x.AodEvent -= handleAodEvent);
+        }
+
+        private void loadAODPages()
+        {
+            _aodPages.Clear();
+            var text = MainView.LoadUserData("aod pages");
+            foreach (var id in text.Split('\t'))
+            {
+                if (id.Length == 0) continue;
+                Guid g;
+                if (Guid.TryParse(id, out g))
+                {
+                    var page = loadAODPage(g);
+                    if (page != null) _aodPages.Add(page);
+                }
+            }
+            if (_aodPages.Count == 0) createNewPage("aods");
+
+            _aodPageId = _aodPages[0].Id;
+            activateAODs();
+            drawAodPageList();
+            drawAod();
+            requestAODIndexBars();
+        }
+
+        private void changeSelectedAODPage(Guid id)
+        {
+            deactivateAODs();
+            _aodPageId = id;
+            activateAODs();
+            drawAodPageList();
+            drawAod();
+            requestAODIndexBars();
+        }
+
+        private void drawAodPageList()
+        {
+            var active = getActivePage();
+            if (active != null && PageName != null) PageName.Content = active.Name;
+
+            if (PageList == null) return;
+            PageList.Children.Clear();
+            foreach (var page in _aodPages.OrderBy(x => x.Name))
+            {
+                var l1 = new Label();
+                l1.Foreground = (page.Id == _aodPageId)
+                    ? new SolidColorBrush(Color.FromRgb(0x00, 0xcc, 0xff))
+                    : Brushes.White;
+                l1.FontSize = 12;
+                l1.FontWeight = FontWeights.Medium;
+                l1.VerticalAlignment = VerticalAlignment.Top;
+                l1.Margin = new Thickness(0, 0, 5, 0);
+                l1.Content = page.Name;
+                l1.Cursor = Cursors.Hand;
+                l1.Tag = page.Id;
+                l1.MouseDown += AODPageMenu_MouseDown;
+                PageList.Children.Add(l1);
+            }
+        }
+
+        private void AODPageMenu_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            var label = sender as Label;
+            if (label == null || !(label.Tag is Guid)) return;
+            changeSelectedAODPage((Guid)label.Tag);
+        }
+
+        // Page add/modify UI is increment 1b; stub keeps the XAML handler binding valid.
+        private void AODPageSetup_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+        }
+    }
+
+    public class AODPage
+    {
+        public AODPage(string name)
+        {
+            Id = Guid.NewGuid();
+            Name = name;
+        }
+
+        public Guid Id;
+        public string Name;
+        public List<AOD3> Aods = new List<AOD3>();
+    }
+}

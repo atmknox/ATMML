@@ -3766,6 +3766,14 @@ namespace ATMML
 					// Compliance: generate exception and audit reports
 					ExceptionReportPdf.Generate(DateTime.UtcNow.AddDays(-30), DateTime.MaxValue);
 					AuditReportPdf.Generate(DateTime.UtcNow.AddDays(-30), DateTime.MaxValue);
+					// [NavBarRestore] After the run rebuilds the view, re-show the Setup tab bar for Admins.
+					// Deferred at Background priority so it lands after the queued loadModel/updateModelData above.
+					Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() =>
+					{
+					    if (ATMML.Auth.AuthContext.Current.IsAdmin && !_suppressTISetup)
+					        TISetup.Visibility = Visibility.Visible;
+					}));
+
 					// Reset pre-order flag on every fresh run so the user sees the
 					// current portfolio preview before pressing Send Orders to FlexOne.
 					_liveOrdersSent = false;
@@ -5851,7 +5859,8 @@ namespace ATMML
 				//    graphData = series1.Data;
 				//    secondPortfolioValues = series2.Data;
 				//}
-				drawChart(_monthlyReturnGraph, FundamentalChartCurveType.Histogram, portfolioTimes, null, useHedgeCurve ? _portfolioHedgeMonthValues : graphData, null, null, secondPortfolioValues, _portfolioRegimes);
+				_ddOverlay = (_useDD && !useHedgeCurve) ? ComputeDDMonthly(_portfolioValues, _portfolioTimes, _portfolioMonthValues, _portfolioMonthTimes) : null;
+                drawChart(_monthlyReturnGraph, FundamentalChartCurveType.Histogram, portfolioTimes, null, useHedgeCurve ? _portfolioHedgeMonthValues : graphData, null, null, secondPortfolioValues, _portfolioRegimes);
 				// Clear the histogram's internal cursor so no vertical cursor line is drawn.
 				try { _monthlyReturnGraph.CursorTime = default(DateTime); } catch { }
 
@@ -5860,7 +5869,212 @@ namespace ATMML
 			}
 		}
 
-		private void drawReturnChart()
+		// Display-only DD/recovery overlay. Re-walks the weekly cumulative-return
+        // series through the same stop/reduction/recovery logic as IdeaCalculator
+        // and returns an adjusted cumulative-return series aligned 1:1 with the
+        // input. Comparison only - never alters stored values or statistics.
+        // Builds DD-adjusted (navs, returns, cumulative, monthly) series from the live
+        // series, so getStatistics() can produce DD risk/performance figures in the
+        // exact house methodology. No DD trigger => series identical to live.
+        private bool TryBuildDDSeries(out List<double> ddNavs, out List<double> ddRets, out List<double> ddVals, out List<double> ddMonths)
+        {
+            ddNavs = null; ddRets = null; ddVals = null; ddMonths = null;
+            try
+            {
+                var vals = _portfolioValues;
+                var rets = _portfolioReturns;
+                var navs = _portfolioNavs;
+                if (vals == null || vals.Count < 2) return false;
+
+                const double stop1 = 2.5, stop2 = 4.0, stop3 = 6.0;
+                const double red1 = 50.0, red2 = 75.0, red3 = 100.0;
+                const double rec1 = 25.0, rec2 = 50.0;
+                const int per1 = 2, per2 = 4, per3 = 6;
+
+                int n = vals.Count;
+                var enterRisk = new double[n];
+                var adjVals = new List<double>(n);
+                double pv = 1.0, hwm = 1.0, lastWeekPv = 1.0, prevCumFactor = 1.0;
+                double riskPercent = 100.0, reduction = 0.0;
+                int exitLevel = 0, consecPos = 0;
+
+                for (int i = 0; i < n; i++)
+                {
+                    enterRisk[i] = riskPercent;
+                    double curCumFactor = 1.0 + vals[i] / 100.0;
+                    double rawR = curCumFactor / prevCumFactor - 1.0;
+                    prevCumFactor = curCumFactor;
+                    pv *= (1.0 + (riskPercent / 100.0) * rawR);
+                    adjVals.Add((pv - 1.0) * 100.0);
+
+                    if (pv > hwm) { hwm = pv; exitLevel = 0; }
+                    bool e1 = pv < (100 - stop1) / 100.0 * hwm;
+                    bool e2 = pv < (100 - stop2) / 100.0 * hwm;
+                    bool e3 = pv < (100 - stop3) / 100.0 * hwm;
+                    if (e3 && exitLevel <= 2) { exitLevel = 3; consecPos = 0; lastWeekPv = pv; reduction = red3; riskPercent = 5; }
+                    else if (e2 && exitLevel <= 1) { exitLevel = 2; consecPos = 0; lastWeekPv = pv; reduction = red2; riskPercent = 100 - reduction; }
+                    else if (e1 && exitLevel == 0) { exitLevel = 1; consecPos = 0; lastWeekPv = pv; reduction = red1; riskPercent = 100 - reduction; }
+                    if (exitLevel > 0 && riskPercent < 100)
+                    {
+                        consecPos = pv > lastWeekPv ? consecPos + 1 : 0;
+                        lastWeekPv = pv;
+                        double basePct = 100 - reduction;
+                        if (consecPos >= per3) { riskPercent = 100; exitLevel = 0; hwm = pv; }
+                        else if (consecPos >= per2) riskPercent = basePct + reduction * (rec2 / 100.0);
+                        else if (consecPos >= per1) riskPercent = basePct + reduction * (rec1 / 100.0);
+                    }
+                }
+
+                // Adjusted period returns: scale each period by entering risk (fractional returns).
+                ddRets = new List<double>(n);
+                if (rets != null && rets.Count == n)
+                {
+                    for (int i = 0; i < n; i++) ddRets.Add((enterRisk[i] / 100.0) * rets[i]);
+                }
+                else
+                {
+                    double prevF = 1.0;
+                    for (int i = 0; i < n; i++)
+                    {
+                        double curF = 1.0 + adjVals[i] / 100.0;
+                        ddRets.Add(curF / prevF - 1.0);
+                        prevF = curF;
+                    }
+                }
+
+                // Adjusted navs: base nav scaled by adjusted cumulative factor (max DD is ratio-based).
+                double baseNav = (navs != null && navs.Count > 0 && !double.IsNaN(navs[0]) && navs[0] > 0) ? navs[0] : 1000000.0;
+                ddNavs = new List<double>(n);
+                for (int i = 0; i < n; i++) ddNavs.Add(baseNav * (1.0 + adjVals[i] / 100.0));
+
+                ddVals = adjVals;
+                ddMonths = ComputeDDMonthly(_portfolioValues, _portfolioTimes, _portfolioMonthValues, _portfolioMonthTimes);
+                if (ddMonths == null) ddMonths = _portfolioMonthValues;
+                return true;
+            }
+            catch { ddNavs = null; ddRets = null; ddVals = null; ddMonths = null; return false; }
+        }
+
+        private List<double> ComputeDDCumulative(List<double> cumPct)
+        {
+            try
+            {
+                if (cumPct == null || cumPct.Count == 0) return null;
+                const double stop1 = 2.5, stop2 = 4.0, stop3 = 6.0;
+                const double red1 = 50.0, red2 = 75.0, red3 = 100.0;
+                const double rec1 = 25.0, rec2 = 50.0;
+                const int per1 = 2, per2 = 4, per3 = 6;
+
+                var outp = new List<double>();
+                double pv = 1.0, hwm = 1.0, lastWeekPv = 1.0, prevCumFactor = 1.0;
+                double riskPercent = 100.0, reduction = 0.0;
+                int exitLevel = 0, consecPos = 0;
+
+                for (int i = 0; i < cumPct.Count; i++)
+                {
+                    double curCumFactor = 1.0 + cumPct[i] / 100.0;
+                    double rawR = curCumFactor / prevCumFactor - 1.0;
+                    prevCumFactor = curCumFactor;
+
+                    pv *= (1.0 + (riskPercent / 100.0) * rawR);
+                    outp.Add((pv - 1.0) * 100.0);
+
+                    if (pv > hwm) { hwm = pv; exitLevel = 0; }
+                    bool e1 = pv < (100 - stop1) / 100.0 * hwm;
+                    bool e2 = pv < (100 - stop2) / 100.0 * hwm;
+                    bool e3 = pv < (100 - stop3) / 100.0 * hwm;
+                    if (e3 && exitLevel <= 2) { exitLevel = 3; consecPos = 0; lastWeekPv = pv; reduction = red3; riskPercent = 5; }
+                    else if (e2 && exitLevel <= 1) { exitLevel = 2; consecPos = 0; lastWeekPv = pv; reduction = red2; riskPercent = 100 - reduction; }
+                    else if (e1 && exitLevel == 0) { exitLevel = 1; consecPos = 0; lastWeekPv = pv; reduction = red1; riskPercent = 100 - reduction; }
+                    if (exitLevel > 0 && riskPercent < 100)
+                    {
+                        consecPos = pv > lastWeekPv ? consecPos + 1 : 0;
+                        lastWeekPv = pv;
+                        double basePct = 100 - reduction;
+                        if (consecPos >= per3) { riskPercent = 100; exitLevel = 0; hwm = pv; }
+                        else if (consecPos >= per2) riskPercent = basePct + reduction * (rec2 / 100.0);
+                        else if (consecPos >= per1) riskPercent = basePct + reduction * (rec1 / 100.0);
+                    }
+                }
+                return outp;
+            }
+            catch { return null; }
+        }
+
+        // Adjusted monthly returns for the histogram, consistent with the line
+        // overlay: builds the DD-adjusted weekly NAV path then resamples it onto
+        // the month grid (last weekly point on/before each month date).
+        private List<double> ComputeDDMonthly(List<double> weeklyCumPct, List<DateTime> weeklyTimes,
+                                              List<double> monthValues, List<DateTime> monthTimes)
+        {
+            try
+            {
+                if (weeklyCumPct == null || weeklyTimes == null || monthValues == null || monthTimes == null) return null;
+                if (weeklyCumPct.Count == 0 || weeklyTimes.Count != weeklyCumPct.Count) return null;
+                if (monthValues.Count == 0 || monthValues.Count != monthTimes.Count) return null;
+
+                const double stop1 = 2.5, stop2 = 4.0, stop3 = 6.0;
+                const double red1 = 50.0, red2 = 75.0, red3 = 100.0;
+                const double rec1 = 25.0, rec2 = 50.0;
+                const int per1 = 2, per2 = 4, per3 = 6;
+
+                // Per-week entering riskPercent from the DD state machine (== 100 when no limit hit).
+                var enterRisk = new double[weeklyCumPct.Count];
+                double pv = 1.0, hwm = 1.0, lastWeekPv = 1.0, prevCumFactor = 1.0;
+                double riskPercent = 100.0, reduction = 0.0;
+                int exitLevel = 0, consecPos = 0;
+
+                for (int i = 0; i < weeklyCumPct.Count; i++)
+                {
+                    enterRisk[i] = riskPercent; // risk in effect during week i
+                    double curCumFactor = 1.0 + weeklyCumPct[i] / 100.0;
+                    double rawR = curCumFactor / prevCumFactor - 1.0;
+                    prevCumFactor = curCumFactor;
+                    pv *= (1.0 + (riskPercent / 100.0) * rawR);
+
+                    if (pv > hwm) { hwm = pv; exitLevel = 0; }
+                    bool e1 = pv < (100 - stop1) / 100.0 * hwm;
+                    bool e2 = pv < (100 - stop2) / 100.0 * hwm;
+                    bool e3 = pv < (100 - stop3) / 100.0 * hwm;
+                    if (e3 && exitLevel <= 2) { exitLevel = 3; consecPos = 0; lastWeekPv = pv; reduction = red3; riskPercent = 5; }
+                    else if (e2 && exitLevel <= 1) { exitLevel = 2; consecPos = 0; lastWeekPv = pv; reduction = red2; riskPercent = 100 - reduction; }
+                    else if (e1 && exitLevel == 0) { exitLevel = 1; consecPos = 0; lastWeekPv = pv; reduction = red1; riskPercent = 100 - reduction; }
+                    if (exitLevel > 0 && riskPercent < 100)
+                    {
+                        consecPos = pv > lastWeekPv ? consecPos + 1 : 0;
+                        lastWeekPv = pv;
+                        double basePct = 100 - reduction;
+                        if (consecPos >= per3) { riskPercent = 100; exitLevel = 0; hwm = pv; }
+                        else if (consecPos >= per2) riskPercent = basePct + reduction * (rec2 / 100.0);
+                        else if (consecPos >= per1) riskPercent = basePct + reduction * (rec1 / 100.0);
+                    }
+                }
+
+                // Effective monthly risk = average entering-risk of that calendar month's weeks.
+                // No limit hit => every week is 100 => every bar unchanged.
+                var sumByMonth = new Dictionary<int, double>();
+                var cntByMonth = new Dictionary<int, int>();
+                for (int i = 0; i < weeklyTimes.Count; i++)
+                {
+                    int key = weeklyTimes[i].Year * 100 + weeklyTimes[i].Month;
+                    if (!sumByMonth.ContainsKey(key)) { sumByMonth[key] = 0.0; cntByMonth[key] = 0; }
+                    sumByMonth[key] += enterRisk[i];
+                    cntByMonth[key] += 1;
+                }
+
+                var outp = new List<double>();
+                for (int m = 0; m < monthValues.Count; m++)
+                {
+                    int key = monthTimes[m].Year * 100 + monthTimes[m].Month;
+                    double scale = (cntByMonth.ContainsKey(key) && cntByMonth[key] > 0) ? (sumByMonth[key] / cntByMonth[key]) : 100.0;
+                    outp.Add((scale / 100.0) * monthValues[m]);
+                }
+                return outp;
+            }
+            catch { return null; }
+        }
+
+        private void drawReturnChart()
 		{
 			List<double> graphData = _portfolioValues; // Cumulative Return
 			if (_graphDataType == "ALPHA") graphData = getAlpha();
@@ -5950,7 +6164,8 @@ namespace ATMML
 			//}
 
 			List<double> compareToValues = getCompareToValues();
-			drawChart(_mainReturnGraph, FundamentalChartCurveType.Line, portfolioTimes, (_graphDataType == "CUMULATIVE RETURN") ? _benchmarkValues : null, graphData, compareToValues, portfolioHedgeValues, secondPortfolioValues, _portfolioRegimes);
+			_ddOverlay = (_useDD && _graphDataType == "CUMULATIVE RETURN" && graphData != null) ? ComputeDDCumulative(graphData) : null;
+            drawChart(_mainReturnGraph, FundamentalChartCurveType.Line, portfolioTimes, (_graphDataType == "CUMULATIVE RETURN") ? _benchmarkValues : null, graphData, compareToValues, portfolioHedgeValues, secondPortfolioValues, _portfolioRegimes);
 		}
 
 		private List<double> getCompareToValues()
@@ -6320,7 +6535,11 @@ namespace ATMML
 				}
 
 				var useHedgeCurve = (isTradingModel(model.Name) && _useHedgeCurve);
-				var stat1 = getStatistics(_portfolioNavs, _portfolioReturns, useHedgeCurve ? _portfolioHedgeValues : _portfolioValues, useHedgeCurve ? _portfolioHedgeMonthValues : _portfolioMonthValues);
+				Statistics stat1;
+                if (_useDD && TryBuildDDSeries(out var ddNavs, out var ddRets, out var ddVals, out var ddMonths))
+                    stat1 = getStatistics(ddNavs, ddRets, ddVals, ddMonths);
+                else
+                    stat1 = getStatistics(_portfolioNavs, _portfolioReturns, useHedgeCurve ? _portfolioHedgeValues : _portfolioValues, useHedgeCurve ? _portfolioHedgeMonthValues : _portfolioMonthValues);
 
 				Return90Valueb.Content = (double.IsNaN(stat1.Return90)) ? "" : stat1.Return90.ToString("##.00");
 				Return180Valueb.Content = (double.IsNaN(stat1.Return180)) ? "" : stat1.Return180.ToString("##.00");
@@ -6349,6 +6568,17 @@ namespace ATMML
 				//BetaValue2.Content = (double.IsNaN(stat1.Beta)) ? "" : stat1.Beta.ToString("##.00");
 
 				MaximumDD.Content = (double.IsNaN(stat1.MaxDrawDown)) ? "" : stat1.MaxDrawDown.ToString("##.00");
+
+                // DD risk/perf override: replace Portfolio Measurements with adjusted figures.
+                if (_useDD)
+                {
+                    annRet1.Content = double.IsNaN(stat1.AnnRet) ? "" : (object)Math.Round(stat1.AnnRet, 2);
+                    annVol1.Content = double.IsNaN(stat1.AnnVol) ? "" : (object)Math.Round(stat1.AnnVol, 2);
+                    maxDD1.Content = double.IsNaN(stat1.MaxDrawDown) ? "" : (object)Math.Round(-stat1.MaxDrawDown, 2);
+                    sharpeRatio.Content = double.IsNaN(stat1.Sharpe) ? "" : (object)Math.Round(stat1.Sharpe, 2);
+                    sortinoRatio.Content = double.IsNaN(stat1.Sortino) ? "" : (object)Math.Round(stat1.Sortino, 2);
+                    calmarRatio.Content = (double.IsNaN(stat1.AnnRet) || stat1.MaxDrawDown == 0.0) ? "" : (object)Math.Round(stat1.AnnRet / stat1.MaxDrawDown, 2);
+                }
 				DailyMaximumDD.Content = (double.IsNaN(stat1.DailyMaxDrawDown)) ? "" : stat1.DailyMaxDrawDown.ToString("##.00");
 				WeeklyMaximumDD.Content = (double.IsNaN(stat1.WeeklyMaxDrawDown)) ? "" : stat1.WeeklyMaxDrawDown.ToString("##.00");
 				MonthlyMaximumDD.Content = (double.IsNaN(stat1.MonthlyMaxDrawDown)) ? "" : stat1.MonthlyMaxDrawDown.ToString("##.00");
@@ -6791,6 +7021,9 @@ namespace ATMML
 
 		private void FundamentalML_MouseDown(object sender, MouseButtonEventArgs e)
 		{
+			UserFactorModelGrid.Visibility = Visibility.Visible;
+			TIPositions22.Visibility = Visibility.Collapsed;
+			PerformanceBlue.Visibility = Visibility.Collapsed;
 			showPortfolioSetup();
 		}
 
@@ -8762,7 +8995,14 @@ namespace ATMML
 					graph.AddCurve(curve5);
 				}
 
-				graph.Draw();
+				if (_ddOverlay != null && _ddOverlay.Count > 0 && times != null && _ddOverlay.Count == times.Count)
+                {
+                    FundamentalChartCurve ddCurve = new FundamentalChartCurve(curveType, _ddOverlay);
+                    ddCurve.Brush = new SolidColorBrush(Color.FromRgb(0xff, 0xd5, 0x00)); // DD overlay (yellow)
+                    graph.AddCurve(ddCurve);
+                }
+                graph.Draw();
+                _ddOverlay = null;
 			}
 		}
 
@@ -10467,9 +10707,15 @@ namespace ATMML
 						showPortfolioSetup();   // already redirects non-Admin to rebalance grid
 						break;
 					case InitialView.PortfolioManagement:
+						UserFactorModelGrid.Visibility = Visibility.Collapsed;
+						TIPositions22.Visibility = Visibility.Visible;
+						PerformanceBlue.Visibility = Visibility.Collapsed;
 						GoToOrderManagement();
 						break;
 					case InitialView.PortfolioPerformance:
+						UserFactorModelGrid.Visibility = Visibility.Collapsed;
+						TIPositions22.Visibility = Visibility.Collapsed;
+						PerformanceBlue.Visibility = Visibility.Visible;
 						GoToPerformance();
 						break;
 				}
@@ -10514,8 +10760,8 @@ namespace ATMML
 
 			var V = Visibility.Visible;
 			var C = Visibility.Collapsed;
-			var defaultMargin = new System.Windows.Thickness(10, -50, 10, 4);
-			var tightMargin   = new System.Windows.Thickness(2, -50, 10, 4);
+			var defaultMargin = new System.Windows.Thickness(10, 0, 10, 4);
+			var tightMargin   = new System.Windows.Thickness(2, 0, 10, 4);
 
 			if (isViewer)
 			{
@@ -11018,6 +11264,9 @@ namespace ATMML
 			//    _accuracyView.Close();
 			//    _accuracyView = null;
 			//}
+			UserFactorModelGrid.Visibility = Visibility.Collapsed;
+			TIPositions22.Visibility = Visibility.Collapsed;
+			PerformanceBlue.Visibility = Visibility.Visible;
 
 			GoToPerformance();
 		}
@@ -11081,6 +11330,10 @@ namespace ATMML
 			//    _accuracyView.Close();
 			//    _accuracyView = null;
 			//}
+
+			UserFactorModelGrid.Visibility = Visibility.Collapsed;
+			TIPositions22.Visibility = Visibility.Visible;
+			PerformanceBlue.Visibility = Visibility.Collapsed;
 
 			GoToOrderManagement();
 		}
@@ -11592,7 +11845,7 @@ namespace ATMML
 				// Check if model is locked
 				var dataFolder = MainView.GetDataFolder();
 				var decisionLockPath = dataFolder + @"\decisionlock\" + name;
-				bool isLocked = Directory.Exists(decisionLockPath) || model.IsLiveMode;
+				bool isLocked = Directory.Exists(decisionLockPath) && Directory.GetFiles(decisionLockPath, "*.csv").Length > 0;
 
 				if (isLocked)
 				{
@@ -11615,6 +11868,13 @@ namespace ATMML
 						MessageBoxImage.Warning);
 					return;
 				}
+
+				// --- Name guards: block default placeholder + duplicate names (before save) ---
+				var _nameGrid = UserFactorModelPanel1.SelectedItem as Grid;
+				var _nameTb = _nameGrid?.Children[0] as TextBox;
+				var _newName = (_nameTb?.Text ?? name).Trim();
+				if (!ValidateModelNameForSave(_newName, name))
+				    return;
 
 				MessageBoxResult result = System.Windows.MessageBox.Show("Are you sure you wish to save changes " + name + "?", "Confirm Save", MessageBoxButton.YesNo, MessageBoxImage.Question);
 				if (result == MessageBoxResult.Yes)
@@ -11639,6 +11899,45 @@ namespace ATMML
 					checkMLModel();
 				}
 			}
+		}
+
+		private bool ValidateModelNameForSave(string newName, string currentName)
+		{
+		    newName = (newName ?? "").Trim();
+
+		    // 1. Reject blank or the default placeholder name (PORTFOLIO 1, PORTFOLIO 2, ...).
+		    if (newName.Length == 0 ||
+		        System.Text.RegularExpressions.Regex.IsMatch(
+		            newName, "^PORTFOLIO\\s+\\d+$",
+		            System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+		    {
+		        MessageBox.Show(
+		            "Please rename this portfolio before saving.\n\n'" + newName +
+		            "' is the default placeholder name and cannot be used. Give the portfolio a unique name first.",
+		            "Rename Required",
+		            MessageBoxButton.OK,
+		            MessageBoxImage.Warning);
+		        return false;
+		    }
+
+		    // 2. Reject a name already in the portfolio list (unless re-saving the same model).
+		    if (!string.Equals(newName, currentName, System.StringComparison.OrdinalIgnoreCase))
+		    {
+		        var existing = MainView.getModelNames();
+		        if (existing.Any(n => string.Equals(n, newName, System.StringComparison.OrdinalIgnoreCase)))
+		        {
+		            MessageBox.Show(
+		                "A portfolio named '" + newName + "' already exists.\n\n" +
+		                "Please choose a different name, or delete the existing '" + newName +
+		                "' portfolio before saving with this name.",
+		                "Duplicate Name",
+		                MessageBoxButton.OK,
+		                MessageBoxImage.Warning);
+		            return false;
+		        }
+		    }
+
+		    return true;
 		}
 
 		private void saveModel(string name = "")
@@ -12694,7 +12993,7 @@ namespace ATMML
 		private Grid MakeGroupHeader(string text)
 		{
 			var header = new Grid();
-			header.Background = new SolidColorBrush(Color.FromRgb(0x0d, 0x2b, 0x45));
+			header.Background = Brushes.Transparent;
 			header.Width = 117;
 			header.Margin = new Thickness(0);
 			header.HorizontalAlignment = HorizontalAlignment.Center;
@@ -17093,7 +17392,13 @@ namespace ATMML
 		//{
 		//    drawReturnChart();
 		//}
-		private void BenchmarkCurve_Checked(object sender, RoutedEventArgs e)
+		private void UseDD_Click(object sender, RoutedEventArgs e)
+        {
+            _useDD = (UseDDCheck != null && UseDDCheck.IsChecked == true);
+            try { updateModelData(); } catch { }
+        }
+
+        private void BenchmarkCurve_Checked(object sender, RoutedEventArgs e)
 		{
 			drawReturnChart();
 		}
@@ -17108,6 +17413,10 @@ namespace ATMML
 		//}
 
 		bool _useHedgeCurve = false;
+
+        // USE DD overlay state (display-only DD/recovery comparison)
+        bool _useDD = false;
+        List<double> _ddOverlay = null;
 
 		//private void HedgeCurve_Checked(object sender, RoutedEventArgs e)
 		//{

@@ -1,4 +1,4 @@
-﻿//using System.Management.Automation;
+//using System.Management.Automation;
 //using Microsoft.CodeAnalysis;
 //using Microsoft.ML.Probabilistic.Collections;
 using BetaNeutralRiskEngine;
@@ -2960,7 +2960,7 @@ namespace ATMML
 
 							var direction = openTrades.ContainsKey(openKey) ? openTrades[openKey].Direction : 0;
 							var noSize = useRiskEngine && riskSizes[riskKey] == 0;
-							var mmScale = 1.0;
+							var mmScale = moneyManagementEnable ? riskPercent / 100.0 : 1.0;
 
 							// BUG FIX: Process dividends using corrected helper method
 							// Uses actual shares at ex-date, prevents duplicates, clear direction handling

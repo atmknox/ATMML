@@ -2897,7 +2897,38 @@ namespace ATMML
 
 		private void Alert_MouseDown(object sender, MouseButtonEventArgs e)
 		{
-			Flash.Manager.RemoveFlash(AlertButton);
+			Close();
+			_mainView.Content = new Alerts(_mainView);
+		}
+		private void MarketMaps_MouseDown(object sender, MouseButtonEventArgs e)
+		{
+			Close();
+			_mainView.Content = new MarketMonitor(_mainView);
+		}
+
+
+		private void RebalanceView_MouseDown(object sender, MouseButtonEventArgs e)
+		{
+			Close();
+			_mainView.Content = new PortfolioBuilder(_mainView, "", PortfolioBuilder.InitialView.PortfolioManagement);
+		}
+
+		private void Performance_MouseDown(object sender, MouseButtonEventArgs e)
+		{
+			Close();
+			_mainView.Content = new PortfolioBuilder(_mainView, "", PortfolioBuilder.InitialView.PortfolioPerformance);
+		}
+
+		private void Charts_MouseDown(object sender, MouseButtonEventArgs e)
+		{
+			Close();
+			_mainView.Content = new Charts(_mainView);
+		}
+
+		private void AOD_MouseDown(object sender, MouseButtonEventArgs e)
+		{
+			Close();
+			_mainView.Content = new MarketMonitor(_mainView, true);
 		}
 
 		//private void GlobalCost_MouseDown(object sender, MouseButtonEventArgs e)
@@ -2951,11 +2982,7 @@ namespace ATMML
 			_mainView.Content = new PortfolioBuilder(_mainView);
 		}
 
-		private void MarketMaps_MouseDown(object sender, MouseButtonEventArgs e)
-		{
-			Close();
-			_mainView.Content = new MarketMonitor(_mainView);
-		}
+
 
 		private static Window? GetOwnerWindow(DependencyObject? context)
 		{
