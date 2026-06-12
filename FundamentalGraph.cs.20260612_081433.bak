@@ -1,4 +1,4 @@
-using RiskEngineMNParity;
+﻿using RiskEngineMNParity;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -990,42 +990,6 @@ namespace ATMML
 			return output;
 		}
 
-		// [HistBarHitTest] Right-anchored histogram bars (see drawCurves Histogram block)
-		// span (getXPixel(index) - _xScale, getXPixel(index)] - the bar right edge sits on
-		// the line point, so inverting getXPixel needs a CEILING, not the round/floor used
-		// elsewhere. Returns the bar painted time and value at canvas pixel x, or false.
-		public bool TryGetHistogramBarAtPixel(double xPixel, out DateTime time, out double value)
-		{
-			time  = default(DateTime);
-			value = double.NaN;
-			if (_times == null || _times.Count == 0 || _xScale <= 0 || _xMaxCnt <= 0) return false;
-
-			FundamentalChartCurve hist = null;
-			foreach (var curve in _curves)
-			{
-				if (curve.Type == FundamentalChartCurveType.Histogram) { hist = curve; break; }
-			}
-			if (hist == null) return false;
-
-			int xIndexOffset = hist.ValueCount - _xMaxCnt;
-
-			// index = ii + xIndexOffset; getXPixel(index) = _xOffset + _xScale * (index - _xMin),
-			// with _xMin = _index1. Solve for ii at the bar right edge, then ceil so the whole
-			// slot to the LEFT of the line point resolves to this bar.
-			double q = (xPixel - _xOffset) / _xScale - xIndexOffset + _xMin;
-			int ii = (int)Math.Ceiling(q);
-			if (ii < _index1) ii = _index1;
-			if (ii > _index2 - 1) ii = _index2 - 1;
-			if (ii < 0 || ii >= _times.Count) return false;
-
-			double v = hist.GetValue(ii + xIndexOffset);
-			if (double.IsNaN(v)) return false;
-
-			time  = _times[ii];
-			value = v;
-			return true;
-		}
-
 		private void drawCurves()
 		{
 			if (_width > 0 && _height > 0)
@@ -1082,8 +1046,8 @@ namespace ATMML
 							{
 								// Center the bar in its time slot: getXPixel(index) returns the
 								// LEFT edge of the slot; WPF Line is drawn centered on its X
-								// coordinate; subtract _xScale/2 to right-anchor the bar (right edge on the line point).
-								double x1 = getXPixel(index) - _xScale / 2.0; // [HistBarAnchor] right-anchor: bar right edge = line point getXPixel(index), so the bar sits under that week's line segment and the line-end/cursor land on the bar edge
+								// coordinate, so add _xScale/2 to place it in the middle.
+								double x1 = getXPixel(index) + _xScale / 2.0;
 								double y2 = getYPixel(v1);
 
 								if (!double.IsNaN(y1) && !double.IsNaN(y2))

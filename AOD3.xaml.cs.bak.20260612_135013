@@ -875,11 +875,10 @@ namespace ATMML
                 STTrendText.Foreground = new SolidColorBrush(_advice1[0].Item2);
                 StrategyPosition.Text = _advice1[1].Item1;
                 StrategyPosition.Foreground = new SolidColorBrush(_advice1[1].Item2);
-                CurrentRec.Text = _advice1[1].Item1;
-                CurrentRec.Foreground = new SolidColorBrush(_advice1[1].Item2);
-                ModelPosition.Text = _advice1[2].Item1;
-                ModelPosition.Foreground = new SolidColorBrush(_advice1[2].Item2);
-                NewRec.Text = "";
+                CurrentRec.Text = _advice1[2].Item1;
+                CurrentRec.Foreground = new SolidColorBrush(_advice1[2].Item2);
+                NewRec.Text = _advice1[3].Item1;
+                NewRec.Foreground = new SolidColorBrush(_advice1[3].Item2);
                 ForecastPosition.Text = _advice1[3].Item1;
                 ForecastPosition.Foreground = new SolidColorBrush(_advice1[3].Item2);
 

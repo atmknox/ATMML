@@ -67,16 +67,6 @@ namespace ATMML
             return true;
         }
 
-        // Returns true when the order belongs to the strategy currently selected
-        // in CmbStrategy. "(All)" (or an empty selection) matches every order, so
-        // the toolbar shows whole-book totals.
-        private bool MatchesStrategyFilter(WorkingOrder o)
-        {
-            var sel = CmbStrategy.SelectedItem as string;
-            if (string.IsNullOrEmpty(sel) || sel == "(All)") return true;
-            return o.Strategy == sel;
-        }
-
         private void RefreshView()
         {
             var current = CmbStrategy.SelectedItem as string;
@@ -92,18 +82,15 @@ namespace ATMML
 
             _view.Refresh();
 
-            // Toolbar counts reflect the active strategy filter (All = whole book).
-            int staged  = _bridge.Orders.Count(o => o.IsStaged && MatchesStrategyFilter(o));
-            int working = _bridge.Orders.Count(o => o.IsActive && !o.IsStaged && MatchesStrategyFilter(o));
+            int staged = _bridge.StagedCount;
+            int working = _bridge.GetWorkingOrders().Count() - staged;
             TxtStagedCount.Text = staged.ToString();
             TxtActiveCount.Text = working.ToString();
 
-            // Submit-bar state is driven by the WHOLE book: SubmitStagedAsync and
-            // DiscardAllStaged act on every staged order regardless of the filter.
-            int totalStaged = _bridge.StagedCount;
-            BtnSendOrders.IsEnabled = totalStaged > 0;
-            BtnDiscardStaged.IsEnabled = totalStaged > 0;
-            UpdateSubmitStatus(totalStaged);
+            // Submit-bar state
+            BtnSendOrders.IsEnabled = staged > 0;
+            BtnDiscardStaged.IsEnabled = staged > 0;
+            UpdateSubmitStatus(staged);
         }
 
         private void UpdateSubmitStatus(int staged)
@@ -134,7 +121,7 @@ namespace ATMML
             OrderGrid.SelectedItems.OfType<WorkingOrder>().ToList();
 
         // ---------------------------------------------------------------
-        // SEND ORDERS â€” submits all Staged orders
+        // SEND ORDERS — submits all Staged orders
         // ---------------------------------------------------------------
         private async void BtnSendOrders_Click(object sender, RoutedEventArgs e)
         {
@@ -149,7 +136,7 @@ namespace ATMML
                     "Orders cannot be placed before 3:00 PM.\n" +
                     "The 3:00 PM signal run is the authoritative trade list.\n\n" +
                     "Run the model again at or after 3:00 PM to send final orders.",
-                    "âš  Cannot Place Trades Before 3:00 PM",
+                    "⚠ Cannot Place Trades Before 3:00 PM",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
@@ -176,7 +163,7 @@ namespace ATMML
             if (confirm != MessageBoxResult.Yes) return;
 
             BtnSendOrders.IsEnabled = false;
-            TxtSubmitStatus.Text = "Submittingâ€¦";
+            TxtSubmitStatus.Text = "Submitting…";
             TxtSubmitStatus.Foreground = System.Windows.Media.Brushes.PaleGreen;
 
             try
@@ -188,7 +175,7 @@ namespace ATMML
                 {
                     var failures = string.Join("\n",
                         result.Details.Where(d => !d.Success)
-                                      .Select(d => $"  â€¢ {d.Ticker}: {d.Message}"));
+                                      .Select(d => $"  • {d.Ticker}: {d.Message}"));
                     MessageBox.Show(
                         $"Orders placed: {result.OrdersPlaced}\n" +
                         $"Orders failed: {result.OrdersFailed}\n\n" +
@@ -208,7 +195,7 @@ namespace ATMML
             {
                 TxtStatus.Text = $"Submit error: {ex.Message}";
                 MessageBox.Show($"Submission failed:\n\n{ex.Message}",
-                                "âŒ FlexOne Error",
+                                "❌ FlexOne Error",
                                 MessageBoxButton.OK, MessageBoxImage.Error);
             }
             RefreshView();
@@ -221,7 +208,7 @@ namespace ATMML
 
             if (MessageBox.Show(
                     $"Discard {staged} staged order(s)?\n\n" +
-                    "Nothing has been submitted yet â€” this just clears the staged list.",
+                    "Nothing has been submitted yet — this just clears the staged list.",
                     "Discard Staged",
                     MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
                 return;
@@ -232,7 +219,7 @@ namespace ATMML
         }
 
         // ---------------------------------------------------------------
-        // Cancel â€” works for both Staged (discard) and working (OMS cancel)
+        // Cancel — works for both Staged (discard) and working (OMS cancel)
         // ---------------------------------------------------------------
         private async void BtnCancelSelected_Click(object sender, RoutedEventArgs e)
         {

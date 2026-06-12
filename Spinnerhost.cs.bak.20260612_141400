@@ -104,7 +104,7 @@ namespace ATMML
 			ShowInTaskbar = false;
 			DoubleBuffered = true;
 
-			var text = "Loading Application...";
+			var text = "Loading CMR Portfolios...";
 			var font = new Font("Segoe UI Light", 18f, FontStyle.Bold);
 			var textSize = TextRenderer.MeasureText(text, font);
 

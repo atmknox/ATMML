@@ -6467,7 +6467,7 @@
                     <!-- USE DD overlay toggle (display-only DD/recovery comparison) -->
                     <CheckBox x:Name="UseDDCheck" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5"
                               Margin="6,2,0,0" Padding="2,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-                              Content="USE DD" Foreground="White" FontFamily="Helvetica Neue" FontSize="10"
+                              Content="USE DD" Foreground="#FFD500" FontFamily="Helvetica Neue" FontSize="10"
                               Click="UseDD_Click" />
                     <Grid Name="ReturnTableb" Grid.Row="2" Grid.ColumnSpan="5" Visibility="Visible">
                         <Grid.RowDefinitions>

@@ -124,13 +124,13 @@ namespace ATMML
 		private DateTime _lastGridRefreshTime = DateTime.MinValue;
 		private DateTime _lastPerfCursorTime = default(DateTime); // last cursor time user explicitly set on perf chart
 		private double _liveMtMBalance = 0.0; // cached live MtM balance, updated by drawPortfolioGrid
-		private Dictionary<string, (double price, DateTime ts)> _rtPrices = new Dictionary<string, (double, DateTime)>(); // PRICE_LAST per ticker (works on delayed + RT feeds) Ã¢â‚¬â€ timestamped for 3-min TTL
+		private Dictionary<string, (double price, DateTime ts)> _rtPrices = new Dictionary<string, (double, DateTime)>(); // PRICE_LAST per ticker (works on delayed + RT feeds) â€” timestamped for 3-min TTL
 		private HashSet<string> _pendingRtTickers = new HashSet<string>(); // tickers waiting for Symbol event before RT subscribe
 		private Dictionary<string, double> _lastKnownPrices = new Dictionary<string, double>(); // latest prices from drawPortfolioGrid
 		DispatcherTimer _portfolioTimer = new DispatcherTimer();
 		DispatcherTimer _testTimer = new DispatcherTimer();
 
-		// Ã¢â€â‚¬Ã¢â€â‚¬ Diagnostic logger Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+		// â”€â”€ Diagnostic logger â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		// File-based logging that ALWAYS writes regardless of Debug/Release build.
 		// System.Diagnostics.Debug.WriteLine is stripped at compile time in Release
 		// (the [Conditional("DEBUG")] attribute removes the call entirely), which is
@@ -138,7 +138,7 @@ namespace ATMML
 		// deployed build. This logger appends to a file that can be opened with any
 		// text viewer while the app is running.
 		//
-		// Path: NEXT TO THE EXE Ã¢â‚¬â€ uses AppDomain.CurrentDomain.BaseDirectory which
+		// Path: NEXT TO THE EXE â€” uses AppDomain.CurrentDomain.BaseDirectory which
 		// always returns the directory the running .exe was loaded from. For Rick's
 		// deployed build that resolves to:
 		//   C:\Users\Admin\Documents\ATMML\bin\Debug\net8.0-windows\PBDiagnostic.log
@@ -152,16 +152,16 @@ namespace ATMML
 		private static readonly object _diagLogLock = new object();
 		private static readonly string _diagLogPath = ResolveDiagLogPath();
 
-		// RT subscription diagnostics Ã¢â‚¬â€ tracks the lifecycle of the PRICE_LAST stream
+		// RT subscription diagnostics â€” tracks the lifecycle of the PRICE_LAST stream
 		// so we can see whether Bloomberg is delivering ongoing ticks or just initial
 		// snapshots. Counters are atomic (Interlocked) because Bloomberg events arrive
 		// on background threads. Per-ticker first/last tick timestamps would be more
-		// detail than we need right now Ã¢â‚¬â€ aggregate counts + time-since-last is enough
+		// detail than we need right now â€” aggregate counts + time-since-last is enough
 		// to distinguish "stream is dead" from "stream is alive but quiet."
 		//
 		// Two parallel counter sets because PRICE_LAST events can arrive on EITHER
-		// _livePortfolio (the dedicated RT instance Ã¢â‚¬â€ fed by RequestReferenceData
-		// PRICE_LAST subscribe=true) OR _portfolio1 (the main instance Ã¢â‚¬â€ fed as a
+		// _livePortfolio (the dedicated RT instance â€” fed by RequestReferenceData
+		// PRICE_LAST subscribe=true) OR _portfolio1 (the main instance â€” fed as a
 		// side effect of _barCache.RequestBars subscribe=true bar-tick delivery).
 		// We need to know which path is actually carrying the live data so we
 		// instrument them separately. The "p1" suffix = portfolio1 path.
@@ -181,7 +181,7 @@ namespace ATMML
 		// PRICE_LAST handlers fire from this path. drawPortfolioGrid reads the latest
 		// bar Close via _barCache.GetBars and writes _lastKnownPrices, which getCurrentPrice
 		// then returns. If barChanged stops firing, _lastKnownPrices stops updating, livePnL
-		// freezes Ã¢â‚¬â€ exactly the observed symptom.
+		// freezes â€” exactly the observed symptom.
 		private static long _diagBarChangedCount = 0;      // total barChanged callbacks (any ticker, any interval)
 		private static long _diagBarChangedLiveCount = 0;  // BarsReceived events specifically while in live mode
 		private static DateTime _diagLastBarChanged = DateTime.MinValue;
@@ -197,7 +197,7 @@ namespace ATMML
 		// the existing _subscribedBarTickers gate prevented any retry. This
 		// dictionary + the re-arm loop converts a one-shot subscribe into a
 		// self-healing one. Cost: a quiet ticker (no trades in 30s during
-		// market hours) triggers one redundant resubscribe Ã¢â‚¬â€ bounded by the
+		// market hours) triggers one redundant resubscribe â€” bounded by the
 		// 10-sec Timer_tick cycle, so worst case ~6 resubs/min across all
 		// quiet tickers, well under quota concern.
 		private static Dictionary<string, DateTime> _lastBarTickPerKey = new Dictionary<string, DateTime>();
@@ -234,13 +234,13 @@ namespace ATMML
 				// File-only: deliberately NOT writing to System.Diagnostics.Debug.WriteLine
 				// so our diagnostic stream doesn't appear in Visual Studio's Output window
 				// alongside other unrelated debug output. PBDiagnostic.log is the single
-				// authoritative destination Ã¢â‚¬â€ anyone wanting to view our diagnostics opens
+				// authoritative destination â€” anyone wanting to view our diagnostics opens
 				// that file directly.
 			}
 			catch
 			{
 				// Never let logging crash anything. Silent failure is the right
-				// trade-off here Ã¢â‚¬â€ no log line is strictly better than a tick crash.
+				// trade-off here â€” no log line is strictly better than a tick crash.
 			}
 		}
 
@@ -271,7 +271,7 @@ namespace ATMML
 		private Dictionary<string, string> industryPercents;
 		private Dictionary<string, string> subIndustryPercents;
 		// Signed net per group (longs - shorts) / NAV. Parallel to the magnitude string
-		// dicts above Ã¢â‚¬â€ kept separate so the existing display strings and SetInfo export
+		// dicts above â€” kept separate so the existing display strings and SetInfo export
 		// to MainView stay backward-compatible while LoadTiles can color tiles by sign.
 		private Dictionary<string, double> _sectorNet      = new Dictionary<string, double>();
 		private Dictionary<string, double> _industryNet    = new Dictionary<string, double>();
@@ -282,32 +282,32 @@ namespace ATMML
 		private double _lastLongExposure = 0;
 		private double _lastShortExposure = 0;
 
-		// Ã¢â€â‚¬Ã¢â€â‚¬ Alert engine state (moved from Timing) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+		// â”€â”€ Alert engine state (moved from Timing) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		// Populated in step 3 once buildAlertSnapshot / updateAlerts are wired
-		// into PB's live-price refresh loop. Until then these stay inert Ã¢â‚¬â€
+		// into PB's live-price refresh loop. Until then these stay inert â€”
 		// nothing reads them and no code path touches _alertController.
 		private AlertController _alertController;
 		private AlertComputeResult _latestAlerts;
 		private readonly AlertLimits _limits = AlertLimits.Default;
 
-		// Intraday drawdown baseline Ã¢â‚¬â€ captured on first refresh of each
+		// Intraday drawdown baseline â€” captured on first refresh of each
 		// trading day; drives IntradayDD alert via (NAV - openNAV) / openNAV.
 		private double _navAtSessionStart = 0;
 		private DateTime _navSessionDate = DateTime.MinValue;
 
-		// Ticker Ã¢â€ â€™ market cap in millions USD. Populated from Bloomberg
+		// Ticker â†’ market cap in millions USD. Populated from Bloomberg
 		// CUR_MKT_CAP reference data; consumed by cap-tier aggregation.
 		private readonly Dictionary<string, double> _marketCapCache = new Dictionary<string, double>();
 
-		// Idempotent bar-subscription gate Ã¢â‚¬â€ prevents per-tick resubscribes
+		// Idempotent bar-subscription gate â€” prevents per-tick resubscribes
 		// to _barCache for ADV-history bars when updateAlerts runs repeatedly.
 		private readonly HashSet<string> _subscribedBarTickers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-		// Gates _livePortfolio.RequestSymbols Ã¢â‚¬â€ a ticker registered once stays
+		// Gates _livePortfolio.RequestSymbols â€” a ticker registered once stays
 		// registered for the session, so re-firing on model switches is wasted
 		// quota (and triggers duplicate downstream RequestReferenceData). Same
 		// pattern as Timing.xaml.cs _rtSubscribedTickers.
 		private readonly HashSet<string> _rtSubscribedTickers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-		// Gates requestReferenceData(model.Symbols) Ã¢â‚¬â€ issuing REL_INDEX requests once
+		// Gates requestReferenceData(model.Symbols) â€” issuing REL_INDEX requests once
 		// per model per session is enough; the resulting subscriptions stream while
 		// the session is alive. Re-firing on every loadModel invocation (which can
 		// happen many times per session) would burn Bloomberg quota.
@@ -360,7 +360,7 @@ namespace ATMML
 			_mainView = mainView;
 
 			if (_mainView == null)
-				Console.WriteLine("Ã¢Å¡Â Ã¯Â¸Â MainView was null (testing mode)");
+				Console.WriteLine("âš ï¸ MainView was null (testing mode)");
 
 			Loaded += PortfolioBuilder_Loaded;
 
@@ -369,7 +369,7 @@ namespace ATMML
 			_mainReturnGraph = new FundamentalGraph(PositionsChart);
 			_monthlyReturnGraph = new FundamentalGraph(TotalReturnGraph);
 			_monthlyReturnGraph.ShowTimeScale = false;
-			// Histogram cursor fix Ã¢â‚¬â€ overlay approach:
+			// Histogram cursor fix â€” overlay approach:
 			// FundamentalGraph registers its cursor-draw handlers with handledEventsToo=true,
 			// so setting e.Handled = true on PreviewMouseMove does not stop it.
 			// Solution: place a transparent Canvas overlay ON TOP of TotalReturnGraph inside
@@ -384,7 +384,7 @@ namespace ATMML
 					Background = System.Windows.Media.Brushes.Transparent,
 					IsHitTestVisible = true
 				};
-				// Floating tooltip Ã¢â‚¬â€ restores the legacy mouseover behavior.
+				// Floating tooltip â€” restores the legacy mouseover behavior.
 				_histTooltip = new System.Windows.Controls.ToolTip
 				{
 					Placement       = System.Windows.Controls.Primitives.PlacementMode.Relative,
@@ -403,10 +403,10 @@ namespace ATMML
 				System.Windows.Controls.ToolTipService.SetShowDuration(histOverlay, 60000);
 				histOverlay.MouseMove  += Histogram_PreviewMouseMove;
 				histOverlay.MouseLeave += Histogram_MouseLeave;
-				histGrid.Children.Add(histOverlay);          // overlay on top Ã¢â‚¬â€ absorbs mouse
+				histGrid.Children.Add(histOverlay);          // overlay on top â€” absorbs mouse
 				TotalReturnChartBorder.Child = histGrid;
 			}
-			// GraphEvent not subscribed Ã¢â‚¬â€ hover is handled manually above.
+			// GraphEvent not subscribed â€” hover is handled manually above.
 			// _monthlyReturnGraph.GraphEvent += _monthlyReturnGraphEvent;
 			_mainReturnGraph.GraphEvent += _mainReturnGraphEvent;
 
@@ -478,7 +478,7 @@ namespace ATMML
 			_portfolioTimer.Tick += new EventHandler(Timer_tick);
 			_portfolioTimer.Start();
 
-			// Startup marker Ã¢â‚¬â€ fires exactly once when PB initializes. If this line
+			// Startup marker â€” fires exactly once when PB initializes. If this line
 			// appears in PBDiagnostic.log, the deployed build IS the diagnostic build.
 			// If the file exists but has no startup line, an older build is running
 			// (deploy didn't take effect). If the file doesn't exist at all, either
@@ -553,7 +553,7 @@ namespace ATMML
 		private void _mainReturnGraph_PropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
 			// Clicking/dragging the return graph sets the holdings cursor.
-			// Only switch to Order Management for roles that can access it Ã¢â‚¬â€
+			// Only switch to Order Management for roles that can access it â€”
 			// Viewer lacks OM access entirely, so for Viewer we just update
 			// the cursor without switching views.
 			if (ATMML.Auth.AuthContext.Current.CanAccessOrderManagement)
@@ -570,7 +570,7 @@ namespace ATMML
 		// potential trades before the 3:00 PM deadline on subsequent runs.
 		bool _liveOrdersSent = false;
 
-		// FlexOne rebalance state Ã¢â‚¬â€ populated by drawPortfolioGrid() on pre-order Friday,
+		// FlexOne rebalance state â€” populated by drawPortfolioGrid() on pre-order Friday,
 		// consumed by SendOrders_MouseDown() when the button is pressed after 3:00 PM.
 		private List<Trade> _flexEnteredTrades = new List<Trade>();
 		private List<Trade> _flexExitedTrades = new List<Trade>();
@@ -584,7 +584,7 @@ namespace ATMML
 		// Returns true when we are on a live rebalance Friday BEFORE 3:00 PM and
 		// orders have not yet been sent.  DataGrid1, counts, and balance must all
 		// reflect the CURRENT (pre-rebalance) portfolio until one of these is true:
-		//   (a) the clock passes 3:00 PM  Ã¢â‚¬â€ gate lifts automatically, or
+		//   (a) the clock passes 3:00 PM  â€” gate lifts automatically, or
 		//   (b) Send Orders to FlexOne is pressed before 3:00 PM (not allowed).
 		private bool IsLiveFridayPreOrder()
 		{
@@ -596,7 +596,7 @@ namespace ATMML
 				&& !_liveOrdersSent;
 		}
 
-		// Extends IsLiveFridayPreOrder() to cover MonÃ¢â‚¬â€œThu intra-week days.
+		// Extends IsLiveFridayPreOrder() to cover Monâ€“Thu intra-week days.
 		// On any live weekday where the next rebalance has not yet executed,
 		// DataGrid1, counts, and balance must show the LAST CONFIRMED snapshot
 		// (time1 / oldTrades), not the projected next-Friday portfolio.
@@ -607,18 +607,18 @@ namespace ATMML
 
 			var dow = DateTime.Today.DayOfWeek;
 
-			// MonÃ¢â‚¬â€œThu: check if the most recent Friday already has a settled snapshot.
+			// Monâ€“Thu: check if the most recent Friday already has a settled snapshot.
 			// If it does, orders were executed and we should show the new portfolio (not pre-rebalance).
 			if (dow == DayOfWeek.Monday || dow == DayOfWeek.Tuesday ||
 				dow == DayOfWeek.Wednesday || dow == DayOfWeek.Thursday)
 			{
 				// Find the most recent Friday
-				// Mon=1 Ã¢â€ â€™ 3 days back, Tue=2 Ã¢â€ â€™ 4, Wed=3 Ã¢â€ â€™ 5, Thu=4 Ã¢â€ â€™ 6
+				// Mon=1 â†’ 3 days back, Tue=2 â†’ 4, Wed=3 â†’ 5, Thu=4 â†’ 6
 				int daysToFriday = ((int)dow + 2);
 				var lastFriday = DateTime.Today.AddDays(-daysToFriday);
 				// If portfolioTimes contains that Friday (settled snapshot exists), orders already done
 				if (_portfolioTimes != null && _portfolioTimes.Any(t => t.Date == lastFriday.Date))
-					return false;  // rebalance already executed Ã¢â‚¬â€ show new portfolio
+					return false;  // rebalance already executed â€” show new portfolio
 				return true;
 			}
 
@@ -852,7 +852,7 @@ namespace ATMML
 						else if (line.StartsWith("Sortino Ratio:"))
 						{
 							string valuePart = line.Split(':')[1].Replace("%", "").Trim();
-							double sortino = valuePart.Contains("Ã¢Ë†Å¾")
+							double sortino = valuePart.Contains("âˆž")
 								? double.PositiveInfinity
 								: double.Parse(valuePart, CultureInfo.InvariantCulture);
 							output["sortinoRatio"] = sortino;
@@ -884,7 +884,7 @@ namespace ATMML
 
 		private void _monthlyReturnGraphEvent(object sender, GraphEventArgs e)
 		{
-			// Intentionally empty Ã¢â‚¬â€ hover is handled by Histogram_PreviewMouseMove.
+			// Intentionally empty â€” hover is handled by Histogram_PreviewMouseMove.
 		}
 
 		/// <summary>
@@ -900,20 +900,31 @@ namespace ATMML
 			if (el == null || _histTooltip == null) return;
 
 			var w = el.ActualWidth;
-			if (w <= 0)
+			// [WeeklyTooltipFix] Index the SAME captured axis the bars were drawn from
+			// (see updateModelData): line-chart arrays when present (post-trim, post-
+			// live-append), else the raw portfolio arrays. Indexing _portfolioValues /
+			// _portfolioTimes here reported the PRIOR week whenever the line axis was
+			// trimmed or live-appended relative to the raw series.
+			var axisTimes = (_lineChartTimes != null && _lineChartTimes.Count > 0) ? _lineChartTimes : _portfolioTimes;
+			var baseVals  = (_lineChartValues != null && _lineChartValues.Count > 0) ? _lineChartValues : _portfolioValues;
+			if (w <= 0 || axisTimes == null || axisTimes.Count == 0)
 			{
 				_histTooltip.IsOpen = false;
 				return;
 			}
 
 			var pos = e.GetPosition(el);
+			var idx = (w > 80.0) ? (int)((pos.X - 40.0) / (w - 80.0) * axisTimes.Count) : (int)(pos.X / w * axisTimes.Count); // [HistAlign] map across plot area (value-scale margins ~40px/side)
+			idx = Math.Max(0, Math.Min(idx, axisTimes.Count - 1));
 
-			// [HistBarHitTest] Ask the graph which bar is under the cursor and what value it
-			// painted there. FundamentalGraph owns the geometry (right-anchored bars on the
-			// line point), so this is the exact bar shown - no parallel pixel math, no off-by-one.
-			if (_monthlyReturnGraph != null &&
-				_monthlyReturnGraph.TryGetHistogramBarAtPixel(pos.X, out var t, out var val))
+			var model    = getModel();
+			var useHedge = model != null && isTradingModel(model.Name) && _useHedgeCurve;
+			var monthVals = useHedge ? ToWeeklyReturns(_portfolioHedgeValues) : ToWeeklyReturns(baseVals); // [WeeklyTooltip]
+
+			if (monthVals != null && idx < monthVals.Count && !double.IsNaN(monthVals[idx]))
 			{
+				var val = monthVals[idx];
+				var t   = (idx < axisTimes.Count) ? axisTimes[idx] : default(DateTime);
 				var label = (t == default(DateTime))
 					? val.ToString("##0.00") + "%"
 					: t.ToString("yyyy-MM-dd") + ": " + val.ToString("##0.00") + "%";
@@ -942,7 +953,7 @@ namespace ATMML
 			if (model != null)
 			{
 				var trades = _portfolio1.GetTrades(model.Name, "", time, all);
-				// Normalise to Ã‚Â±1 Ã¢â‚¬â€ only count active hold positions, not entry/exit markers
+				// Normalise to Â±1 â€” only count active hold positions, not entry/exit markers
 				foreach (var item in trades)
 				{
 					int dir = Math.Sign((int)item.Direction);
@@ -1088,7 +1099,7 @@ namespace ATMML
 						annRet1.Content = double.IsNaN(annRet1Value) ? "" : annRet1Value;
 						annVol1.Content = double.IsNaN(annVol1value) ? "" : annVol1value;
 						maxDD1.Content = double.IsNaN(maxDD1Value) ? "" : maxDD1Value;
-						// File-read value (GIPSReport.txt) is authoritative Ã¢â‚¬â€ written at backtest completion with locked data
+						// File-read value (GIPSReport.txt) is authoritative â€” written at backtest completion with locked data
 						// In-memory _lastSharpe may be stale from a previous run with different data
 						sharpeRatio.Content = !double.IsNaN(sharpeRatioValue2)
 							? sharpeRatioValue2
@@ -1199,7 +1210,7 @@ namespace ATMML
 			Model model = getModel(_selectedUserFactorModel);
 			if (model != null)
 			{
-				// Always load from model.Name Ã¢â‚¬â€ _selectedUserFactorModel2 may point to a different model
+				// Always load from model.Name â€” _selectedUserFactorModel2 may point to a different model
 				var portfolioTimes = loadList<DateTime>(model.Name + " PortfolioTimes");
 				var portfolioValues = loadList<double>(model.Name + " PortfolioValues");
 				if (portfolioValues.Count == 0) return 0.0;
@@ -1307,7 +1318,7 @@ namespace ATMML
 		}
 
 		/// <summary>
-		/// Beta at last rebalance Ã¢â‚¬â€ uses Investment1 (fixed optimizer dollar weight) / NAV.
+		/// Beta at last rebalance â€” uses Investment1 (fixed optimizer dollar weight) / NAV.
 		/// Near zero post-rebalance by construction. Comparable to backtest historical log.
 		/// </summary>
 		private double getRebalanceBeta(DateTime rebalTime, double nav)
@@ -1382,7 +1393,7 @@ namespace ATMML
 
 		/// <summary>
 		/// Returns true when the cursor should be treated as "viewing live" data.
-		/// Fixes the intra-week blind spot: MonÃ¢â‚¬â€œThu the cursor sits at last Friday's date
+		/// Fixes the intra-week blind spot: Monâ€“Thu the cursor sits at last Friday's date
 		/// which is &lt; today, causing every >= DateTime.Today gate to evaluate false and
 		/// freezing balance + Cur Px for the entire week between rebalances.
 		/// </summary>
@@ -1399,7 +1410,7 @@ namespace ATMML
 				// Strict > (not >=): when cursor sits ON the latest settled entry
 				// (e.g. last Friday's locked NAV), render that entry's locked value,
 				// not live MtM. The cursor.Date >= DateTime.Today branch above
-				// still routes today Ã¢â€ â€™ live.
+				// still routes today â†’ live.
 				if (latestTime != default(DateTime) && cursor.Date > latestTime.Date)
 					return true;
 			}
@@ -1537,9 +1548,9 @@ namespace ATMML
 
 						double returnValue = double.NaN;
 
-						// Avg Px Ã¢â‚¬â€ always the original entry-date close price (or true average if
+						// Avg Px â€” always the original entry-date close price (or true average if
 						// adds occurred). Use the AvgPrice entry keyed to entryTime.Date first.
-						// Fall back to a date-matched bar close Ã¢â‚¬â€ NOT getPrice(bars, entryTime),
+						// Fall back to a date-matched bar close â€” NOT getPrice(bars, entryTime),
 						// which compares timestamps and can return today's close when bar Time is
 						// midnight-stamped and entryTime has a 4 PM component (or vice versa).
 						var entryPriceKey = trade.AvgPrice.Keys.FirstOrDefault(k => k.Date == entryTime.Date);
@@ -1553,7 +1564,7 @@ namespace ATMML
 							: (entryBar != null && entryBar.Close > 0) ? entryBar.Close
 							: double.NaN;
 
-						// Cur Px Ã¢â‚¬â€ for live/current date use Bloomberg live price.
+						// Cur Px â€” for live/current date use Bloomberg live price.
 						// For historical dates use the closing bar at tradesTime2 (not today's price).
 						var isLiveDisplay = model.IsLiveMode && tradesTime2.Date >= DateTime.Today.AddDays(-7);
 						var livePrice = isLiveDisplay ? getCurrentPrice(ticker) : double.NaN;
@@ -1577,7 +1588,7 @@ namespace ATMML
 						if (!double.IsNaN(price2) && price2 > 0)
 							lock (_lastKnownPrices) { _lastKnownPrices[ticker] = price2; }
 						// Shares lookup:
-						//   Pre-order Friday Ã¢â‚¬â€ use tradesTime1 (last settled Friday) for ALL positions.
+						//   Pre-order Friday â€” use tradesTime1 (last settled Friday) for ALL positions.
 						//   Exits have 0 shares in the new portfolio (tradesTime2), so using
 						//   tradesTime2.Date would zero them out and blank their rows.
 						//   Adds/reduces also look better anchored to the last-Friday share count.
@@ -1601,10 +1612,10 @@ namespace ATMML
 						int industryNumber;
 						int subIndustryNumber;
 						var symbol = model.Symbols.Find(x => x.Ticker == ticker);
-						// Skip exited positions Ã¢â‚¬â€ they are included in `portfolio` for display
+						// Skip exited positions â€” they are included in `portfolio` for display
 						// purposes (showing exit rows) but are no longer held and must not
 						// contribute to sector/industry/sub-industry exposure totals.
-						// Direction Ã‚Â±3 = Exit, so Math.Abs(Direction) == 3 identifies them.
+						// Direction Â±3 = Exit, so Math.Abs(Direction) == 3 identifies them.
 						bool isExitedForSector = Math.Abs((int)trade.Direction) == 3;
 						if (symbol != null && !isExitedForSector)
 						{
@@ -1627,7 +1638,7 @@ namespace ATMML
 								totalInvestment += amount;
 							}
 						}
-						if (symbol != null && !isExitedForSector)  // reuse flag Ã¢â‚¬â€ same exited filter
+						if (symbol != null && !isExitedForSector)  // reuse flag â€” same exited filter
 						{
 							int.TryParse(symbol.Industry, out industryNumber);
 							name = _portfolio1.GetIndustryLabel(industryNumber);
@@ -1647,7 +1658,7 @@ namespace ATMML
 								}
 							}
 						}
-						if (symbol != null && !isExitedForSector)  // reuse flag Ã¢â‚¬â€ same exited filter
+						if (symbol != null && !isExitedForSector)  // reuse flag â€” same exited filter
 						{
 							int.TryParse(symbol.SubIndustry, out subIndustryNumber);
 							name = _portfolio1.GetSubIndustryLabel(subIndustryNumber);
@@ -1669,7 +1680,7 @@ namespace ATMML
 						}
 					}
 
-					// Fix 2a: Pre-order Ã¢â‚¬â€ price/shares dicts only contain oldTrades tickers.
+					// Fix 2a: Pre-order â€” price/shares dicts only contain oldTrades tickers.
 					// Seed entries for proposed new positions so DataGrid2 can render them.
 					var hasOrders = enteredTrades.Count > 0 || exitedTrades.Count > 0 || addTrades.Count > 0 || reduceTrades.Count > 0;
 					if (hasOrders && !isIntraWeekDisplay)
@@ -1697,7 +1708,7 @@ namespace ATMML
 						}
 					}
 
-					// Ã¢â€â‚¬Ã¢â€â‚¬ Save rebalance state for FlexOne submission Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+					// â”€â”€ Save rebalance state for FlexOne submission â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 					// shares and price are fully populated here (Fix 2a has seeded entered trades).
 					// Stored in fields so SendOrders_MouseDown can read them after 3:00 PM.
 					if (hasOrders && !isIntraWeekDisplay)
@@ -1713,7 +1724,7 @@ namespace ATMML
 
 						// Stage these trades in the blotter so the user can review pre-submission.
 						// Re-running the model overwrites the previous staged set for this strategy.
-						// Test/backtest portfolios are skipped Ã¢â‚¬â€ only live-mode portfolios produce real orders.
+						// Test/backtest portfolios are skipped â€” only live-mode portfolios produce real orders.
 						try
 						{
 							var m = getModel();
@@ -1751,7 +1762,7 @@ namespace ATMML
 							Console.Error.WriteLine($"[OrderBlotter] StageOrders failed: {ex.Message}");
 						}
 					}
-					// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+					// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 					var percents = _portfolio1.initPercents();
 					sectorPercents = percents[0];
@@ -1912,7 +1923,7 @@ namespace ATMML
 						// shares[ticker] is already signed (+ for long, - for short)
 						var amount = price[ticker] * Math.Abs(shares[ticker]);
 
-						// Skip exited positions for exposure totals Ã¢â‚¬â€ Direction Ã‚Â±3 = Exit.
+						// Skip exited positions for exposure totals â€” Direction Â±3 = Exit.
 						// These rows are kept in `portfolio` for display (showing exit rows
 						// in the grid) but represent closed positions with no current
 						// exposure. Without this filter the header counts an exited long
@@ -1943,7 +1954,7 @@ namespace ATMML
 					//Debug.WriteLine($"[Portfolio] Short Amount: ${shortAmount:N0}");
 					//Debug.WriteLine($"[Portfolio] Total Gross:  ${totalGross:N0}");
 					//Debug.WriteLine($"[Portfolio] Imbalance:    ${Math.Abs(imbalance):N0} ({imbalancePct:P2})");
-					//Debug.WriteLine($"[Portfolio] Market Neutral: {(imbalancePct <= 0.05 ? "Ã¢Å“â€œ" : "Ã¢Å“â€”")}");
+					//Debug.WriteLine($"[Portfolio] Market Neutral: {(imbalancePct <= 0.05 ? "âœ“" : "âœ—")}");
 
 					if (_portfolioSortType == PortfolioSortType.Score)
 					{
@@ -2050,7 +2061,7 @@ namespace ATMML
 						else if (direction == -5) brush = Brushes.Yellow;     //reduce short
 						else if (direction == 0) brush = Brushes.White;       //neutral 
 
-						// Exits/covers close the full position Ã¢â‚¬â€ units = all shares being closed.
+						// Exits/covers close the full position â€” units = all shares being closed.
 						// Adds/reduces use the delta vs. the prior period.
 						var units = (Math.Abs(direction) == 3)
 							? Math.Abs(shares[ticker])   // closing trade: full position size
@@ -2076,7 +2087,7 @@ namespace ATMML
 							// (some tickers were saved before Bloomberg classification fields were
 							// available), re-fetch from _portfolio1 and write back to the symbol so
 							// the value persists with the model. Also fires an async Bloomberg
-							// re-request via RefreshClassification Ã¢â‚¬â€ won't fix this render, but the
+							// re-request via RefreshClassification â€” won't fix this render, but the
 							// next render (or next click on the active label) will pick up the data.
 							TextBlock tbSECT = new TextBlock();
 							var name = "";
@@ -2447,7 +2458,7 @@ namespace ATMML
 						}
 					}
 
-					//TotalInvestment.Content = "$" + total.ToString("N0", CultureInfo.InvariantCulture); // Ã¢â€ â€™ "$12,000.00"
+					//TotalInvestment.Content = "$" + total.ToString("N0", CultureInfo.InvariantCulture); // â†’ "$12,000.00"
 
 					//PortfolioBeta.Content = FormattableString.Invariant($"{beta:0.00}");
 
@@ -2468,13 +2479,13 @@ namespace ATMML
 					var volatility = getAnnVol();
 					var annVol = volatility.Count > 0 ? volatility.Last() : double.NaN;
 					PortfolioVOL.Content = double.IsNaN(annVol) ? "" : $"{annVol:0.00}";
-					GrossInvestment.Content = grossInvestment.ToString("P2", CultureInfo.InvariantCulture); // Ã¢â€ â€™ "12.34%"
-					NetExposure.Content = netExposure.ToString("P2", CultureInfo.InvariantCulture); // Ã¢â€ â€™ "12.34%"
-					// Color by sign: long-biased (Ã¢â€°Â¥0) book displays in PaleGreen to match
+					GrossInvestment.Content = grossInvestment.ToString("P2", CultureInfo.InvariantCulture); // â†’ "12.34%"
+					NetExposure.Content = netExposure.ToString("P2", CultureInfo.InvariantCulture); // â†’ "12.34%"
+					// Color by sign: long-biased (â‰¥0) book displays in PaleGreen to match
 					// the TotalLongs label styling; short-biased book displays in Red.
 					NetExposure.Foreground = netExposure >= 0 ? Brushes.PaleGreen : Brushes.Red;
-					TotalLongs.Content = longExposure.ToString("P2", CultureInfo.InvariantCulture); // Ã¢â€ â€™ "12.34%"
-					TotalShorts.Content = shortExposure.ToString("P2", CultureInfo.InvariantCulture); // Ã¢â€ â€™ "12.34%"
+					TotalLongs.Content = longExposure.ToString("P2", CultureInfo.InvariantCulture); // â†’ "12.34%"
+					TotalShorts.Content = shortExposure.ToString("P2", CultureInfo.InvariantCulture); // â†’ "12.34%"
 
 					// Compliance: daily risk snapshot
 					//AuditService.LogDailyRisk(
@@ -3368,7 +3379,7 @@ namespace ATMML
 					{
 						if (model.IsLiveMode)
 						{
-							// Trigger grid redraw on bar updates Ã¢â‚¬â€ but do NOT overwrite _portfolioTimes
+							// Trigger grid redraw on bar updates â€” but do NOT overwrite _portfolioTimes
 							// from bar dates; rebalance dates are loaded from saved data in loadModel()
 							// and must not be replaced with daily/weekly bar timestamps
 							_update = 500;
@@ -3738,7 +3749,7 @@ namespace ATMML
 					updateStatistics();
 					update();
 
-					// Compliance: daily risk snapshot Ã¢â‚¬â€ fires once per completed run
+					// Compliance: daily risk snapshot â€” fires once per completed run
 					var _riskModel = getModel();
 					if (_riskModel != null)
 					{
@@ -4227,7 +4238,7 @@ namespace ATMML
 			{
 				System.Threading.Interlocked.Increment(ref _diagSymbolEventCount);
 
-				// Symbol registered Ã¢â‚¬â€ now safe to subscribe RT reference data
+				// Symbol registered â€” now safe to subscribe RT reference data
 				bool pending = false;
 				lock (_pendingRtTickers)
 				{
@@ -4243,13 +4254,13 @@ namespace ATMML
 					//
 					// CUR_MKT_CAP is a one-shot reference field. CRITICAL: do NOT bundle it
 					// with PRICE_LAST under subscribe=true. Bloomberg's BLPAPI handles a
-					// mixed streamable/non-streamable field list inconsistently Ã¢â‚¬â€ in many
+					// mixed streamable/non-streamable field list inconsistently â€” in many
 					// configurations it returns a single snapshot frame containing both
 					// fields and then never establishes the persistent PRICE_LAST stream.
 					// Symptom: balance updates once or twice per ticker as initial snapshots
 					// arrive, then freezes (no further ticks). Split into two distinct calls:
-					//   1) PRICE_LAST  with subscribe=true   Ã¢â€ â€™ persistent intraday stream
-					//   2) CUR_MKT_CAP with subscribe=false  Ã¢â€ â€™ one-shot snapshot
+					//   1) PRICE_LAST  with subscribe=true   â†’ persistent intraday stream
+					//   2) CUR_MKT_CAP with subscribe=false  â†’ one-shot snapshot
 					// Each call is isolated in try/catch so a single bad ticker (delisted,
 					// invalid in this Bloomberg session, etc.) cannot poison the queue or
 					// silently kill subsequent subscriptions.
@@ -4288,7 +4299,7 @@ namespace ATMML
 					else if (kvp.Key == "CUR_MKT_CAP")
 					{
 						// Bloomberg returns millions USD. Occasionally prefixed with
-						// a date stamp "YYYY-MM-DD<value>" Ã¢â‚¬â€ strip before parsing.
+						// a date stamp "YYYY-MM-DD<value>" â€” strip before parsing.
 						// Matches Timing's handler at line 2778-2785 verbatim.
 						var text = kvp.Value?.ToString() ?? "";
 						if (text.Length > 10 && text[4] == '-' && text[7] == '-')
@@ -4310,7 +4321,7 @@ namespace ATMML
 		DateTime _fundamentalResponseTime = DateTime.Now;
 
 		/// <summary>
-		/// Lightweight live balance refresh Ã¢â‚¬â€ computes MtM from current prices without
+		/// Lightweight live balance refresh â€” computes MtM from current prices without
 		/// rebuilding the full grid. Called from updateStatistics so the balance stays
 		/// current whenever the chart streams new data.
 		/// </summary>
@@ -4358,7 +4369,7 @@ namespace ATMML
 				return;
 			}
 
-			// Always compute live MtM from the most recent SETTLED Friday Ã¢â‚¬â€
+			// Always compute live MtM from the most recent SETTLED Friday â€”
 			// ignore _showHoldingsTime so historical navigation doesn't corrupt LiveNav
 			var settledTimes = _portfolioTimes
 				.Where(t => t != default(DateTime) && t.Date <= DateTime.Today)
@@ -4392,7 +4403,7 @@ namespace ATMML
 			if (baseBalance <= 0) return;
 
 			// IMPORTANT: baseBalance comes from portfolioValues on disk (authoritative IC output).
-			// Do NOT override with LiveClosingNav Ã¢â‚¬â€ that creates a feedback loop where a bad
+			// Do NOT override with LiveClosingNav â€” that creates a feedback loop where a bad
 			// save poisons the next cycle: bad save becomes baseBalance, which makes next
 			// liveMtM also bad, which saves again, cascading downward. The only trusted source
 			// for baseBalance is portfolioValues written by IdeaCalculator at rebalance.
@@ -4413,8 +4424,8 @@ namespace ATMML
 			}
 
 			// On rebalance Friday: pivot to the prior week (time1) as the base so live PnL
-			// is computed as: April 10 NAV + ÃŽÂ£(today's price Ã¢Ë†â€™ April 10 price) Ãƒâ€” shares.
-			// Do NOT use portfolioValues[today] Ã¢â‚¬â€ that value is written by the model run and
+			// is computed as: April 10 NAV + Î£(today's price âˆ’ April 10 price) Ã— shares.
+			// Do NOT use portfolioValues[today] â€” that value is written by the model run and
 			// may be stale if the run used old data (failed collection).  The bar cache has
 			// actual market prices all day including after close, so live PnL always reflects
 			// real trading, not a pre-baked model assumption.
@@ -4480,7 +4491,7 @@ namespace ATMML
 			{
 				_liveMtMBalance = liveMtM;
 				_mainView.SetInfo("LiveNav_" + (getModel()?.Name ?? ""), liveMtM.ToString("R"));
-				// LiveClosingNav save removed Ã¢â‚¬â€ caused feedback loop where a bad save
+				// LiveClosingNav save removed â€” caused feedback loop where a bad save
 				// becomes next cycle's baseBalance, cascading the portfolio toward zero.
 				// baseBalance now always comes from portfolioValues (IC authoritative).
 				// Only push to Balance labels when viewing today (not a historical date)
@@ -4493,10 +4504,10 @@ namespace ATMML
 			}
 		}
 
-		// Ã¢â€â‚¬Ã¢â€â‚¬ Alert engine integration (step 3) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+		// â”€â”€ Alert engine integration (step 3) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		// buildAlertSnapshot: synthesises AlertPortfolioInput from PB's live state
 		// (positions, prices, beta/vol from Symbol metadata, ADV from bar cache,
-		// market cap from _marketCapCache). Does NOT compute anything Ã¢â‚¬â€ pure
+		// market cap from _marketCapCache). Does NOT compute anything â€” pure
 		// data assembly. The engine does all the math.
 		//
 		// updateAlerts: calls buildAlertSnapshot, passes to the engine, caches
@@ -4523,7 +4534,7 @@ namespace ATMML
 			// Matches the pattern used at line 797 (isViewingLiveDate ? _liveMtMBalance : getPortfolioBalance).
 			double nav = _liveMtMBalance > 0 ? _liveMtMBalance : getPortfolioBalance(time2);
 
-			// Intraday DD baseline Ã¢â‚¬â€ capture on first refresh of each trading day.
+			// Intraday DD baseline â€” capture on first refresh of each trading day.
 			// Mirrors Timing's logic at line 1511: update when day has rolled or
 			// baseline was never captured. Guarded by nav > 0 so we don't anchor
 			// the baseline to a zero reading during startup.
@@ -4562,8 +4573,8 @@ namespace ATMML
 
 			foreach (var trade in trades)
 			{
-				// Skip exited positions (Direction Ã‚Â±3). They remain in the trades
-				// list for display purposes but contribute nothing to exposure Ã¢â‚¬â€
+				// Skip exited positions (Direction Â±3). They remain in the trades
+				// list for display purposes but contribute nothing to exposure â€”
 				// same filter drawPortfolioGrid uses at line 1399.
 				if (Math.Abs((int)trade.Direction) == 3) continue;
 
@@ -4592,7 +4603,7 @@ namespace ATMML
 				if (sharesAbs <= 0) continue;
 
 				// Live price via PB's standard multi-layer fallback:
-				// RT tick Ã¢â€ â€™ _lastKnownPrices Ã¢â€ â€™ weekly bar Ã¢â€ â€™ daily bar Ã¢â€ â€™ Trade.Manager.
+				// RT tick â†’ _lastKnownPrices â†’ weekly bar â†’ daily bar â†’ Trade.Manager.
 				double curPx = getCurrentPrice(ticker);
 				if (double.IsNaN(curPx) || curPx <= 0) continue;
 
@@ -4600,7 +4611,7 @@ namespace ATMML
 				if (dir == 0) continue;
 
 				double posDollar = curPx * sharesAbs;      // always positive
-				double signed    = dir * posDollar;        // long + / short Ã¢Ë†â€™
+				double signed    = dir * posDollar;        // long + / short âˆ’
 
 				if (dir > 0) longDollars  += posDollar;
 				else         shortDollars += posDollar;
@@ -4652,7 +4663,7 @@ namespace ATMML
 					}
 				}
 
-				// Market cap tier Ã¢â‚¬â€ populated by step 3b via CUR_MKT_CAP reference
+				// Market cap tier â€” populated by step 3b via CUR_MKT_CAP reference
 				// data. Until then the cache is empty and tier = Unknown for all
 				// positions; engine skips Unknown from cap aggregation.
 				MarketCapTier tier = MarketCapTier.Unknown;
@@ -4660,7 +4671,7 @@ namespace ATMML
 				{
 					if (_marketCapCache.TryGetValue(ticker, out double capM))
 					{
-						double capB = capM / 1000.0;   // millions Ã¢â€ â€™ billions
+						double capB = capM / 1000.0;   // millions â†’ billions
 						if      (capB > 5.0) tier = MarketCapTier.Large;
 						else if (capB > 1.0) tier = MarketCapTier.Mid;
 						else if (capB > 0.5) tier = MarketCapTier.Small;
@@ -4676,7 +4687,7 @@ namespace ATMML
 					CapTier:       tier));
 			}
 
-			// Portfolio annualised vol (percent units Ã¢â‚¬â€ matches getAnnVol's
+			// Portfolio annualised vol (percent units â€” matches getAnnVol's
 			// convention and the engine's AnnualisedPortfolioVolPercent contract).
 			double annVolPct = double.NaN;
 			var volList = getAnnVol();
@@ -4730,7 +4741,7 @@ namespace ATMML
 		// to aggregate their children: red when ANY child is unhealthy, lime when all
 		// healthy. The AlertController only manages individual leaf alerts; category
 		// roll-up is computed here from _latestAlerts.Health.* and applied directly to
-		// the BtnCat* buttons. Connectivity is special Ã¢â‚¬â€ its children aren't engine-
+		// the BtnCat* buttons. Connectivity is special â€” its children aren't engine-
 		// driven, so we evaluate them inline.
 		private void updateCategoryCircles()
 		{
@@ -4779,7 +4790,7 @@ namespace ATMML
 		// each leaf-alert circle. Each label gets the live measurement from
 		// _latestAlerts.Values.* and its foreground colored to match the circle's
 		// healthy/breach state. AlertValues fields don't always share names with their
-		// AlertHealth siblings Ã¢â‚¬â€ the mapping here mirrors how PortfolioAlertEngine
+		// AlertHealth siblings â€” the mapping here mirrors how PortfolioAlertEngine
 		// computes each check (MktNeutral uses NetBeta = |NetExposure|, etc.).
 		private void updateAlertValueLabels()
 		{
@@ -4822,19 +4833,19 @@ namespace ATMML
 			if (lbl == null) return;
 			// AlertValues fields are stored as fractions (0.45 = 45%); the AlertHealth
 			// engine compares them against fractional thresholds internally, but the UI
-			// displays whole-percent units (the row labels read "Ã¢â€°Â¤10", "Ã¢â€°Â¤200" etc.). Scale
-			// for display only Ã¢â‚¬â€ Health.* booleans already came from the engine pre-scale.
+			// displays whole-percent units (the row labels read "â‰¤10", "â‰¤200" etc.). Scale
+			// for display only â€” Health.* booleans already came from the engine pre-scale.
 			lbl.Text = (value * 100.0).ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
 			lbl.Foreground = healthy ? Brushes.Lime : Brushes.Red;
 		}
 
-		// Ã¢â€â‚¬Ã¢â€â‚¬ Alert controller setup (step 8) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+		// â”€â”€ Alert controller setup (step 8) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		// Called once from PortfolioBuilder_Loaded (after InitializeComponent has
 		// built the visual tree, so the Btn*/Lbl* x:Name fields are populated).
 		// Registers all 34 alert buttons + labels with _alertController, wires
 		// every Check* lambda to read _latestAlerts?.Health.*, then starts the
 		// 30-second polling timer. Safe against _latestAlerts being null on the
-		// first ticks Ã¢â‚¬â€ each lambda short-circuits to "healthy" when no snapshot
+		// first ticks â€” each lambda short-circuits to "healthy" when no snapshot
 		// has been computed yet.
 
 		private void InitializeAlertController()
@@ -4842,7 +4853,7 @@ namespace ATMML
 			if (_alertController != null) return;          // idempotent
 			_alertController = new AlertController(pollSeconds: 30);
 
-			// Ã¢â€â‚¬Ã¢â€â‚¬ Register buttons + labels (Btn*/Lbl* by naming convention) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+			// â”€â”€ Register buttons + labels (Btn*/Lbl* by naming convention) â”€â”€â”€â”€
 			// Connectivity
 			_alertController.Register("FlexOne",       BtnFlexOne,       LblFlexOne);
 			_alertController.Register("Bloomberg",     BtnBloomberg,     LblBloomberg);
@@ -4887,11 +4898,11 @@ namespace ATMML
 			_alertController.Register("SmallCapGross", BtnSmallCapGross, LblSmallCapGross);
 			_alertController.Register("SmallCapNet",   BtnSmallCapNet,   LblSmallCapNet);
 
-			// Ã¢â€â‚¬Ã¢â€â‚¬ Wire Check* lambdas to engine health results Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+			// â”€â”€ Wire Check* lambdas to engine health results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 			// Convention: every lambda returns true (healthy) when _latestAlerts
-			// is null Ã¢â‚¬â€ prevents first-load red flash before the engine produces
+			// is null â€” prevents first-load red flash before the engine produces
 			// its first AlertComputeResult.
-			// Connectivity is NOT driven by the engine Ã¢â‚¬â€ those stay as lambdas
+			// Connectivity is NOT driven by the engine â€” those stay as lambdas
 			// that poll PB's live-data state directly.
 			_alertController.CheckFlexOne       = () => true;   // TODO: FlexOneSession.IsConnected (matches Timing)
 			_alertController.CheckBloomberg     = () => BarServer.ConnectedToBloomberg();
@@ -4940,7 +4951,7 @@ namespace ATMML
 		}
 
 		// Replaces step-6 stub. Delegates acknowledge/clear to AlertController,
-		// which toggles the tri-state (Red Ã¢â€ â€™ Yellow ack Ã¢â€ â€™ Red on re-breach Ã¢â€ â€™ Lime clear).
+		// which toggles the tri-state (Red â†’ Yellow ack â†’ Red on re-breach â†’ Lime clear).
 		private void AlertLabel_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
 		{
 			if (_alertController == null) return;
@@ -4961,7 +4972,7 @@ namespace ATMML
 			//saveList<Symbol>(model.Name + " Symbols", model.Symbols);
 			Dispatcher.BeginInvoke(new Action(() => { userFactorModel_to_ui(_selectedUserFactorModel); }));
 
-			// Kick off the REL_INDEX Ã¢â€ â€™ requestIndexBars Ã¢â€ â€™ requestSymbolBars Ã¢â€ â€™ PRICE_LAST
+			// Kick off the REL_INDEX â†’ requestIndexBars â†’ requestSymbolBars â†’ PRICE_LAST
 			// chain for non-Custom portfolios. Without this, _referenceSymbols stays empty,
 			// REL_INDEX events have nowhere to land in portfolio1Changed (the gate
 			// `_referenceSymbols.Count > 0` blocks them), okToRequestIndexBars never trips,
@@ -4986,7 +4997,7 @@ namespace ATMML
 
 				// Send requests for index bars that aren't already subscribed; track the
 				// EXACT count of requests we actually sent. The counter must match the
-				// number of expected BarsReceived callbacks Ã¢â‚¬â€ if already-subscribed bars
+				// number of expected BarsReceived callbacks â€” if already-subscribed bars
 				// send no callback, the counter never decrements to 0, and requestSymbolBars
 				// never fires (which leaves PRICE_LAST subscriptions unestablished, _rtPrices
 				// empty, and Cur Px frozen on stale bar closes).
@@ -5009,7 +5020,7 @@ namespace ATMML
 				_indexBarRequestCount = sent;
 				if (sent == 0)
 				{
-					// All index bars already subscribed (or no index symbols at all) Ã¢â‚¬â€
+					// All index bars already subscribed (or no index symbols at all) â€”
 					// no BarsReceived callbacks coming, proceed directly to symbol bars.
 					requestSymbolBars(model);
 				}
@@ -5143,7 +5154,7 @@ namespace ATMML
 				}
 				else
 				{
-					// Backtest mode Ã¢â‚¬â€ restore DataRange.Time1 from DatePicker
+					// Backtest mode â€” restore DataRange.Time1 from DatePicker
 					model.IsLiveMode = false;
 					if (UserFactorModelTrainStartDate.SelectedDate.HasValue)
 						model.DataRange.Time1 = UserFactorModelTrainStartDate.SelectedDate.Value;
@@ -5153,7 +5164,7 @@ namespace ATMML
 				saveUserFactorModels(model.Name);
 
 				//Debug.WriteLine($"[RUNMODE] IsLiveMode={model.IsLiveMode} LiveStartDate={model.LiveStartDate:yyyy-MM-dd} DataRange.Time1={model.DataRange.Time1:yyyy-MM-dd}");
-				model.SetTimeRanges();  // Ã¢â€ Â existing code continues from here unchanged
+				model.SetTimeRanges();  // â† existing code continues from here unchanged
 				string path = MainView.GetDataFolder() + @"\portfolios\trades" + @"\" + model.Name;
 				try
 				{
@@ -5240,10 +5251,10 @@ namespace ATMML
 
 				// Idempotent gate: each (symbol, interval) subscribes to Bloomberg
 				// exactly once per PB session. Without this, every model switch /
-				// re-run re-subscribed every ticker Ãƒâ€” interval, burning quota.
-				// Example impact: 10 portfolio switches Ãƒâ€” 100 tickers Ãƒâ€” 3 intervals
+				// re-run re-subscribed every ticker Ã— interval, burning quota.
+				// Example impact: 10 portfolio switches Ã— 100 tickers Ã— 3 intervals
 				// = 3,000 redundant requests per session. Uses same HashSet as
-				// Timer_tick and buildAlertSnapshot Ã¢â‚¬â€ keys are distinct because
+				// Timer_tick and buildAlertSnapshot â€” keys are distinct because
 				// intervals differ ("Daily" vs "D" vs "Weekly").
 				// _barRequests itself still tracks everything for completion-counting;
 				// only the outbound Bloomberg call is gated.
@@ -5278,13 +5289,13 @@ namespace ATMML
 						{
 							_barCache.RequestBars(ticker, interval, liveSubscribe);
 							// Seed the re-arm timestamp so Timer_tick can detect a dead
-							// subscription. Only seed for live subscriptions Ã¢â‚¬â€ non-live
+							// subscription. Only seed for live subscriptions â€” non-live
 							// requests are one-shot and won't be re-armed.
 							if (liveSubscribe)
 								lock (_lastBarTickPerKey) { _lastBarTickPerKey[tKey] = DateTime.Now; }
 						}
 					}
-					// Weekly live subscription for intraday prices Ã¢â‚¬â€ the current week's
+					// Weekly live subscription for intraday prices â€” the current week's
 					// incomplete bar updates its Close with the latest trade throughout the day
 					if (model.IsLiveMode)
 					{
@@ -5301,14 +5312,14 @@ namespace ATMML
 						// persists for the session, and _pendingRtTickers.Remove semantics
 						// in livePortfolioChanged ensure downstream RequestReferenceData also
 						// fires only once. Skipping this re-registration saves ~1 call per
-						// (already-subscribed ticker Ãƒâ€” portfolio switch).
+						// (already-subscribed ticker Ã— portfolio switch).
 						//
 						// CRITICAL: try/catch isolation matches Timing.xaml.cs line 1135-1140.
 						// Without it, a single ticker that throws on RequestSymbols (delisted,
 						// not in Bloomberg session, invalid security identifier, etc.) breaks
 						// the foreach loop INSIDE lock(_barRequests). Every ticker after the
 						// failing one then never gets bar requests sent and never gets RT
-						// registered Ã¢â‚¬â€ symptom: balance updates only for tickers BEFORE the
+						// registered â€” symptom: balance updates only for tickers BEFORE the
 						// bad one, then freezes. Also remove from _pendingRtTickers on failure
 						// so we don't leave stale entries that block later retries.
 						if (_rtSubscribedTickers.Add(ticker))
@@ -5371,7 +5382,7 @@ namespace ATMML
 		{
 			// Top-level safety net: an unhandled exception inside any tick path
 			// will keep firing on subsequent ticks (the timer doesn't stop), but
-			// every tick will throw before reaching the live-refresh chain Ã¢â‚¬â€ symptom
+			// every tick will throw before reaching the live-refresh chain â€” symptom
 			// is a frozen Balance/Cur Px even though the timer is "running". This
 			// outer catch ensures one bad call site can never starve the whole tick
 			// path. Each individual section below is also independently isolated so
@@ -5400,7 +5411,7 @@ namespace ATMML
 					var m = getModel();
 
 					// CRITICAL: cache BarServer.ConnectedToBloomberg() once per 10-second
-					// cycle. Calling it inline at multiple gate sites is non-idempotent Ã¢â‚¬â€
+					// cycle. Calling it inline at multiple gate sites is non-idempotent â€”
 					// the call is reading a session heartbeat that can flicker, and it
 					// can throw under transient session conditions. When the bar-resubscribe
 					// gate sees true but the liveModeActive gate sees false (or throws into
@@ -5442,7 +5453,7 @@ namespace ATMML
 						// quota burn from re-running model loads. We also stamp the per-key
 						// last-tick timestamp at subscribe time so the re-arm loop has a baseline
 						// (the 30-second staleness clock starts when we subscribe, not when the
-						// first tick arrives Ã¢â‚¬â€ otherwise a never-firing subscription could never
+						// first tick arrives â€” otherwise a never-firing subscription could never
 						// be detected as stale).
 						//
 						// SECOND PASS: any subscribed key whose last tick is more than
@@ -5494,7 +5505,7 @@ namespace ATMML
 										DateTime lastTick;
 										bool hasEntry;
 										lock (_lastBarTickPerKey) { hasEntry = _lastBarTickPerKey.TryGetValue(key, out lastTick); }
-										if (!hasEntry) continue; // never subscribed Ã¢â‚¬â€ pass 1 will handle on next cycle
+										if (!hasEntry) continue; // never subscribed â€” pass 1 will handle on next cycle
 
 										double staleSecs = (now - lastTick).TotalSeconds;
 										if (staleSecs <= BAR_REARM_STALE_SECS) continue;
@@ -5521,7 +5532,7 @@ namespace ATMML
 						: _showHoldingsTime;
 					// Live-refresh gate: in live mode with Bloomberg connected, keep updating
 					// _liveMtMBalance and the position grid every tick regardless of where the
-					// cursor sits. The cursor only affects what gets DISPLAYED Ã¢â‚¬â€ drawPortfolioGrid
+					// cursor sits. The cursor only affects what gets DISPLAYED â€” drawPortfolioGrid
 					// and refreshLiveBalance contain their own cursor-aware display gates
 					// (IsViewingLive checks at line ~828 and ~4148). Without this, when
 					// _lastPerfCursorTime sits on the latest settled Friday (which is no longer
@@ -5536,7 +5547,7 @@ namespace ATMML
 						// if drawPortfolioGrid threw on a malformed trade for one ticker
 						// (e.g. one with sparse Closes/AvgPrice dictionaries from a recent
 						// inclusion), the exception propagated out of Timer_tick and the
-						// dispatcher fired again 500 ms later Ã¢â‚¬â€ into the SAME crash. End
+						// dispatcher fired again 500 ms later â€” into the SAME crash. End
 						// result: Balance, Cur Px, return chart all frozen indefinitely
 						// even though the timer is still ticking. The symptom of "updates
 						// stop after the first few tickers load and never resume" is the
@@ -6168,7 +6179,7 @@ namespace ATMML
 			
 
 			// Keep parallel arrays aligned. Inserting at the same index preserves the
-			// time Ã¢â€ â€™ value mapping. For arrays that may not span the projected future
+			// time â†’ value mapping. For arrays that may not span the projected future
 			// date (e.g. the projected rebalance date hasn't been backfilled with a
 			// real settled value yet), only insert if the array length already covers
 			// the insertion point. This protects getCompareToValues / benchmark from
@@ -6475,14 +6486,14 @@ namespace ATMML
 			var perfCursorTime = PerformanceGrid.Visibility == Visibility.Visible
 				? _lastPerfCursorTime
 				: _showHoldingsTime;
-			// IsViewingLive() handles intra-week: MonÃ¢â‚¬â€œThu the cursor is at last Friday
+			// IsViewingLive() handles intra-week: Monâ€“Thu the cursor is at last Friday
 			// which is < today but IS the live view. Without this fix, perfViewingLive=false
 			// causes _liveMtMBalance to be zeroed and refreshLiveBalance to never run.
 			bool perfViewingLive = IsViewingLive(perfCursorTime);
 
 			// Always refresh _liveMtMBalance in live mode regardless of cursor position.
 			// The chart's append-today logic (drawReturnChart line ~5280) and Balance display
-			// guards (line ~828) both already gate ON cursor Ã¢â‚¬â€ but they need _liveMtMBalance to
+			// guards (line ~828) both already gate ON cursor â€” but they need _liveMtMBalance to
 			// have a valid value for "today" even when the user is browsing a historical
 			// cursor like 4/24. Tying refresh to perfViewingLive caused today's point to
 			// disappear from the chart whenever cursor was not on today.
@@ -6736,7 +6747,7 @@ namespace ATMML
 				int inputOffset = portValues.Count - _portfolioTimes.Count;
 				//int benchmarkOffset = _benchmarkValues.Count - _portfolioTimes.Count;
 
-				// Full series Ã¢â‚¬â€ Sharpe/vol always computed over full backtest, never cursor-gated
+				// Full series â€” Sharpe/vol always computed over full backtest, never cursor-gated
 				var fullReturns = new List<double>();
 				var fullTimes = new List<DateTime>();
 				for (int jj = 0; jj < _portfolioTimes.Count; jj++)
@@ -6746,7 +6757,7 @@ namespace ATMML
 					fullReturns.Add((jjIndex >= 0 && jjIndex < portReturns.Count) ? portReturns[jjIndex] : double.NaN);
 				}
 
-				// Cursor-gated Ã¢â‚¬â€ for display values only
+				// Cursor-gated â€” for display values only
 				for (int ii = 0; ii < _portfolioTimes.Count; ii++)
 				{
 					var inputIndex = ii + inputOffset;
@@ -6841,7 +6852,7 @@ namespace ATMML
 					// (line ~5495). If _portfolioTimes is also empty, Return90/180/YTD
 					// stay NaN (their initial value).
 					// Condition: cursorTime must be at least 365 days above MinValue to
-					// safely subtract a year. DateTime.MinValue.AddDays(365) Ã¢â€°Ë† 0001-01-01
+					// safely subtract a year. DateTime.MinValue.AddDays(365) â‰ˆ 0001-01-01
 					// + 1yr. Any cursorTime below that is treated as "no real cursor yet."
 					bool cursorSafe = cursorTime >= DateTime.MinValue.AddDays(365);
 					if (!cursorSafe && _portfolioTimes.Count > 0)
@@ -7151,7 +7162,7 @@ namespace ATMML
 				label.Foreground = new SolidColorBrush(Color.FromRgb(0xff, 0xff, 0xff));
 		}
 
-		// Ã¢â€â‚¬Ã¢â€â‚¬ Order Blotter wiring Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+		// â”€â”€ Order Blotter wiring â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 		// Single shared bridge for the lifetime of this PortfolioBuilder instance.
 		// The model's trade-build path stages orders into this bridge; the user
 		// reviews and submits via the blotter's SEND ORDERS button.
@@ -7201,7 +7212,7 @@ namespace ATMML
 			if (sender is Label lbl) lbl.Foreground = System.Windows.Media.Brushes.White;
 		}
 
-		// Compatibility stubs Ã¢â‚¬â€ XAML still references SendOrders_* on hover effects.
+		// Compatibility stubs â€” XAML still references SendOrders_* on hover effects.
 		// Remove these once Portfolio Builder.xaml's SendOrders Label has been deleted (Step 4).
 
 		private void highlightButton(StackPanel panel, string selectedButton, bool foregroundHighlight = true)
@@ -8144,8 +8155,8 @@ namespace ATMML
 				{
 					_portfolio1.SetSymbols(model.Symbols);
 				}
-				// Restored: this call kicks off the REL_INDEX Ã¢â€ â€™ requestIndexBars Ã¢â€ â€™
-				// requestSymbolBars Ã¢â€ â€™ PRICE_LAST subscription chain. Commenting it out
+				// Restored: this call kicks off the REL_INDEX â†’ requestIndexBars â†’
+				// requestSymbolBars â†’ PRICE_LAST subscription chain. Commenting it out
 				// was the regression that left _rtPrices empty and Cur Px/Balance frozen
 				// because getCurrentPrice fell through to a static bar cache.
 				if (model != null)
@@ -10065,7 +10076,7 @@ namespace ATMML
 
 		private double getCurrentPrice(string symbol)
 		{
-			// Live tick price from PRICE_LAST subscription (works on delayed + RT feeds) Ã¢â‚¬â€
+			// Live tick price from PRICE_LAST subscription (works on delayed + RT feeds) â€”
 			// 3-minute TTL prevents a lapsed subscription from masking fresher bar-cache
 			// closes indefinitely.
 			lock (_rtPrices)
@@ -10076,7 +10087,7 @@ namespace ATMML
 					return rtEntry.price;
 			}
 
-			// Last price computed by drawPortfolioGrid Ã¢â‚¬â€ same as what Cur Px column shows
+			// Last price computed by drawPortfolioGrid â€” same as what Cur Px column shows
 			lock (_lastKnownPrices)
 			{
 				if (_lastKnownPrices.TryGetValue(symbol, out double cached) && cached > 0)
@@ -10491,7 +10502,7 @@ namespace ATMML
 			Button addPageButton = CreateStyledButton("Add Group", borderBrush);
 			addPageButton.SetValue(Grid.RowProperty, 1);
 			addPageButton.Click += OnAddNewGroup;
-			addPageButton.Template = CreateHoverTemplate(borderBrush); // Ã¢Å“â€¦ Apply hover template
+			addPageButton.Template = CreateHoverTemplate(borderBrush); // âœ… Apply hover template
 			mainGrid.Children.Add(addPageButton);
 
 			// ScrollViewer for group entries
@@ -10593,7 +10604,7 @@ namespace ATMML
 				Value = true
 			};
 
-			// Ã¢Å“â€¦ Replace DodgerBlue with #124b72
+			// âœ… Replace DodgerBlue with #124b72
 			Brush hoverBrush = (Brush)new BrushConverter().ConvertFrom("#FF124B72");
 			mouseOverTrigger.Setters.Add(new Setter(Border.BackgroundProperty, hoverBrush, "ButtonBorder"));
 			template.Triggers.Add(mouseOverTrigger);
@@ -10826,7 +10837,7 @@ namespace ATMML
 			if (isCompliance)
 			{
 				if (TISetup       != null) TISetup.Visibility      = C;
-				// Order Management grids visible Ã¢â‚¬â€ Compliance lands here for read-only oversight.
+				// Order Management grids visible â€” Compliance lands here for read-only oversight.
 				if (RebalanceChartGrid != null) RebalanceChartGrid.Visibility = V;
 				if (RebalanceGrid      != null) RebalanceGrid.Visibility      = V;
 				if (TIPositions22 != null) TIPositions22.Visibility = V;
@@ -10897,9 +10908,9 @@ namespace ATMML
 		{
 			if (TilesList == null || data == null) return;
 
-			// Sort by magnitude (string parses to whole percent points: "12.34%" Ã¢â€ â€™ 12.34).
+			// Sort by magnitude (string parses to whole percent points: "12.34%" â†’ 12.34).
 			// Then per row look up the SIGN from the parallel signed-net dict (passed in by
-			// caller) Ã¢â‚¬â€ positive net (long-biased bucket) renders the value in PaleGreen,
+			// caller) â€” positive net (long-biased bucket) renders the value in PaleGreen,
 			// negative net (short-biased) in Red. Falls back to default white when no signs
 			// are supplied (e.g. legacy LoadGrid wrappers).
 			var rows = data.OrderByDescending(x => x.Value.Length > 0 ? double.Parse(x.Value.Replace("%", "")) : 0).Select(kv =>
@@ -11894,7 +11905,7 @@ namespace ATMML
 					);
 					AuditService.LogConstraintBreach(
 						portfolioId: name,
-						description: $"Save attempted on locked model '{name}' Ã¢â‚¬â€ blocked.",
+						description: $"Save attempted on locked model '{name}' â€” blocked.",
 						severity: "High"
 					);
 					MessageBox.Show(
@@ -13050,7 +13061,7 @@ namespace ATMML
 			var selectedModel = _selectedUserFactorModel;
 			var allNames = new List<string>(_userFactorModels.Keys);
 			var liveNames = allNames.Where(n => _userFactorModels[n].IsLiveMode).OrderBy(n => n).ToList();
-			// Only Admin can see TEST portfolios Ã¢â‚¬â€ all other roles see LIVE only.
+			// Only Admin can see TEST portfolios â€” all other roles see LIVE only.
 			var testNamesAll = allNames.Where(n => !_userFactorModels[n].IsLiveMode).OrderBy(n => n).ToList();
 			var testNames = ATMML.Auth.AuthContext.Current.IsAdmin
 				? testNamesAll : new List<string>();
@@ -13301,7 +13312,7 @@ namespace ATMML
 					deleteModel(name);
 					deleteModelData(name);
 
-					// After delete, pick the next visible model Ã¢â‚¬â€ LIVE only for non-admin users.
+					// After delete, pick the next visible model â€” LIVE only for non-admin users.
 					List<string> list1 = ATMML.Auth.AuthContext.Current.IsAdmin
 						? _userFactorModels.Keys.ToList()
 						: _userFactorModels.Keys.Where(n => _userFactorModels[n].IsLiveMode).ToList();
@@ -14265,13 +14276,13 @@ namespace ATMML
 		{
 			var menu = new ContextMenu();
 
-			// Change Password Ã¢â‚¬â€ available to all roles
+			// Change Password â€” available to all roles
 			var changePassword = new MenuItem { Header = "Change Password" };
 			changePassword.Click += (_, _) =>
 				new ATMML.Auth.ChangePasswordDialog { Owner = Window.GetWindow(this) }.ShowDialog();
 			menu.Items.Add(changePassword);
 
-			// User Management Ã¢â‚¬â€ Admin only
+			// User Management â€” Admin only
 			if (ATMML.Auth.AuthContext.Current.CanManageUsers)
 			{
 				var manageUsers = new MenuItem { Header = "User Management" };
@@ -17087,7 +17098,7 @@ namespace ATMML
 			else if (_showHoldingsTime.Date >= DateTime.Today && _portfolioTimes.Count > 0)
 			{
 				// Cursor is on today (live, NOT in _portfolioTimes). Step back to the
-				// latest entry in the list Ã¢â‚¬â€ typically last settled Friday.
+				// latest entry in the list â€” typically last settled Friday.
 				var latest = _portfolioTimes
 					.Where(t => t != default(DateTime))
 					.OrderByDescending(t => t).FirstOrDefault();
@@ -17136,14 +17147,14 @@ namespace ATMML
 		private void setHoldingsCursorTime(DateTime time)
 		{
 			// Chart redraw can transiently fire CursorTime=default through PropertyChanged.
-			// Treat that as "no change" rather than wiping the user's cursor Ã¢â‚¬â€ otherwise
+			// Treat that as "no change" rather than wiping the user's cursor â€” otherwise
 			// refreshLiveBalance sees default and writes live MtM to Balance, briefly
 			// overwriting the locked historical value the user was looking at.
 			var model = getModel();
 
 			if (model != null && time != _showHoldingsTime)
 			{
-				// Do NOT reset _liveMtMBalance on navigation Ã¢â‚¬â€ refreshLiveBalance manages it
+				// Do NOT reset _liveMtMBalance on navigation â€” refreshLiveBalance manages it
 				// and resetting here causes flickering as it gets written back immediately.
 
 				var interval = (_ic != null) ? _ic.GetLowestInterval() : model.RankingInterval;
@@ -17157,13 +17168,13 @@ namespace ATMML
 				int rscnt = (int)Math.Round(pcs.Item2 * cnt / 100.0);
 
 				// Pre-order / intra-week: counts reflect last SETTLED Friday's holdings.
-				// Use the most recent settled Friday (a real Friday Ã¢â€°Â¤ today) not Count-2
+				// Use the most recent settled Friday (a real Friday â‰¤ today) not Count-2
 				// which may land on an intra-week daily nav date.
 				var lastSettledFriday = _portfolioTimes
 					.Where(t => t != default(DateTime) && t.Date <= DateTime.Today && t.DayOfWeek == DayOfWeek.Friday)
 					.OrderByDescending(t => t).FirstOrDefault();
 				// Position counts: any date after the last settled Friday (intra-week or projected
-				// rebalance) shows the CURRENT holdings Ã¢â‚¬â€ not the projected next portfolio.
+				// rebalance) shows the CURRENT holdings â€” not the projected next portfolio.
 				var countTime = (model.IsLiveMode
 					&& lastSettledFriday != default(DateTime)
 					&& time.Date > lastSettledFriday.Date)

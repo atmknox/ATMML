@@ -103,7 +103,7 @@ namespace ATMML
 
             AODPanel.KeyDown += new KeyEventHandler(KeyDown);
             AODPanel.KeyUp += new KeyEventHandler(KeyUp);
-            //AODPanel.TextInput += new TextCompositionEventHandler(TextInput);   // Charts-style: native TextBox handles typing
+            AODPanel.TextInput += new TextCompositionEventHandler(TextInput);
             AODPanel.MouseWheel += new MouseWheelEventHandler(Scroll);
         }
 
@@ -189,11 +189,18 @@ namespace ATMML
             }
             else if (e.Key == Key.Space)
             {
-                // native TextBox inserts the space at the caret
+                TickerSymbol.Text += " ";
+                e.Handled = true;
             }
             else if (e.Key == Key.Back)
             {
-                // native TextBox handles backspace at the caret
+                if (TickerSymbol.Text.Length > 0)
+                {
+                    var index = TickerSymbol.SelectionStart;
+                    if (index == 0 || index >= TickerSymbol.Text.Length) index = TickerSymbol.Text.Length - 1;
+                    TickerSymbol.Text = TickerSymbol.Text.Remove(index, 1);
+                    e.Handled = true;
+                }
             }
             else if (e.Key == Key.F1)
             {
@@ -875,11 +882,10 @@ namespace ATMML
                 STTrendText.Foreground = new SolidColorBrush(_advice1[0].Item2);
                 StrategyPosition.Text = _advice1[1].Item1;
                 StrategyPosition.Foreground = new SolidColorBrush(_advice1[1].Item2);
-                CurrentRec.Text = _advice1[1].Item1;
-                CurrentRec.Foreground = new SolidColorBrush(_advice1[1].Item2);
-                ModelPosition.Text = _advice1[2].Item1;
-                ModelPosition.Foreground = new SolidColorBrush(_advice1[2].Item2);
-                NewRec.Text = "";
+                CurrentRec.Text = _advice1[2].Item1;
+                CurrentRec.Foreground = new SolidColorBrush(_advice1[2].Item2);
+                NewRec.Text = _advice1[3].Item1;
+                NewRec.Foreground = new SolidColorBrush(_advice1[3].Item2);
                 ForecastPosition.Text = _advice1[3].Item1;
                 ForecastPosition.Foreground = new SolidColorBrush(_advice1[3].Item2);
 

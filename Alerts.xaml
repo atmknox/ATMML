@@ -929,9 +929,9 @@
                           HorizontalAlignment="Left" VerticalAlignment="Stretch" HorizontalContentAlignment="Left" Background="Transparent"
                           BorderBrush="Transparent" Foreground="White" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <TreeView.Resources>
-                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#FF124b72" />
+                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#0d1520" />
                         <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="White" />
-                        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent" />
+                        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#0d1520" />
                         <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="White" />
                     </TreeView.Resources>
                 </TreeView>

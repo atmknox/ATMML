@@ -140,7 +140,7 @@
 
         <Grid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="6"  Margin="6,0,2,0"  Grid.RowSpan="4"  VerticalAlignment="Top" >
             <WrapPanel Grid.IsSharedSizeScope="True" Orientation="Horizontal"   Width="Auto"  >
-                <TextBlock TextWrapping="Wrap"    
+                <TextBlock TextWrapping="WrapWithOverflow"    
                         HorizontalAlignment="left" Text=""  VerticalAlignment="Top" Padding="1"
                        FontFamily="Arial" FontSize="10" Foreground="Transparent"> 
                     <Run x:Name="MTMoMessage"></Run>
@@ -163,7 +163,7 @@
                        FontFamily="Helvetica Neue" FontSize="10" Foreground="Silver" />
         </StackPanel>
 
-        <TextBlock  Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="6"  Margin="6,0,0,0"   TextWrapping="Wrap"   Padding="1"
+        <TextBlock  Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="6"  Margin="6,0,0,0"   TextWrapping="WrapWithOverflow"   Padding="1"
                         HorizontalAlignment="left" Text="" Grid.RowSpan="4"  VerticalAlignment="Top"
                        FontFamily="Arial" FontSize="10" Foreground="Transparent" >
                 <Run x:Name="STMoMessage"></Run>
@@ -179,7 +179,7 @@
         </StackPanel>
 
         <TextBlock x:Name="ForecastPosition" Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="6" Padding="1"
-                    Margin="7,0,0,0" HorizontalAlignment="left" Text="" TextWrapping="Wrap"  Grid.RowSpan="4"
+                    Margin="7,0,0,0" HorizontalAlignment="left" Text="" TextWrapping="WrapWithOverflow"  Grid.RowSpan="4"
                     FontFamily="Arial" FontSize="10" Foreground="Transparent" />
 
 
