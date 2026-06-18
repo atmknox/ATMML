@@ -189,7 +189,22 @@
                             Content="CLOSE" Foreground="#ffffff" 
                             Background="Transparent" BorderThickness="0"
                             FontSize="12" Cursor="Hand"
-                            Click="BtnClose_Click"/>
+                            Padding="8,3"
+                            Click="BtnClose_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                        Padding="{TemplateBinding Padding}" CornerRadius="2">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="bd" Property="Background" Value="#2C4A63"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
                 </DockPanel>
             </Border>
 

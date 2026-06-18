@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -112,8 +112,6 @@ namespace ATMML
 		private void initialize()
 		{
 			InitializeComponent();
-			this.Loaded += Alerts_NavViewLoaded;
-			this.Unloaded += Alerts_NavViewUnloaded;
 
 			LinkCharts.IsChecked = Portfolio.GetLinkCharts();
 			LinkAccounts.IsChecked = Portfolio.GetLinkAccounts();
@@ -3352,32 +3350,6 @@ namespace ATMML
 			}
 		}
 
-		private void Alerts_NavViewLoaded(object sender, System.Windows.RoutedEventArgs e)
-		{
-		    ATMML.Auth.AuthContext.Current.ViewChanged -= OnNavViewChanged;
-		    ATMML.Auth.AuthContext.Current.ViewChanged += OnNavViewChanged;
-		    ApplyNavView();
-		}
-
-		private void Alerts_NavViewUnloaded(object sender, System.Windows.RoutedEventArgs e)
-		{
-		    ATMML.Auth.AuthContext.Current.ViewChanged -= OnNavViewChanged;
-		}
-
-		private void OnNavViewChanged(object sender, System.EventArgs e)
-		{
-		    ApplyNavView();
-		}
-
-		private void ApplyNavView()
-		{
-		    if (MainNavRow != null)
-		        MainNavRow.Visibility =
-		            (ATMML.Auth.AuthContext.Current.CurrentView == ATMML.Auth.AppView.Pro)
-		                ? System.Windows.Visibility.Collapsed
-		                : System.Windows.Visibility.Visible;
-		}
-
 		private void BtnSettings_Click(object sender, System.Windows.RoutedEventArgs e)
 		{
 			var menu = new System.Windows.Controls.ContextMenu();
@@ -3386,15 +3358,6 @@ namespace ATMML
 			changePassword.Click += (_, _) =>
 				new ATMML.Auth.ChangePasswordDialog { Owner = System.Windows.Window.GetWindow(this) }.ShowDialog();
 			menu.Items.Add(changePassword);
-
-			var viewMenu = new System.Windows.Controls.MenuItem { Header = "View" };
-			var viewAll = new System.Windows.Controls.MenuItem { Header = "All", IsCheckable = true, IsChecked = ATMML.Auth.AuthContext.Current.CurrentView == ATMML.Auth.AppView.All };
-			var viewPro = new System.Windows.Controls.MenuItem { Header = "Pro", IsCheckable = true, IsChecked = ATMML.Auth.AuthContext.Current.CurrentView == ATMML.Auth.AppView.Pro };
-			viewAll.Click += (_, _) => { ATMML.Auth.AuthContext.Current.CurrentView = ATMML.Auth.AppView.All; };
-			viewPro.Click += (_, _) => { ATMML.Auth.AuthContext.Current.CurrentView = ATMML.Auth.AppView.Pro; };
-			viewMenu.Items.Add(viewAll);
-			viewMenu.Items.Add(viewPro);
-			menu.Items.Add(viewMenu);
 
 			if (ATMML.Auth.AuthContext.Current.CanManageUsers)
 			{

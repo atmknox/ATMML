@@ -76,24 +76,24 @@ namespace ATMML.Auth
 		public bool CanManageUsers => IsAdmin;
 
 		// View mode (All / Pro)
-		private AppView _currentView = AppView.All;
-		public AppView CurrentView
+ AppView _currentView = AppView.All;
+ AppView CurrentView
 		{
-			get { return _currentView; }
-			set
+ => _currentView;
+
 			{
-				if (_currentView == value) return;
-				_currentView = value;
-				ViewChanged?.Invoke(this, System.EventArgs.Empty);
-				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentView)));
+ (_currentView == value) return;
+ = value;
+.Invoke(this, System.EventArgs.Empty);
+.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentView)));
 			}
 		}
 
 		// Fired when CurrentView changes so each view re-applies its nav layout.
-		public event System.EventHandler ViewChanged;
+ event System.EventHandler ViewChanged;
 
 		// Stub: both views allowed to everyone for now. Server entitlements drive this later.
-		public bool CanUseView(AppView view) => true;
+ bool CanUseView(AppView view) => true;
 		public bool CanApproveTrades => IsPortfolioManager;
 		public bool CanModifyPortfolio => IsPortfolioManager;
 

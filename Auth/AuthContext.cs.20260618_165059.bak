@@ -1,11 +1,9 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using ATMML.Compliance;   // AuditService lives here
 
 namespace ATMML.Auth
 {
-	public enum AppView { All, Pro }
-
 	public class AuthContext : INotifyPropertyChanged
 	{
 		// ── Singleton ─────────────────────────────────────────────────────────
@@ -74,26 +72,6 @@ namespace ATMML.Auth
 		// ── General (kept for existing XAML bindings) ─────────────────────────
 		public bool CanViewSetup => IsAdmin;
 		public bool CanManageUsers => IsAdmin;
-
-		// View mode (All / Pro)
-		private AppView _currentView = AppView.All;
-		public AppView CurrentView
-		{
-			get { return _currentView; }
-			set
-			{
-				if (_currentView == value) return;
-				_currentView = value;
-				ViewChanged?.Invoke(this, System.EventArgs.Empty);
-				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentView)));
-			}
-		}
-
-		// Fired when CurrentView changes so each view re-applies its nav layout.
-		public event System.EventHandler ViewChanged;
-
-		// Stub: both views allowed to everyone for now. Server entitlements drive this later.
-		public bool CanUseView(AppView view) => true;
 		public bool CanApproveTrades => IsPortfolioManager;
 		public bool CanModifyPortfolio => IsPortfolioManager;
 

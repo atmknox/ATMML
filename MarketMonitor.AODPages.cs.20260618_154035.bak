@@ -185,7 +185,7 @@ namespace ATMML
                 l1.FontSize = 12;
                 l1.FontWeight = FontWeights.Normal;
                 l1.VerticalAlignment = VerticalAlignment.Top;
-                l1.Margin = new Thickness(0, -4, 5, 0);
+                l1.Margin = new Thickness(0, 0, 5, 0);
                 l1.Content = page.Name;
                 l1.Cursor = Cursors.Hand;
                 l1.Tag = page.Id;
